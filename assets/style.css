@@ -24,6 +24,14 @@ body {
     width: 100%;  /* Asegura que ocupe todo el ancho de la página */
 }
 
+/* Contenedor de la navbar */
+#navbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 20px !important;
+}
+
 /* Estilo de los enlaces en la página de inicio (Home) */
 .home-links {
     display: flex;  /* Flexbox para alinear los enlaces */
@@ -105,12 +113,20 @@ button:hover, .dcc-radio:hover {
     text-decoration: none;
     font-weight: bold;
     font-size: 1.2em;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
 }
 
-/* Efecto hover para los enlaces de navegación */
-.nav-links a:hover {
+.navbar-link:hover {
     color: #fff;
     background-color: #16a085;
+    cursor: pointer;
+}
+
+button.navbar-link {
+    background-color: transparent;
+    border: 1px solid #16a085;
     cursor: pointer;
 }
 
@@ -118,4 +134,39 @@ button:hover, .dcc-radio:hover {
 #data-table {
     max-height: 400px;
     overflow-y: auto;
+}
+
+/* Estilos para el selector de idiomas */
+#language-selector {
+    display: flex !important;
+    gap: 20px !important;
+    align-items: center !important;
+}
+
+#language-selector label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #2c3e50;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#language-selector label:hover {
+    background-color: rgba(26, 188, 156, 0.1);
+}
+
+#language-selector input[type="radio"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+#language-selector input[type="radio"]:checked + label {
+    color: #1abc9c;
+    font-weight: bold;
 }

@@ -4,41 +4,68 @@ from dash.dependencies import Input, Output, State
 import base64
 import plotly.express as px
 import io
-from layout import survival_analysis_page, covariate_analysis_page, kaplan_meier_page, cox_regression_page, log_rank_page, display_logrank_summary_table, ver_dataset_page
+from layout import (
+    create_survival_analysis_page, create_covariate_analysis_page, 
+    create_kaplan_meier_page, create_cox_regression_page, 
+    create_log_rank_page, create_ver_dataset_page, 
+    display_logrank_summary_table
+)
 from kaplan_meier import plot_kaplan_meier, plot_km_G, plot_km_disc
 from cox_regression import run_cox_regression
 from log_rank_test import perform_log_rank_test
 import matplotlib.pyplot as plt
-from ollama import Client
+import requests
 from ollama_AI import generate_explanation 
 import plotly.graph_objs as go
 from dash import callback_context
+from translations import get_translation
 
 # Inicializar la aplicación Dash
 app = Dash(__name__, suppress_callback_exceptions=True)
 
-client = Client(
-  host='http://127.0.0.1:11434',
-  headers={'x-some-header': 'some-value'}
-)
+# Configuración de llama-server (llama.cpp) con Qwen2.5-1.5B-Instruct
+LLAMA_SERVER_URL = "http://127.0.0.1:8080/v1/chat/completions"
+MODEL_NAME = "qwen2.5-1.5b-instruct"
 
-df = pd.read_csv(r"C:\Users\lucia\Desktop\5º\TFG\prepared OULAD dataset\data_final.csv", sep=';')
-df_limpio = pd.read_csv(r'C:\Users\lucia\Desktop\5º\TFG\prepared OULAD dataset\dataset_limpio.csv', sep=';')
+df = pd.read_csv(r"C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\data\temp_data.csv", sep=';')
+df_limpio = pd.read_csv(r'C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\dataset_limpio.csv', sep=';')
 
 
 # Barra de navegación fija en la parte superior
-navbar = html.Div([ 
+navbar = html.Div([
     html.Div([ 
-        html.A('INICIO', id='inicio-link', href='#', className='navbar-link'),  # Link en lugar de botón
-        dcc.Link('VER DATASET', href='/ver-dataset', className='navbar-link'), 
-        dcc.Link('ANÁLISIS DE COVARIABLES', href='/covariate-analysis', className='navbar-link'),
-        dcc.Link('ANÁLISIS DE SUPERVIVENCIA', href='/survival-analysis', className='navbar-link'),
-    ], className='navbar-links')
+        html.Div([
+            html.Button('INICIO', id='inicio-btn', n_clicks=0, className='navbar-link', style={'border': 'none', 'background': 'none', 'cursor': 'pointer', 'fontWeight': 'bold', 'fontSize': '14px'}),
+            dcc.Link('VER DATASET', href='/ver-dataset', className='navbar-link'), 
+            dcc.Link('ANÁLISIS DE COVARIABLES', href='/covariate-analysis', className='navbar-link'),
+            dcc.Link('ANÁLISIS DE SUPERVIVENCIA', href='/survival-analysis', className='navbar-link'),
+        ], className='navbar-links', style={'flex': '1'}),
+        # Botón de idioma en la esquina derecha
+        html.Div([
+            dcc.RadioItems(
+                id='language-selector',
+                options=[
+                    {'label': 'ES', 'value': 'es'},
+                    {'label': 'EN', 'value': 'en'},
+                ],
+                value='es',
+                labelStyle={'display': 'inline-block', 'marginRight': '20px'},
+                style={
+                    'fontSize': '14px',
+                    'fontWeight': 'bold',
+                    'padding': '5px 15px',
+                    'borderRadius': '5px',
+                    'backgroundColor': 'rgba(26, 188, 156, 0.05)',
+                }
+            )
+        ], style={'marginRight': '30px', 'display': 'flex', 'alignItems': 'center'})
+    ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'width': '100%'})
 ], id='navbar', style={'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'background-color': '#f4f7f6', 'padding': '10px', 'z-index': '1000'})
 
 app.layout = html.Div([ 
     navbar, 
     dcc.Location(id='url', refresh=False),  
+    dcc.Store(id='language-store', data='es'),  # Store para almacenar el idioma actual
     html.Div(id='page-content'),  
     # Cuadro de confirmación
     dcc.ConfirmDialog(
@@ -49,15 +76,30 @@ app.layout = html.Div([
         cancel_n_clicks=0  
     )
 ])
+# Callback para almacenar el idioma seleccionado
+@app.callback(
+    Output('language-store', 'data'),
+    Input('language-selector', 'value')
+)
+def update_language(selected_language):
+    return selected_language
+
 @app.callback(
     Output('confirm-dialog', 'displayed'),
-    Input('inicio-link', 'n_clicks'),
+    Input('inicio-btn', 'n_clicks'),
     prevent_initial_call=True  # Evita que se active al cargar la página
 )
 def mostrar_confirmacion(n_clicks):
     if n_clicks:
         return True 
     return False
+
+@app.callback(
+    Output('confirm-dialog', 'message'),
+    Input('language-store', 'data')
+)
+def update_confirm_message(language):
+    return get_translation(language, 'confirmar_inicio')
 
 @app.callback(
     Output('url', 'pathname'),
@@ -85,50 +127,54 @@ def navegar_a_inicio(submit_n_clicks, cancel_n_clicks):
     
     return dash.no_update 
 
-# Página de HOME
-home_page = html.Div([ 
-html.Div([ 
-    html.Video(
-        src='/assets/banner.mp4', 
-        id='banner-video', 
-        autoPlay=True, 
-        muted=True, 
-        loop=True, 
-        style={
-            'width': '100%', 
-            'maxHeight': '350px', 
-            'display': 'block', 
-            'marginTop': '0px', 
-            'marginBottom': '0px',
-            'objectFit': 'cover'  
-        }
-    )
-], id="banner-container", style={'width': '100%', 'padding': '0', 'margin': '0'}),
-    
-    html.Div([ 
-        html.Img(src='/assets/datos.png', style={'height': '150px', 'marginTop': '10px', 'marginLeft': '20px', 'display': 'none'}), 
-        html.H1("DASHBOARD 'SURVIVAL ANALYSIS'", style={'textAlign': 'center', 'fontSize': '2.5em', 'display': 'inline-block'})
-    ], style={'textAlign': 'center', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'marginBottom': '0px'}), 
-    
-    dcc.Loading(
-        id="loading-spinner",
-        type="circle",  
-        children=html.Div([  
-            html.H3("Cargar Dataset para preprocesarlo y analizarlo", id='upload-text'), 
-            dcc.Upload(
-                id='upload-data',
-                children=html.Button('Sube tu CSV'),
-                multiple=False
-            ),
-            html.Div(id='output-data-upload') 
-        ], style={'textAlign': 'center', 'marginTop': '30px'}),
-    ),
-    
-    # Botón para limpiar y cargar el dataset limpio
-    html.Div([ 
-        html.Button('Preprocesa CSV', id='load-clean', n_clicks=0),
-    ], style={'textAlign': 'center', 'marginTop': '20px'}),
-])
+# Página de HOME - como función para usar traducciones dinámicamente
+def create_home_page(language='es'):
+    return html.Div([
+        html.Div([ 
+            html.Video(
+                src='/assets/banner.mp4', 
+                id='banner-video', 
+                autoPlay=True, 
+                muted=True, 
+                loop=True, 
+                style={
+                    'width': '100%', 
+                    'maxHeight': '350px', 
+                    'display': 'block', 
+                    'marginTop': '0px', 
+                    'marginBottom': '0px',
+                    'objectFit': 'cover'  
+                }
+            )
+        ], id="banner-container", style={'width': '100%', 'padding': '0', 'margin': '0'}),
+            
+        html.Div([ 
+            html.Img(src='/assets/datos.png', style={'height': '150px', 'marginTop': '10px', 'marginLeft': '20px', 'display': 'none'}), 
+            html.H1(get_translation(language, 'dashboard_title'), style={'textAlign': 'center', 'fontSize': '2.5em', 'display': 'inline-block'})
+        ], style={'textAlign': 'center', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'marginBottom': '0px'}), 
+        
+        dcc.Loading(
+            id="loading-spinner",
+            type="circle",  
+            children=html.Div([  
+                html.H3(get_translation(language, 'cargar_dataset'), id='upload-text'), 
+                dcc.Upload(
+                    id='upload-data',
+                    children=html.Button(get_translation(language, 'sube_csv')),
+                    multiple=False
+                ),
+                html.Div(id='output-data-upload') 
+            ], style={'textAlign': 'center', 'marginTop': '30px'}),
+        ),
+        
+        # Botón para limpiar y cargar el dataset limpio
+        html.Div([ 
+            html.Button(get_translation(language, 'preprocesa_csv'), id='load-clean', n_clicks=0),
+        ], style={'textAlign': 'center', 'marginTop': '20px'}),
+    ])
+
+# Página inicial
+home_page = create_home_page('es')
 #ocultar frase incial: "Cargar Dataset..."
 @app.callback(
     Output('upload-text', 'style'),  # Cambiar el estilo del texto
@@ -176,19 +222,20 @@ def verificar_archivo_correcto(contents, filename):
      Output('output-data-upload', 'children')], 
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename'), 
-     Input('load-clean', 'n_clicks')]
+     Input('load-clean', 'n_clicks')],
+    [State('language-store', 'data')]
 )
 
-def update_output(contents,filename, n_clicks):
+def update_output(contents, filename, n_clicks, language):
     if contents is None:
-        return {'display': 'block'},{'display': 'none'}, html.Div(["No se ha cargado ningún archivo aún."],style={'marginTop': '20px', 'marginBottom': '0px'})
+        return {'display': 'block'},{'display': 'none'}, html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'})
     
     if not verificar_archivo_correcto(contents, filename):
         return {'display': 'none'}, {'display': 'none'}, html.Div(
             [
-                "ERROR: El archivo cargado no es el adecuado.",
+                get_translation(language, 'error_archivo'),
                 html.Br(), 
-                "Este sistema es compatible únicamente con el dataset temp_data.csv"
+                get_translation(language, 'archivo_correcto')
             ],
             style={
                 'color': 'red',       
@@ -201,11 +248,10 @@ def update_output(contents,filename, n_clicks):
     df = parse_contents(contents)
     
     if n_clicks > 0:
-        #df_limpio = df.preprocess_data
-        return {'display': 'none'},{'display': 'none'}, display_data(df_limpio, "Archivo Preprocesado")
+        return {'display': 'none'}, {'display': 'none'}, display_data(df_limpio, get_translation(language, 'archivo_preprocesado'))
     
     # Si no se ha presionado el botón de limpiar, mostrar el archivo bruto
-    return {'display': 'none'},{'display': 'inline-block'}, display_data(df, "Archivo Bruto")
+    return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto'))
 
 
 #maneja que no aparezca la barra de navegacion hasta que se limpie el dataset
@@ -221,25 +267,26 @@ def toggle_navbar(n_clicks):
 # Callbacks para manejar la navegación entre páginas
 @app.callback(
     Output('page-content', 'children'),
-    Input('url', 'pathname')
+    [Input('url', 'pathname'),
+     Input('language-store', 'data')]
 )
-def display_page(pathname):
+def display_page(pathname, language):
     if pathname == '/':
-        return home_page
+        return create_home_page(language)
     elif pathname == '/covariate-analysis':
-        return covariate_analysis_page
+        return create_covariate_analysis_page(language)
     elif pathname == '/survival-analysis':
-        return survival_analysis_page  
+        return create_survival_analysis_page(language)
     elif pathname == '/survival-analysis/kaplan-meier':
-        return kaplan_meier_page 
+        return create_kaplan_meier_page(language)
     elif pathname == '/survival-analysis/cox-regression':
-        return cox_regression_page
+        return create_cox_regression_page(language)
     elif pathname == '/survival-analysis/log-rank':
-        return log_rank_page
+        return create_log_rank_page(language)
     elif pathname == '/ver-dataset':  
-        return ver_dataset_page
+        return create_ver_dataset_page(language)
     else:
-        return home_page
+        return create_home_page(language)
 
 #maneja navegacion de kaplan
 @app.callback(
@@ -265,16 +312,16 @@ df_limpio['abandono'] = df_limpio['final_result'].map({1: 'Abandono', 0: 'No aba
 @app.callback(
     Output('openai-answer-kaplan', 'value'),
     [Input('explicar-btn-kaplan', 'n_clicks')],
-    [State('km-global-div', 'children')] 
+    [State('km-global-div', 'children'),
+     State('language-store', 'data')] 
 )
-def explicar_kaplan(n_clicks, kaplan_img):
+def explicar_kaplan(n_clicks, kaplan_img, language):
 
     if n_clicks is not None and n_clicks > 0:
         # Verificar que la imagen de Kaplan-Meier ha sido generada antes de continuar
         if kaplan_img:
-            prompt = (
-                f"Dame una conclusión en español de las gráficas obtenidas de Kaplan-Meier: {kaplan_img}."
-            )
+            prompt_template = "Give me a conclusion in {lang} of the Kaplan-Meier graphs obtained: {kaplan_img}." if language == 'en' else "Dame una conclusión en español de las gráficas obtenidas de Kaplan-Meier: {kaplan_img}."
+            prompt = prompt_template.format(lang='English', kaplan_img=kaplan_img)
             # Llamar a la IA para obtener la explicación
             respuesta = responder_pregunta_con_llama3(prompt)
             return respuesta
@@ -284,9 +331,10 @@ def explicar_kaplan(n_clicks, kaplan_img):
 @app.callback(
     [Output('covariables-graph', 'figure'),
     Output('graph-explanation', 'children')],
-    [Input('covariables-dropdown', 'value')]
+    [Input('covariables-dropdown', 'value'),
+     Input('language-store', 'data')]
 )
-def update_graph(col_chosen):
+def update_graph(col_chosen, language):
     if col_chosen == 'abandono':
         conteo_abandono = df_limpio['final_result'].value_counts().sort_index()
 
@@ -297,112 +345,101 @@ def update_graph(col_chosen):
         count_no_abandono = conteo_abandono[0] if 0 in conteo_abandono else 0
         count_abandono = conteo_abandono[1] if 1 in conteo_abandono else 0
 
+        # Etiquetas en el idioma seleccionado
+        label_no_abandono = get_translation(language, 'no_abandono')
+        label_abandono = get_translation(language, 'abandono')
+
         # Añadir las barras para No Abandono y Abandono
         fig.add_trace(go.Bar(
-            x=['No Abandono'],  
+            x=[label_no_abandono],  
             y=[count_no_abandono],  
             name='',
             marker_color='#1abc9c',
-            hovertemplate='No Abandono: %{y}'
+            hovertemplate=f'{label_no_abandono}: %{{y}}'
         ))
 
         fig.add_trace(go.Bar(
-            x=['Abandono'],  
+            x=[label_abandono],  
             y=[count_abandono],  
             name='',
             marker_color='#006400',
-            hovertemplate='Abandono: %{y}'
+            hovertemplate=f'{label_abandono}: %{{y}}'
         ))
 
         # Personalizar la apariencia del gráfico
         fig.update_layout(
-            title='Abandono vs No Abandono',
-            xaxis_title='Resultado Final',
-            yaxis_title='Número de Estudiantes',
+            title=get_translation(language, 'abandono_vs_no_abandono'),
+            xaxis_title=get_translation(language, 'resultado_final'),
+            yaxis_title=get_translation(language, 'num_estudiantes'),
             barmode='group', 
             xaxis=dict(
                 tickmode='array', 
-                tickvals=['No Abandono', 'Abandono'],  
-                ticktext=[f'No Abandono: {count_no_abandono}', f'Abandono: {count_abandono}'], 
+                tickvals=[label_no_abandono, label_abandono],  
+                ticktext=[f'{label_no_abandono}: {count_no_abandono}', f'{label_abandono}: {count_abandono}'], 
             ),
-            legend_title="Evento",
+            legend_title=get_translation(language, 'evento'),
         )
     
-        explicacion = (
-            """
-            Este gráfico muestra la distribución de los estudiantes en función de si han abandonado o no el curso. 
-            La columna verde, representa a los estudiantes que no han abandonado, mientras que la
-             morada a los que sí.
-            Como se puede observar, la mayoría de los estudiantes no han llevado a cabo el evento de abandono 
-            lo que sugiere que la tasa de abandono es relativamente baja en este cojunto de datos.
-            """
-        )     
+        explicacion = get_translation(language, 'exp_abandono')
            
         return fig, explicacion
     
     elif col_chosen == 'gender':
         conteo_genero = df_limpio['gender'].value_counts().sort_index()
         
+        # Etiquetas en el idioma seleccionado
+        label_masculino = get_translation(language, 'masculino')
+        label_femenino = get_translation(language, 'femenino')
+        
         # Contamos cuántos estudiantes hay según su género y si han abandonado o no
-        fig = px.histogram(df_limpio, x='gender', color='final_result', barmode='group', title='Abandono según Género',
+        fig = px.histogram(df_limpio, x='gender', color='final_result', barmode='group', 
+                           title=get_translation(language, 'abandono_genero_title'),
                            color_discrete_map={0: '#1abc9c', 1: '#006400'})
 
-        ticktext = [f'Masculino: {conteo_genero[0]}', f'Femenino: {conteo_genero[1]}']
+        ticktext = [f'{label_masculino}: {conteo_genero[0]}', f'{label_femenino}: {conteo_genero[1]}']
 
         fig.update_layout(
-            xaxis_title='Género', 
-            yaxis_title='Número de Estudiantes', 
-            legend_title="Abandono",
+            xaxis_title=get_translation(language, 'genero'), 
+            yaxis_title=get_translation(language, 'num_estudiantes'), 
+            legend_title=get_translation(language, 'abandono'),
             xaxis=dict(tickmode='array', tickvals=[0, 1], ticktext=ticktext)  
         )
         
-        explicacion = (
-            """
-            Este gráfico muestra la distribución del abandono influido por el género. Podemos concluir en que la mayoría de los estudiantes
-            no han abandonado el curso y se observa una diferencia destacable en el abandono por género. Las estudiantes femeninas
-            presentan una mayor proporción de abandono en comparación con los estudiantes masculinos, por ello, en este conjunto las mujeres tienen una
-            tasa de abandono superior. A pesar de ello, en ambos sexos, el número de estudiantes 
-            que no abandonan el curso es significativamente mayor que el número de los que si abandonan.
-            
-            """
-        )
+        explicacion = get_translation(language, 'exp_genero')
         return fig, explicacion
     
     elif col_chosen == 'disability':
         conteo_discapacidad = df_limpio['disability'].value_counts().sort_index()
 
+        # Etiquetas en el idioma seleccionado
+        label_sin_discapacidad = get_translation(language, 'sin_discapacidad')
+        label_con_discapacidad = get_translation(language, 'con_discapacidad')
+        
         # Contamos cuántos estudiantes hay según si tienen discapacidad y si han abandonado o no
-        fig = px.histogram(df_limpio, x='disability', color='final_result', barmode='group', title='Abandono según Discapacidad',
+        fig = px.histogram(df_limpio, x='disability', color='final_result', barmode='group', 
+                           title=get_translation(language, 'abandono_discapacidad_title'),
                            color_discrete_map={0: '#1abc9c', 1: '#006400'})
 
-        ticktext = [f'Sin Discapacidad: {conteo_discapacidad[0]}', f'Con Discapacidad: {conteo_discapacidad[1]}']
+        ticktext = [f'{label_sin_discapacidad}: {conteo_discapacidad[0]}', f'{label_con_discapacidad}: {conteo_discapacidad[1]}']
 
         fig.update_layout(
-        xaxis_title='Discapacidad', 
-        yaxis_title='Número de Estudiantes', 
-        legend_title="Abandono",
-        xaxis=dict(tickmode='array', tickvals=[0, 1], ticktext=ticktext) 
-    )
-
-        explicacion = (
-            """
-            Este gráfico muestra la distribución del abandono influido por la discapacidad. A pesar de que el número de estudiantes sin discapacidad
-            es considerablemente menor, la tasa de abandono en este conjunto es más alta en comparación con los estudiantes que presentan discapacidad.
-            Aún así, la mayoría de estudiantes, tanto con como sin, no abandonan el curso, y es la conclusión que podemos destacar del grafo presente. Esto
-            nos lleva a entender que aunque la discapacidad puede estar asociada a un riesgo superior de que suceda este evento, la diferencia no es 
-            considerable para este conjunto de datos.
-            
-            """
+            xaxis_title=get_translation(language, 'discapacidad'), 
+            yaxis_title=get_translation(language, 'num_estudiantes'), 
+            legend_title=get_translation(language, 'abandono'),
+            xaxis=dict(tickmode='array', tickvals=[0, 1], ticktext=ticktext) 
         )
+
+        explicacion = get_translation(language, 'exp_discapacidad')
         return fig, explicacion
 
 @app.callback(
     Output('cox-regression-output', 'children'),
-    [Input('covariables-dropdown-cox', 'value')]
+    [Input('covariables-dropdown-cox', 'value'),
+     Input('language-store', 'data')]
 )
-def update_cox_model(covariables):
+def update_cox_model(covariables, language):
     if covariables is None or len(covariables) == 0:
-        return html.Div(["Selecciona al menos una covariable."])
+        return html.Div([get_translation(language, 'selecciona_covariable_minimo')])
 
     # Asegurarnos de que covariables sea una lista
     if isinstance(covariables, str):  
@@ -416,17 +453,25 @@ def update_cox_model(covariables):
 @app.callback(
     Output('openai-answer-cox', 'value'),
     [Input('btn-cox', 'n_clicks')],
-    [State('cox-regression-output', 'children')] 
+    [State('cox-regression-output', 'children'),
+     State('language-store', 'data')] 
 )
-def explicar_cox(n_clicks, cox_content):
+def explicar_cox(n_clicks, cox_content, language):
     if n_clicks is not None and n_clicks > 0:
         # Verificar que la tabla de Cox ha sido generada antes de continuar
         if cox_content:
-            prompt = (
-                f"Explica los resultados dela Regresion de Cox generados con los siguientes resultados:\n"
-                f"Resultados: {cox_content}\n"
-                f"¿Cómo afectan las covariables a la probabilidad de abandono?"
-            )
+            if language == 'en':
+                prompt = (
+                    f"Explain the results of the Cox Regression generated with the following results:\n"
+                    f"Results: {cox_content}\n"
+                    f"How do the covariates affect the probability of dropout?"
+                )
+            else:
+                prompt = (
+                    f"Explica los resultados dela Regresion de Cox generados con los siguientes resultados:\n"
+                    f"Resultados: {cox_content}\n"
+                    f"¿Cómo afectan las covariables a la probabilidad de abandono?"
+                )
             # Llamar a la IA para obtener la explicación
             respuesta = responder_pregunta_con_llama3(prompt)
             return respuesta
@@ -435,13 +480,14 @@ def explicar_cox(n_clicks, cox_content):
 #callback para el control del analisis de log rank
 @app.callback(
     Output('logrank-test-output', 'children'),
-    [Input('covariables-dropdown-logrank', 'value')]
+    [Input('covariables-dropdown-logrank', 'value'),
+     Input('language-store', 'data')]
 )
 
-def update_logrank_test(covariables):
+def update_logrank_test(covariables, language):
     # Verificar que al menos se haya seleccionado una covariable
     if not covariables:
-        return html.Div(["Selecciona al menos una covariable para comparar."])
+        return html.Div([get_translation(language, 'selecciona_covariable_comparar')])
 
     panels = []
 
@@ -458,20 +504,27 @@ def update_logrank_test(covariables):
 @app.callback(
     Output('openai-answer-logrank', 'value'),
     [Input('explicar-btn-logrank', 'n_clicks')],
-    [State('logrank-test-output', 'children')]  
+    [State('logrank-test-output', 'children'),
+     State('language-store', 'data')]  
 )
-def explicar_logrank(n_clicks, logrank_content):
+def explicar_logrank(n_clicks, logrank_content, language):
     if n_clicks is not None and n_clicks > 0:
         # Verificar que la tabla del Test de Log-Rank ha sido generada antes de continuar
         if logrank_content:
-            prompt = (
-                #RESPUESTA LARGA
-                #f"Explica los resultados del Test de Log-Rank generados con los siguientes resultados:\n"
-                #RESPUESTA CORTA
-                f"Me puedes dar una conclusión breve según los resultados obtenidos de Log Rank:\n"
-                f"Resultados: {logrank_content}\n"
-                #f"¿Qué significa la diferencia entre los dos grupos y cómo deben interpretarse los valores p y el estadístico de prueba?"
-            )
+            if language == 'en':
+                prompt = (
+                    f"Can you give me a brief conclusion based on the results obtained from Log Rank:\n"
+                    f"Results: {logrank_content}\n"
+                )
+            else:
+                prompt = (
+                    #RESPUESTA LARGA
+                    #f"Explica los resultados del Test de Log-Rank generados con los siguientes resultados:\n"
+                    #RESPUESTA CORTA
+                    f"Me puedes dar una conclusión breve según los resultados obtenidos de Log Rank:\n"
+                    f"Resultados: {logrank_content}\n"
+                    #f"¿Qué significa la diferencia entre los dos grupos y cómo deben interpretarse los valores p y el estadístico de prueba?"
+                )
             # Llamar a la IA para obtener la explicación
             respuesta = responder_pregunta_con_llama3(prompt)
             if len(respuesta) > 3000:  # Si la respuesta es muy larga, la cortamos en partes
@@ -481,38 +534,68 @@ def explicar_logrank(n_clicks, logrank_content):
     return ""
 
 
-#callaback para las consultas al modelo llama3
+# Callback para las consultas al modelo Qwen2.5 vía llama-server
 def responder_pregunta_con_llama3(pregunta: str) -> str:
     """
-    Envía la pregunta a Llama3 (Ollama) y devuelve el texto de respuesta.
+    Envía la pregunta a Qwen2.5-1.5B-Instruct mediante llama.cpp (llama-server).
+    Usa endpoint HTTP local OpenAI-compatible sin dependencias externas.
+    Tiempo ilimitado para que el modelo piense.
     """
+    import time
+    
     try:
-        # Realizar la solicitud al modelo Llama3 a través del cliente Ollama
-        response = client.chat(
-            model="llama3",  # Nombre del modelo
-            messages=[
+        # Payload compatible con API OpenAI de llama-server
+        payload = {
+            "model": MODEL_NAME,
+            "messages": [
                 {"role": "user", "content": pregunta}
             ],
-            options={
-                "num_predict": 1000,  # Limitar tokens de salida
-                "temperature": 0.2,   # Respuestas más estables
-                "max_tokens": 3000
-            }
-        )
-        # Extraemos la respuesta generada
-        content = response.get('message', {}).get('content', '').strip()
+            "temperature": 0.2,
+            "max_tokens": 3000,
+            "stream": False
+        }
+        
+        # Registro de inicio
+        inicio = time.time()
+        print(f"\n⏳ Enviando solicitud al LLM...")
+        print(f"🔄 Esperando respuesta (sin límite de tiempo)...")
+        
+        # Realiza la solicitud HTTP al servidor llama.cpp (timeout sin límite: 10 minutos)
+        response = requests.post(LLAMA_SERVER_URL, json=payload, timeout=600)
+        response.raise_for_status()
+        
+        # Calcular tiempo de respuesta
+        tiempo_respuesta = time.time() - inicio
+        
+        # Extrae la respuesta generada
+        result = response.json()
+        content = result['choices'][0]['message']['content'].strip()
+        
         if not content:
             raise ValueError("No se recibió una respuesta válida del modelo.")
+        
+        # Mostrar tiempo de procesamiento
+        minutos = int(tiempo_respuesta // 60)
+        segundos = int(tiempo_respuesta % 60)
+        tiempo_str = f"{minutos}m {segundos}s" if minutos > 0 else f"{segundos}s"
+        print(f"\n✅ Respuesta generada en: {tiempo_str}")
+        print(f"📝 Tokens recibidos: {result.get('usage', {}).get('completion_tokens', 'desconocido')}\n")
+        
         max_length = 3000
-        if len(content) > max_length:  # Ajusta el límite según el caso
-            content_parts = [content[i:i+1000] for i in range(0, len(content), max_length)]
-            return '\n\n'.join(content_parts)  # Devolvemos las partes concatenadas
+        if len(content) > max_length:
+            content_parts = [content[i:i+1000] for i in range(0, len(content), 1000)]
+            return '\n\n'.join(content_parts)
+        
         return content
+        
+    except requests.exceptions.ConnectionError:
+        return "❌ Error: No se pudo conectar a llama-server. Asegúrate de que está ejecutándose en http://127.0.0.1:8000"
+    except requests.exceptions.Timeout:
+        return "❌ Error: Timeout (el modelo tardó demasiado en responder, >10 minutos). Intenta con prompts más cortos."
     except Exception as e:
-        # Captura cualquier error y lo muestra
-        return f"Error consultando llama3: {str(e)}"
+        return f"❌ Error consultando Qwen2.5: {str(e)}"
     
 
 # Correr la app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run_server(debug=True)

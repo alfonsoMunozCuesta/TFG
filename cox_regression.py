@@ -1,9 +1,6 @@
 from lifelines import CoxPHFitter
-import pandas as pd
 import numpy as np
 from dash import dash_table
-
-df_limpio = pd.read_csv(r'C:\Users\lucia\Desktop\5º\TFG\prepared OULAD dataset\dataset_limpio.csv', sep=';')
 
 def run_cox_regression(df_limpio, covariables):
     # Preparamos el DataFrame para la regresión de Cox

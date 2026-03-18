@@ -1,14 +1,7 @@
-import pandas as pd
-import numpy as np
-from dash import Dash, dcc, html
+from dash import dcc
 import plotly.graph_objs as go
-from plotly.subplots import make_subplots
 from lifelines import KaplanMeierFitter
-import matplotlib.pyplot as plt
-import base64
-import io
-
-df = pd.read_csv(r"C:\Users\lucia\Desktop\5º\TFG\prepared OULAD dataset\dataset_limpio.csv", sep= ';')
+from config import df_limpio
 
 def plot_kaplan_meier(df):
     kmf = KaplanMeierFitter()
@@ -20,8 +13,8 @@ def plot_kaplan_meier(df):
 
     # curva de Kaplan-Meier
     fig.add_trace(go.Scatter(
-        x=kmf.timeline,
-        y=kmf.survival_function_['KM_estimate'],
+        x=kmf.timeline.tolist(),
+        y=kmf.survival_function_['KM_estimate'].tolist(),
         mode='lines',
         name='',
         line=dict(color='blue', width=2),
@@ -65,8 +58,8 @@ def plot_km_G(df, group_by='gender_F'):
 
         # Añadir la curva de Kaplan-Meier con bandas de confianza al gráfico
         fig.add_trace(go.Scatter(
-            x=kmf.timeline,  # Usamos la línea de tiempo
-            y=kmf.survival_function_[survival_col],  # Usamos el nombre dinámico de la columna
+            x=kmf.timeline.tolist(),
+            y=kmf.survival_function_[survival_col].tolist(),
             mode='lines',
             name=f"{gender_label}",
             line=dict(width=2),
@@ -114,8 +107,8 @@ def plot_km_disc(df, group_by='disability_N'):
 
         # Añadir la curva de Kaplan-Meier con bandas de confianza al gráfico
         fig.add_trace(go.Scatter(
-            x=kmf.timeline,  
-            y=kmf.survival_function_[survival_col], 
+            x=kmf.timeline.tolist(),
+            y=kmf.survival_function_[survival_col].tolist(),
             mode='lines',
             name=f"{disability_label}",
             line=dict(width=2),

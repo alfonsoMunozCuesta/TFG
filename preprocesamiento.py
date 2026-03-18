@@ -64,8 +64,17 @@ def preprocess_data(df_tmp):
         if col not in columnas_actividad_validas:
             df_final[col] = df_final[col].astype(int)
 
-    # Columnas a eliminar: todas las de actividad, 'gender_M' y 'disability_Y'
-    columnas_a_conservar = ['id_student', 'date', 'final_result', 'gender_F', 'disability_N']
+    # Columnas a conservar: id_student, date, final_result, atributos binarios y nuevos atributos no-binarios
+    columnas_a_conservar = [
+        'id_student', 'date', 'final_result', 
+        'gender_F', 'disability_N',
+        # Nuevos atributos no-binarios
+        'age_band_0-35', 'age_band_35-55', 'age_band_55<=',
+        'highest_education_A Level or Equivalent', 'highest_education_HE Qualification',
+        'highest_education_Lower Than A Level', 'highest_education_No Formal quals',
+        'highest_education_Post Graduate Qualification',
+        'studied_credits'
+    ]
 
     # Verificamos que existen antes de borrarlas
     columnas_a_eliminar = [col for col in df_final.columns if col not in columnas_a_conservar]
