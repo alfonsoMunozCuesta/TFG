@@ -10,6 +10,7 @@ from layout import (
     create_kaplan_meier_page, create_cox_regression_page, 
     create_log_rank_page, create_ver_dataset_page, 
     create_weibull_analysis_page,
+    create_rsf_analysis_page,
     display_logrank_summary_table
 )
 from kaplan_meier import plot_kaplan_meier, plot_km_G, plot_km_disc
@@ -18,6 +19,7 @@ from log_rank_test import perform_log_rank_test
 from survival_plots import plot_logrank_curves, plot_cox_hazard_ratios
 from preprocesamiento import preprocess_data
 from weibull import build_weibull_analysis
+from rsf import build_rsf_analysis
 import matplotlib.pyplot as plt
 import requests
 from ollama_AI import generate_explanation, generate_interpretation_for_pdf
@@ -353,7 +355,7 @@ def display_page(pathname, language, df_json):
     if pathname == '/':
         return create_home_page(language)
 
-    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull'] and not dataset_loaded:
+    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull', '/survival-analysis/rsf'] and not dataset_loaded:
         return _create_dataset_locked_message(language)
 
     if pathname == '/covariate-analysis':
@@ -368,6 +370,8 @@ def display_page(pathname, language, df_json):
         return create_log_rank_page(language)
     elif pathname == '/survival-analysis/weibull':
         return create_weibull_analysis_page(language)
+    elif pathname == '/survival-analysis/rsf':
+        return create_rsf_analysis_page(language)
     elif pathname == '/ver-dataset':
         return create_ver_dataset_page(language)
     else:
@@ -1123,6 +1127,142 @@ def render_weibull_output(language, df_json, pathname):
             'marginBottom': '30px'
         }),
     ])
+
+
+@app.callback(
+    [Output('rsf-analysis-output', 'children'),
+     Output('rsf-analysis-data', 'data')],
+    [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
+)
+def render_rsf_output(language, df_json, pathname):
+    if pathname != '/survival-analysis/rsf':
+        raise PreventUpdate
+
+    def _no_data_message():
+        return html.Div(
+            get_translation(language, 'rsf_no_data'),
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
+        ), None
+
+    if df_json is None:
+        return _no_data_message()
+
+    try:
+        df_data = _read_split_json(df_json)
+    except Exception:
+        return _no_data_message()
+
+    analysis = build_rsf_analysis(df_data)
+    if not analysis:
+        return _no_data_message()
+
+    summary_df = analysis['summary_df']
+    table = dash_table.DataTable(
+        id='rsf-summary-table',
+        columns=[
+            {"name": get_translation(language, 'rsf_metric'), "id": "Metrica"},
+            {"name": get_translation(language, 'rsf_value'), "id": "Valor"},
+            {"name": get_translation(language, 'rsf_interpretation'), "id": "Interpretacion"},
+        ],
+        data=summary_df.to_dict('records'),
+        style_table={'overflowX': 'auto', 'maxHeight': '360px', 'overflowY': 'auto', 'marginTop': '10px'},
+        style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+        style_header={'fontWeight': 'bold', 'backgroundColor': '#f4f7f6'},
+        style_data_conditional=[{'if': {'column_id': 'Metrica'}, 'fontWeight': 'bold'}]
+    )
+
+    output_children = html.Div([
+        html.Div([
+            html.H3(get_translation(language, 'rsf_summary_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
+            table,
+        ], style={
+            'backgroundColor': 'white',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+        html.Div([
+            html.H3(get_translation(language, 'rsf_graph_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+            dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True, 'scrollZoom': False, 'doubleClick': 'reset'})
+        ], style={
+            'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+        html.Div([
+            html.H3(get_translation(language, 'rsf_importance_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+            dcc.Graph(figure=analysis['importance_figure'], config={'responsive': True, 'displayModeBar': True})
+        ], style={
+            'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+    ])
+
+    store_data = {
+        'summary_json': summary_df.to_json(orient='split'),
+        'top_feature': analysis['top_feature'],
+        'top_feature_importance': analysis['top_feature_importance'],
+        'train_c_index': analysis['train_c_index'],
+        'oob_score': analysis['oob_score'],
+        'n_observations': analysis['n_observations'],
+        'n_events': analysis['n_events'],
+        'n_features': analysis['n_features'],
+        'interpretation': analysis['interpretation'],
+        'language': language,
+    }
+
+    return output_children, store_data
+
+
+@app.callback(
+    Output('openai-answer-rsf', 'value'),
+    [Input('btn-rsf', 'n_clicks')],
+    [State('rsf-analysis-data', 'data'), State('language-store', 'data')],
+    prevent_initial_call=True
+)
+def explicar_rsf(n_clicks, rsf_store_data, language):
+    if n_clicks is None or n_clicks <= 0:
+        return get_translation(language, 'respuesta')
+
+    if not rsf_store_data:
+        return get_translation(language, 'rsf_no_data')
+
+    top_feature = rsf_store_data.get('top_feature', 'N/A')
+    oob_score = rsf_store_data.get('oob_score', None)
+    train_c_index = rsf_store_data.get('train_c_index', None)
+    n_features = rsf_store_data.get('n_features', 0)
+
+    if language == 'en':
+        if oob_score is not None:
+            return (
+                f"The Random Survival Forest uses {n_features} predictors and combines many bootstrap trees to estimate survival. "
+                f"Train concordance is {train_c_index:.3f} and OOB concordance is {oob_score:.3f}. "
+                f"The most influential variable is {top_feature}. The survival curves separate low-, medium-, and high-risk profiles clearly."
+            )
+        return (
+            f"The Random Survival Forest uses {n_features} predictors and combines many bootstrap trees to estimate survival. "
+            f"Train concordance is {train_c_index:.3f}. The most influential variable is {top_feature}. "
+            f"The survival curves separate low-, medium-, and high-risk profiles clearly."
+        )
+
+    if oob_score is not None:
+        return (
+            f"El Random Survival Forest utiliza {n_features} variables predictoras y combina muchos árboles bootstrap para estimar la supervivencia. "
+            f"La concordancia en entrenamiento es {train_c_index:.3f} y la concordancia OOB es {oob_score:.3f}. "
+            f"La variable más influyente es {top_feature}. Las curvas separan con claridad los perfiles de bajo, medio y alto riesgo."
+        )
+
+    return (
+        f"El Random Survival Forest utiliza {n_features} variables predictoras y combina muchos árboles bootstrap para estimar la supervivencia. "
+        f"La concordancia en entrenamiento es {train_c_index:.3f}. La variable más influyente es {top_feature}. "
+        f"Las curvas separan con claridad los perfiles de bajo, medio y alto riesgo."
+    )
 
 
 @app.callback(

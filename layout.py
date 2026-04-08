@@ -69,6 +69,13 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
             {'label': f" {'Gráfica principal' if language == 'es' else 'Main graph'}", 'value': 'graph'},
             {'label': f" {'Interpretación automática IA' if language == 'es' else 'AI interpretation'}", 'value': 'ai_interpretation'},
         ]
+    elif analysis_type == 'rsf':
+        options = [
+            {'label': f" {get_translation(language, 'rsf_pdf_option_summary')}", 'value': 'summary'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_graph')}", 'value': 'graph'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_importance')}", 'value': 'importance'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_ai')}", 'value': 'ai_interpretation'},
+        ]
     elif analysis_type == 'weibull':
         options = [
             {'label': f" {'Resumen general' if language == 'es' else 'Summary'}", 'value': 'summary'},
@@ -181,43 +188,42 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                             get_translation(language, 'pdf_modal_no_extension'),
                             style={'display': 'block', 'color': '#999', 'marginTop': '5px'}
                         )
+                        ], style={'marginBottom': '20px'}),
                     ], style={'marginBottom': '20px'}),
-                    
-                ], style={'marginBottom': '20px'}),
-                
-                # Botones de acción
-                html.Div([
-                    html.Button(
-                        get_translation(language, 'pdf_modal_cancel'),
-                        id=f"{modal_id}-cancel-btn",
-                        style={
-                            'padding': '10px 20px',
-                            'marginRight': '10px',
-                            'backgroundColor': '#95a5a6',
-                            'color': 'white',
-                            'border': 'none',
-                            'borderRadius': '6px',
-                            'cursor': 'pointer',
-                            'fontSize': '14px',
-                            'fontWeight': 'bold'
-                        }
-                    ),
-                    html.Button(
-                        get_translation(language, 'pdf_modal_download'),
-                        id=f"{modal_id}-download-btn",
-                        style={
-                            'padding': '10px 20px',
-                            'backgroundColor': '#3498db',
-                            'color': 'white',
-                            'border': 'none',
-                            'borderRadius': '6px',
-                            'cursor': 'pointer',
-                            'fontSize': '14px',
-                            'fontWeight': 'bold',
-                            'boxShadow': '0 2px 8px rgba(52, 152, 219, 0.3)'
-                        }
-                    ),
-                ], style={'textAlign': 'right'}),
+
+                    # Botones de acción
+                    html.Div([
+                        html.Button(
+                            get_translation(language, 'pdf_modal_cancel'),
+                            id=f"{modal_id}-cancel-btn",
+                            style={
+                                'padding': '10px 20px',
+                                'marginRight': '10px',
+                                'backgroundColor': '#95a5a6',
+                                'color': 'white',
+                                'border': 'none',
+                                'borderRadius': '6px',
+                                'cursor': 'pointer',
+                                'fontSize': '14px',
+                                'fontWeight': 'bold'
+                            }
+                        ),
+                        html.Button(
+                            get_translation(language, 'pdf_modal_download'),
+                            id=f"{modal_id}-download-btn",
+                            style={
+                                'padding': '10px 20px',
+                                'backgroundColor': '#3498db',
+                                'color': 'white',
+                                'border': 'none',
+                                'borderRadius': '6px',
+                                'cursor': 'pointer',
+                                'fontSize': '14px',
+                                'fontWeight': 'bold',
+                                'boxShadow': '0 2px 8px rgba(52, 152, 219, 0.3)'
+                            }
+                        ),
+                    ], style={'textAlign': 'right'}),
 
                 html.Div(
                     id=f"{modal_id}-error",
@@ -257,7 +263,7 @@ def create_survival_analysis_page(language='es'):
             'image': '/assets/rsf.svg',
             'image_style': {'width': '78%', 'display': 'block', 'margin': '0 auto', 'marginTop': '30px', 'marginBottom': '20px'},
             'label_key': 'random_survival_forest',
-            'href': '#'
+            'href': '/survival-analysis/rsf'
         },
         {
             'image': '/assets/exponential.svg',
@@ -369,6 +375,79 @@ def create_weibull_analysis_page(language='es'):
     ])
 
 weibull_analysis_page = create_weibull_analysis_page()
+
+def create_rsf_analysis_page(language='es'):
+    return html.Div([
+        html.H1(
+            get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'random_survival_forest')),
+            style={'textAlign': 'center', 'fontSize': '35px', 'marginBottom': '20px', 'color': '#1a1a1a', 'fontWeight': 'bold'}
+        ),
+
+        html.Div([
+            html.P(
+                get_translation(language, 'rsf_intro'),
+                style={'margin': 0, 'fontSize': '1.05em', 'lineHeight': '1.6', 'color': '#34495e'}
+            ),
+            html.P(
+                get_translation(language, 'rsf_note'),
+                style={'marginTop': '12px', 'marginBottom': 0, 'fontSize': '0.98em', 'lineHeight': '1.6', 'color': '#5d6d7e', 'fontStyle': 'italic'}
+            ),
+        ], style={
+            'backgroundColor': '#f8fbff',
+            'padding': '22px',
+            'borderRadius': '10px',
+            'border': '1px solid #dfe9f3',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
+            'margin': '0 20px 25px 20px'
+        }),
+
+        html.Div(
+            dcc.Loading(
+                id='loading-rsf',
+                type='circle',
+                children=html.Div(id='rsf-analysis-output')
+            ),
+            style={'margin': '0 20px 30px 20px'}
+        ),
+
+        html.Div([
+            html.Button(get_translation(language, 'explicar_rsf'), id='btn-rsf',
+                       style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
+                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
+            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
+                     style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
+                         'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
+        ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
+
+        html.Div(
+            dcc.Textarea(
+                id='openai-answer-rsf',
+                value=get_translation(language, 'respuesta'),
+                style={
+                    'width': '80%',
+                    'minHeight': '220px',
+                    'resize': 'none',
+                    'whiteSpace': 'pre-wrap',
+                    'margin': '20px auto',
+                    'display': 'block',
+                    'border': '1px solid #ccc',
+                    'borderRadius': '8px',
+                    'fontSize': '14px',
+                    'padding': '14px',
+                    'overflowY': 'auto',
+                    'color': '#1a1a1a',
+                    'backgroundColor': '#fff'
+                },
+                disabled=True
+            ),
+            style={'textAlign': 'center'}
+        ),
+
+            create_pdf_export_modal('rsf-pdf-modal', 'rsf', language),
+        dcc.Store(id='rsf-analysis-data')
+    ])
+
+rsf_analysis_page = create_rsf_analysis_page()
 
 def create_ver_dataset_page(language='es'):
     return html.Div([ 

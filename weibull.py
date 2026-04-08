@@ -31,6 +31,9 @@ def build_weibull_analysis(df):
     wbf = WeibullFitter()
     wbf.fit(durations, event_observed=events, label="Weibull")
 
+    kmf = KaplanMeierFitter()
+    kmf.fit(durations, event_observed=events, label="Kaplan-Meier")
+
     max_time = float(durations.max())
     time_grid = np.linspace(0, max_time, 200)
     fitted_survival = wbf.survival_function_at_times(time_grid).values
@@ -39,6 +42,16 @@ def build_weibull_analysis(df):
     fitted_values = [float(value) for value in fitted_survival.tolist()]
 
     fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=kmf.timeline.tolist(),
+            y=kmf.survival_function_.iloc[:, 0].tolist(),
+            mode="lines",
+            name="Kaplan-Meier empírico",
+            line=dict(color="#2c3e50", width=2, dash="dash"),
+            hovertemplate="<b>Kaplan-Meier</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+        )
+    )
     fig.add_trace(
         go.Scatter(
             x=fitted_times,
@@ -51,7 +64,7 @@ def build_weibull_analysis(df):
     )
 
     fig.update_layout(
-        title="Método Weibull",
+        title="Método Weibull vs Kaplan-Meier",
         xaxis_title="Tiempo",
         yaxis_title="Probabilidad de supervivencia",
         yaxis=dict(range=[0, 1]),
@@ -85,7 +98,8 @@ def build_weibull_analysis(df):
     interpretation = (
         f"Shape = {shape:.3f}. "
         f"Si es mayor que 1, el riesgo aumenta con el tiempo; si es menor que 1, disminuye. "
-        f"En este ajuste, el comportamiento del riesgo es: {hazard_note.lower()}."
+        f"En este ajuste, el comportamiento del riesgo es: {hazard_note.lower()}. "
+        f"La curva Weibull se muestra junto a la Kaplan-Meier empírica para comprobar visualmente el ajuste."
     )
 
     return {

@@ -530,9 +530,9 @@ class SurvivalAnalysisPDFExporter:
         self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
 
         intro_text = (
-            "The Weibull model is a parametric survival model that estimates how the risk changes over time using a shape and a scale parameter. The table below summarizes the fitted model and its main statistics."
+            "The Weibull model is a parametric survival model that estimates how the risk changes over time using a shape and a scale parameter. The table below summarizes the fitted model and its main statistics, and the graph compares the fitted curve against the empirical Kaplan-Meier survival curve."
             if self._is_english() else
-            "El modelo Weibull es un modelo paramétrico de supervivencia que estima cómo cambia el riesgo con el tiempo usando un parámetro de forma y otro de escala. La tabla siguiente resume el ajuste y sus estadísticas principales."
+            "El modelo Weibull es un modelo paramétrico de supervivencia que estima cómo cambia el riesgo con el tiempo usando un parámetro de forma y otro de escala. La tabla siguiente resume el ajuste y sus estadísticas principales, y la gráfica compara la curva ajustada con la curva empírica de Kaplan-Meier."
         )
         self.elements.append(Paragraph(intro_text, self.styles['DescriptionText']))
         self.elements.append(Spacer(1, 0.15*inch))
@@ -581,6 +581,67 @@ class SurvivalAnalysisPDFExporter:
             self.elements.append(Paragraph(
                 ("Weibull Fit Summary<br/>" if self._is_english() else "Resumen del Ajuste Weibull<br/>")
                 + ("The Weibull fit is summarized in the table above." if self._is_english() else "El ajuste Weibull se resume en la tabla anterior."),
+                self.styles['NormalText']
+            ))
+
+        self.elements.append(Spacer(1, 0.3 * inch))
+
+    def add_rsf_section(self, rsf_table=None):
+        """Agrega sección de Random Survival Forest - 2. TABLA DE RESULTADOS"""
+        self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
+
+        intro_text = (
+            "Random Survival Forest is an ensemble survival model that builds many decision trees from bootstrap samples and combines their predictions to estimate survival and risk. The table below summarizes the fitted model, its concordance, and the most influential variable."
+            if self._is_english() else
+            "Random Survival Forest es un modelo de supervivencia en ensamblado que construye muchos árboles de decisión a partir de muestras bootstrap y combina sus predicciones para estimar la supervivencia y el riesgo. La tabla siguiente resume el modelo ajustado, su concordancia y la variable más influyente."
+        )
+        self.elements.append(Paragraph(intro_text, self.styles['DescriptionText']))
+        self.elements.append(Spacer(1, 0.15 * inch))
+
+        if rsf_table is not None and isinstance(rsf_table, pd.DataFrame) and len(rsf_table) > 0:
+            self.elements.append(Spacer(1, 0.1 * inch))
+
+            table_data = [list(rsf_table.columns)]
+            for row in rsf_table.values:
+                row_str = []
+                for val in row:
+                    if isinstance(val, float):
+                        row_str.append(f"{val:.4f}")
+                    else:
+                        row_str.append(str(val))
+                table_data.append(row_str)
+
+            num_cols = len(rsf_table.columns)
+            total_width = 8.2 * inch
+            col_widths = [2.5 * inch] + [(total_width - 2.5 * inch) / (num_cols - 1)] * (num_cols - 1) if num_cols > 1 else [total_width]
+
+            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2980b9')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold'),
+                ('FONTNAME', (0, 1), (-1, -1), 'Times-Roman'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f5f9fc')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f9fc')])
+            ]))
+
+            self.elements.append(table)
+            self.elements.append(Spacer(1, 0.2 * inch))
+            print(f"  ✓ Tabla RSF agregada: {len(table_data)} rows")
+        else:
+            self.elements.append(Paragraph(
+                ("RSF Model Summary<br/>" if self._is_english() else "Resumen del modelo RSF<br/>")
+                + ("The RSF summary is shown in the table above." if self._is_english() else "El resumen RSF se muestra en la tabla anterior."),
                 self.styles['NormalText']
             ))
 
@@ -768,6 +829,10 @@ def export_survival_analysis_to_pdf(
     include_weibull=False,
     weibull_figure=None,
     weibull_table=None,
+    include_rsf=False,
+    rsf_figure=None,
+    rsf_importance_figure=None,
+    rsf_table=None,
     include_ai_interpretation=False,
     ai_text="",
     summary_stats=None,
@@ -793,7 +858,8 @@ def export_survival_analysis_to_pdf(
         has_graph = (include_km and km_figure is not None) or \
                     (include_cox and forest_figure is not None) or \
                     (include_logrank and logrank_figure is not None) or \
-                    (include_weibull and weibull_figure is not None)
+                    (include_weibull and weibull_figure is not None) or \
+                    (include_rsf and (rsf_figure is not None or rsf_importance_figure is not None))
     else:
         # Usar valor explícito (True = forzar landscape, False = forzar portrait)
         has_graph = include_graph
@@ -847,6 +913,10 @@ def export_survival_analysis_to_pdf(
         _start_new_section()
         exporter.add_weibull_section(weibull_table)
         tabla_agregada = True
+    elif include_rsf:
+        _start_new_section()
+        exporter.add_rsf_section(rsf_table)
+        tabla_agregada = True
     
     if tabla_agregada:
         numero_seccion += 1
@@ -872,6 +942,22 @@ def export_survival_analysis_to_pdf(
         _start_new_section()
         exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
         exporter.add_plotly_figure(weibull_figure, "Weibull fitted curve" if language == 'en' else "Curva ajustada Weibull")
+        grafica_agregada = True
+    elif include_rsf and rsf_figure is not None:
+        _start_new_section()
+        exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
+        exporter.add_plotly_figure(rsf_figure, "Random Survival Forest fitted curves" if language == 'en' else "Curvas estimadas del Random Survival Forest")
+        grafica_agregada = True
+        if rsf_importance_figure is not None:
+            numero_seccion += 1
+            _start_new_section()
+            exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
+            exporter.add_plotly_figure(rsf_importance_figure, "Variable importance" if language == 'en' else "Importancia de variables")
+            grafica_agregada = True
+    elif include_rsf and rsf_importance_figure is not None:
+        _start_new_section()
+        exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
+        exporter.add_plotly_figure(rsf_importance_figure, "Variable importance" if language == 'en' else "Importancia de variables")
         grafica_agregada = True
     
     if grafica_agregada:

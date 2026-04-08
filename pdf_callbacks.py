@@ -15,6 +15,7 @@ import pandas as pd
 import traceback
 import re
 from weibull import build_weibull_analysis
+from rsf import build_rsf_analysis
 
 
 def clean_markdown_text(text):
@@ -54,7 +55,7 @@ def _validate_ai_explanation(ai_requested, ai_text, analysis_label, language='es
 def register_pdf_export_callbacks(app):
     """
     Registra todos los callbacks para la funcionalidad de exportación a PDF
-    Incluye modales para Kaplan-Meier, Cox Regression y Log-Rank Test
+    Incluye modales para Kaplan-Meier, Cox Regression, Log-Rank Test, Weibull y RSF
     """
     
     # ===== KAPLAN-MEIER PDF CALLBACKS =====
@@ -734,6 +735,141 @@ def register_pdf_export_callbacks(app):
             print(f"ERROR en download_weibull_pdf: {str(e)}")
             print(traceback.format_exc())
             return None, (f"❌ Error al generar el PDF de Weibull: {str(e)}" if language == 'es' else f"❌ Error generating the Weibull PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+
+
+    # ===== RSF PDF CALLBACKS =====
+
+    @app.callback(
+        [Output('rsf-pdf-modal-overlay', 'style'),
+         Output('rsf-pdf-modal-container', 'style')],
+        [Input('export-rsf-btn', 'n_clicks'),
+         Input('rsf-pdf-modal-close-btn', 'n_clicks'),
+         Input('rsf-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_rsf_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación RSF"""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+
+        if triggered_id == 'export-rsf-btn' and export_clicks:
+            return _get_modal_styles(True)
+
+        return {'display': 'none'}, {'display': 'none'}
+
+
+    @app.callback(
+        [Output('rsf-pdf-modal-download', 'data'),
+         Output('rsf-pdf-modal-error', 'children'),
+         Output('rsf-pdf-modal-error', 'style')],
+        Input('rsf-pdf-modal-download-btn', 'n_clicks'),
+        [State('rsf-pdf-modal-filename', 'value'),
+         State('rsf-pdf-modal-checklist-content', 'value'),
+         State('rsf-analysis-data', 'data'),
+         State('openai-answer-rsf', 'value'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_rsf_pdf(n_clicks, filename, options, rsf_store_data, ai_text_from_page, df_json, language):
+        """Genera PDF de Random Survival Forest con datos reales del análisis actual"""
+        try:
+            if not filename or filename.strip() == '':
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"rsf_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Random Survival Forest', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            df = None
+            if df_json:
+                try:
+                    df = pd.read_json(df_json, orient='split')
+                except Exception:
+                    df = None
+
+            analysis = build_rsf_analysis(df) if df is not None else None
+            if not analysis:
+                return None, ("❌ No hay datos suficientes para generar el PDF de RSF." if language == 'es' else "❌ Not enough data to generate the RSF PDF."), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            summary_stats = {
+                'n_patients': analysis['n_observations'],
+                'n_events': analysis['n_events'],
+                'follow_up_mean': float(df['date'].mean()) if df is not None and 'date' in df.columns else 0,
+                'follow_up_median': float(df['date'].median()) if df is not None and 'date' in df.columns else 0,
+                'variable_name': analysis['top_feature']
+            }
+
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                ai_text = ai_text_from_page or analysis['interpretation']
+                ai_text = clean_markdown_text(ai_text)
+
+            report_title = "INFORME RANDOM SURVIVAL FOREST" if language == 'es' else "RANDOM SURVIVAL FOREST REPORT"
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,
+                include_km=False,
+                include_cox=False,
+                include_logrank=False,
+                include_weibull=False,
+                include_rsf='table' in options or 'graph' in options or 'importance' in options,
+                rsf_table=analysis['summary_df'] if 'table' in options else None,
+                rsf_figure=analysis['figure'] if 'graph' in options else None,
+                rsf_importance_figure=analysis['importance_figure'] if 'importance' in options else None,
+                include_ai_interpretation='ai_interpretation' in options,
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language
+            )
+
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+
+        except Exception as e:
+            print(f"ERROR en download_rsf_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (f"❌ Error al generar el PDF de RSF: {str(e)}" if language == 'es' else f"❌ Error generating the RSF PDF: {str(e)}"), {
                 'display': 'block',
                 'marginTop': '15px',
                 'padding': '10px 12px',
