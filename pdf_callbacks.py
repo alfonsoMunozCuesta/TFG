@@ -1,0 +1,780 @@
+"""
+Callbacks para exportación de análisis a PDF
+Genera PDFs profesionales con datos reales de los análisis
+"""
+
+from dash import callback_context, dcc, html, Output, Input, State
+from dash.exceptions import PreventUpdate
+import json
+import os
+from datetime import datetime
+from pdf_exporter import export_survival_analysis_to_pdf
+from ollama_AI import generate_interpretation_for_pdf
+from translations import get_translation
+import pandas as pd
+import traceback
+import re
+from weibull import build_weibull_analysis
+
+
+def clean_markdown_text(text):
+    """Limpia markdown del texto para renderizarlo correctamente en ReportLab"""
+    if not text:
+        return text
+    
+    # Remover headers markdown (### ..., ## ..., # ...)
+    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
+    
+    # Convertir markdown bold (**text**) a HTML <b></b>
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    
+    # Convertir markdown italic (*text*) a HTML <i></i> (excepto ** ya procesado)
+    text = re.sub(r'\*(.+?)\*', r'<i>\1</i>', text)
+    
+    # Limpiar múltiples espacios/saltos de línea
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    return text
+
+
+def _validate_ai_explanation(ai_requested, ai_text, analysis_label, language='es'):
+    """Exige explicación solo si el usuario pidió IA y no hay texto real."""
+    if not ai_requested:
+        return None
+
+    normalized_text = (ai_text or "").strip()
+    if not normalized_text or normalized_text == "La respuesta es...":
+        if language == 'en':
+            return f"⚠️ Before exporting the {analysis_label} PDF, generate an AI explanation first."
+        return f"⚠️ Antes de exportar el PDF de {analysis_label}, genera primero una explicación de IA."
+
+    return None
+
+
+def register_pdf_export_callbacks(app):
+    """
+    Registra todos los callbacks para la funcionalidad de exportación a PDF
+    Incluye modales para Kaplan-Meier, Cox Regression y Log-Rank Test
+    """
+    
+    # ===== KAPLAN-MEIER PDF CALLBACKS =====
+    
+    @app.callback(
+        [Output('km-pdf-modal-overlay', 'style'),
+         Output('km-pdf-modal-container', 'style')],
+        [Input('export-km-btn', 'n_clicks'),
+         Input('km-pdf-modal-close-btn', 'n_clicks'),
+         Input('km-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_km_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación Kaplan-Meier"""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+        
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+        
+        if triggered_id == 'export-km-btn' and export_clicks:
+            return _get_modal_styles(True)
+        
+        return {'display': 'none'}, {'display': 'none'}
+    
+    
+    @app.callback(
+        [Output('km-pdf-modal-download', 'data'),
+         Output('km-pdf-modal-error', 'children'),
+         Output('km-pdf-modal-error', 'style')],
+        Input('km-pdf-modal-download-btn', 'n_clicks'),
+        [State('km-pdf-modal-filename', 'value'),
+         State('km-pdf-modal-checklist-content', 'value'),
+         State('km-current-variable', 'data'),
+         State('openai-answer-kaplan', 'value'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_km_pdf(n_clicks, filename, options, current_variable, ai_text_from_page, df_json, language):
+        """Genera PDF de Kaplan-Meier con datos REALES del análisis seleccionado"""
+        try:
+            # Generar nombre de archivo
+            if not filename or filename.strip() == '':
+                var_name = current_variable if current_variable else 'general'
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"km_{var_name}_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+            
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+            
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Kaplan-Meier', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+            
+            # CAPTURAR DATOS REALES DEL ANÁLISIS
+            df = None
+            if df_json:
+                try:
+                    df = pd.read_json(df_json, orient='split')
+                except:
+                    df = None
+            
+            # CALCULAR ESTADÍSTICAS REALES DEL ANÁLISIS ACTUAL
+            n_patients = len(df) if df is not None else 0
+            n_events = int(df['final_result'].sum()) if df is not None and 'final_result' in df.columns else 0
+            follow_up_mean = float(df['date'].mean()) if df is not None and 'date' in df.columns else 0
+            follow_up_median = float(df['date'].median()) if df is not None and 'date' in df.columns else 0
+            
+            summary_stats = {
+                'n_patients': n_patients,
+                'n_events': n_events,
+                'follow_up_mean': follow_up_mean,
+                'follow_up_median': follow_up_median,
+                'variable_name': current_variable if current_variable else 'General'
+            }
+            
+            # GENERAR TABLA DE SUPERVIVENCIA REAL
+            km_table = None
+            if df is not None and n_patients > 0:
+                try:
+                    from lifelines import KaplanMeierFitter
+                    kmf = KaplanMeierFitter()
+                    kmf.fit(df['date'], event_observed=df['final_result'])
+                    km_table = kmf.survival_function_.reset_index()
+                    km_table.columns = ['Tiempo', 'Supervivencia']
+                except Exception as e:
+                    print(f"[KM PDF] Error generando tabla KM: {e}")
+                    km_table = None
+            
+            # GENERAR GRÁFICA DE KM SI SE SOLICITA
+            km_figure = None
+            if 'graph' in options and df is not None and current_variable:
+                try:
+                    print(f"[KM PDF] Regenerando gráfica de KM para {current_variable}...")
+                    from kaplan_meier import _create_km_figure
+                    
+                    # Mapear variable a nombre de covariable correcto
+                    covariate_map = {
+                        'gender': 'gender_F',
+                        'disability': 'disability_N',
+                        'age': 'age_band',
+                        'education': 'highest_education',
+                        'credit': 'studied_credits'
+                    }
+                    
+                    # Buscar qué covariable usar
+                    covariate_col = current_variable
+                    for key, val in covariate_map.items():
+                        if key.lower() in current_variable.lower():
+                            covariate_col = val
+                            break
+                    
+                    #Crear figura Plotly directamente
+                    km_figure = _create_km_figure(df, covariate_col)
+                    print(f"[KM PDF] ✓ Gráfica KM regenerada para {covariate_col}")
+                    
+                except Exception as e:
+                    print(f"[KM PDF] Error regenerando gráfica: {e}")
+                    traceback.print_exc()
+                    km_figure = None
+            
+            # GENERAR INTERPRETACIÓN DE IA SI SE SOLICITA
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                print(f"[KM PDF] Generando interpretación de IA para {current_variable}...")
+                ai_text = generate_interpretation_for_pdf('kaplan-meier', summary_stats, km_table, language=language)
+                
+                # Limpiar markdown del texto
+                ai_text = clean_markdown_text(ai_text)
+            
+            print(f"[KM PDF] Generando PDF: {filename}")
+            print(f"[KM PDF] Variable: {current_variable} | Pacientes: {n_patients} | Eventos: {n_events}")
+            print(f"[KM PDF] Opciones marcadas: {options}")
+            
+            # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
+            report_title = f"INFORME KAPLAN-MEIER: {current_variable.upper() if current_variable else 'GENERAL'}" if language == 'es' else f"KAPLAN-MEIER REPORT: {current_variable.upper() if current_variable else 'GENERAL'}"
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
+                include_km='table' in options or 'graph' in options,  # Mostrar KM si marcó tabla o gráfica
+                km_figure=km_figure if 'graph' in options else None,
+                km_table=km_table if 'table' in options else None,
+                include_cox=False,
+                include_logrank=False,
+                include_ai_interpretation='ai_interpretation' in options,  # Mostrar IA SOLO si se marcó
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language
+            )
+            
+            print(f"[KM PDF] ✓ PDF generado en: {pdf_path}")
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+        
+        except Exception as e:
+            print(f"ERROR en download_km_pdf: {str(e)}")
+            print(traceback.format_exc())
+            error_label = 'Kaplan-Meier' if language == 'es' else 'Kaplan-Meier'
+            return None, (f"❌ Error al generar el PDF de Kaplan-Meier: {str(e)}" if language == 'es' else f"❌ Error generating the Kaplan-Meier PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+    
+    
+    # ===== COX REGRESSION PDF CALLBACKS =====
+    
+    @app.callback(
+        [Output('cox-pdf-modal-overlay', 'style'),
+         Output('cox-pdf-modal-container', 'style')],
+        [Input('export-cox-btn', 'n_clicks'),
+         Input('cox-pdf-modal-close-btn', 'n_clicks'),
+         Input('cox-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_cox_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación Cox Regression"""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+        
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+        
+        if triggered_id == 'export-cox-btn' and export_clicks:
+            return _get_modal_styles(True)
+        
+        return {'display': 'none'}, {'display': 'none'}
+    
+    
+    @app.callback(
+        [Output('cox-pdf-modal-download', 'data'),
+         Output('cox-pdf-modal-error', 'children'),
+         Output('cox-pdf-modal-error', 'style')],
+        Input('cox-pdf-modal-download-btn', 'n_clicks'),
+        [State('cox-pdf-modal-filename', 'value'),
+         State('cox-pdf-modal-checklist-content', 'value'),
+         State('cox-current-variables', 'data'),
+         State('cox-selected-covariables', 'data'),
+         State('openai-answer-cox', 'value'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_cox_pdf(n_clicks, filename, options, cox_variables_text, cox_covariables, ai_text_from_page, df_json, language):
+        """Genera PDF de Cox Regression con datos REALES del análisis actualizado"""
+        try:
+            # Generar nombre de archivo
+            if not filename or filename.strip() == '':
+                vars_str = ','.join(cox_covariables[:2]) if cox_covariables else 'general'
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"cox_{vars_str}_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+            
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+            
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Cox Regression', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+            
+            print(f"\n[COX PDF] ========== INICIANDO EXPORTACIÓN ==========")
+            print(f"[COX PDF] Opciones marcadas: {options}")
+            print(f"[COX PDF] Variables seleccionadas: {cox_covariables}")
+            
+            # CAPTURAR DATOS REALES DEL ANÁLISIS ACTUAL
+            df = None
+            cox_table = None
+            
+            if df_json and cox_covariables:
+                try:
+                    df = pd.read_json(df_json, orient='split')
+                    print(f"[COX PDF] DataFrame cargado: {len(df)} rows, {len(df.columns)} cols")
+                    
+                    # RECALCULAR COX REGRESSION CON LAS VARIABLES SELECCIONADAS
+                    from cox_regression import run_cox_regression
+                    print(f"[COX PDF] Ejecutando run_cox_regression({cox_covariables})...")
+                    
+                    summary, cox_table_html = run_cox_regression(df, cox_covariables)
+                    print(f"[COX PDF] Summary retornado: empty={summary.empty}, shape={summary.shape}")
+                    print(f"[COX PDF] Summary columns: {list(summary.columns) if not summary.empty else 'N/A'}")
+                    
+                    # Convertir el resumen a tabla limpia
+                    if not summary.empty:
+                        print(f"[COX PDF] Creando tabla de coeficientes...")
+                        try:
+                            # Verificar si contiene ERROR
+                            if 'ERROR' in summary.get('Covariable', summary.get(summary.columns[0], [])).values:
+                                print(f"[COX PDF] Error detectado en Cox: {summary}")
+                                cox_table = None
+                            else:
+                                # Usar los nombres de columnas ya formateados que devuelve run_cox_regression
+                                # Los nombres son: Covariable, Coef., exp(Coef.), SE(Coef.), Coef. lower 95%, etc.
+                                cols_disponibles = [c for c in ['Covariable', 'Coef.', 'exp(Coef.)', 'Coef. lower 95%', 'Coef. upper 95%', 'p'] 
+                                                   if c in summary.columns]
+                                
+                                if not cols_disponibles or len(cols_disponibles) < 2:
+                                    print(f"[COX PDF] Columnas disponibles insuficientes: {list(summary.columns)}")
+                                    cox_table = None
+                                else:
+                                    cox_table = summary[cols_disponibles].copy()
+                                    if 'Covariable' in cox_table.columns:
+                                        cox_table.columns = ['Variable'] + [c for c in summary.columns[1:] if c in cols_disponibles[1:]]
+                                    print(f"[COX PDF] ✓ Tabla creada: {cox_table.shape[0]} variables, {len(cols_disponibles)} columnas")
+                                    print(f"[COX PDF] Primeras filas:\n{cox_table.head()}")
+                        except Exception as e:
+                            print(f"[COX PDF] ✗ Error creando tabla: {e}")
+                            traceback.print_exc()
+                            cox_table = None
+                    
+                    print(f"[COX PDF] Análisis recalculado para variables: {cox_covariables}")
+                
+                except Exception as e:
+                    print(f"[COX PDF] ✗ Error recalculando Cox: {e}")
+                    traceback.print_exc()
+                    cox_table = None
+            
+            # CALCULAR ESTADÍSTICAS DE RESUMEN REALES
+            n_patients = len(df) if df is not None else 0
+            n_events = int(df['final_result'].sum()) if df is not None and 'final_result' in df.columns else 0
+            follow_up_mean = float(df['date'].mean()) if df is not None and 'date' in df.columns else 0
+            follow_up_median = float(df['date'].median()) if df is not None and 'date' in df.columns else 0
+            
+            summary_stats = {
+                'n_patients': n_patients,
+                'n_events': n_events,
+                'follow_up_mean': follow_up_mean,
+                'follow_up_median': follow_up_median,
+                'variable_name': ', '.join(cox_covariables) if cox_covariables else 'N/A'
+            }
+            
+            # GENERAR INTERPRETACIÓN DE IA SI SE SOLICITA
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                print(f"[COX PDF] Generando interpretación de IA...")
+                ai_text = generate_interpretation_for_pdf('cox', summary_stats, cox_table, language=language)
+                
+                # Limpiar markdown del texto
+                ai_text_cleaned = clean_markdown_text(ai_text)
+                print(f"[COX PDF] ✓ Interpretación generada ({len(ai_text)} chars → {len(ai_text_cleaned)} chars)")
+                ai_text = ai_text_cleaned
+            
+            # GENERAR FOREST PLOT SI SE SOLICITA
+            forest_figure = None
+            if 'graph' in options and not summary.empty:
+                print(f"[COX PDF] Generando Forest Plot...")
+                try:
+                    from cox_regression import create_forest_plot
+                    forest_figure = create_forest_plot(summary)
+                    if forest_figure:
+                        print(f"[COX PDF] ✓ Forest Plot generado")
+                except Exception as e:
+                    print(f"[COX PDF] ✗ Error generando Forest Plot: {e}")
+                    forest_figure = None
+            
+            print(f"[COX PDF] Generando PDF: {filename}")
+            print(f"[COX PDF] Variables: {cox_covariables} | Pacientes: {n_patients} | Eventos: {n_events}")
+            print(f"[COX PDF] Tabla Cox será incluida: {'table' in options and cox_table is not None}")
+            print(f"[COX PDF] Forest Plot será incluido: {'graph' in options and forest_figure is not None}")
+            # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
+            report_title = (
+                f"COX REGRESSION REPORT: {', '.join(cox_covariables) if cox_covariables else 'GENERAL'}"
+                if language == 'en'
+                else f"INFORME REGRESIÓN DE COX: {', '.join(cox_covariables) if cox_covariables else 'GENERAL'}"
+            )
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
+                include_km=False,
+                include_cox='table' in options or 'graph' in options,  # Mostrar Cox si marcó tabla O gráfica
+                cox_table=cox_table if 'table' in options else None,
+                forest_figure=forest_figure if 'graph' in options else None,  # Mostrar gráfica SOLO si se marcó
+                include_logrank=False,
+                include_ai_interpretation='ai_interpretation' in options,  # Mostrar IA SOLO si se marcó
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language
+            )
+            
+            print(f"[COX PDF] ✓ PDF generado en: {pdf_path}")
+            print(f"[COX PDF] ========== EXPORTACIÓN COMPLETADA ==========\n")
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+        
+        except Exception as e:
+            print(f"ERROR en download_cox_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (f"❌ Error al generar el PDF de Cox: {str(e)}" if language == 'es' else f"❌ Error generating the Cox PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+    
+    
+    # ===== LOG-RANK TEST PDF CALLBACKS =====
+    
+    @app.callback(
+        [Output('logrank-pdf-modal-overlay', 'style'),
+         Output('logrank-pdf-modal-container', 'style')],
+        [Input('export-logrank-btn', 'n_clicks'),
+         Input('logrank-pdf-modal-close-btn', 'n_clicks'),
+         Input('logrank-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_logrank_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación Log-Rank"""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+        
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+        
+        if triggered_id == 'export-logrank-btn' and export_clicks:
+            return _get_modal_styles(True)
+        
+        return {'display': 'none'}, {'display': 'none'}
+    
+    
+    @app.callback(
+        [Output('logrank-pdf-modal-download', 'data'),
+         Output('logrank-pdf-modal-error', 'children'),
+         Output('logrank-pdf-modal-error', 'style')],
+        Input('logrank-pdf-modal-download-btn', 'n_clicks'),
+        [State('logrank-pdf-modal-filename', 'value'),
+         State('logrank-pdf-modal-checklist-content', 'value'),
+         State('logrank-current-variable', 'data'),
+         State('logrank-selected-covariables', 'data'),
+         State('openai-answer-logrank', 'value'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_logrank_pdf(n_clicks, filename, options, logrank_variable, logrank_covariables, ai_text_from_page, df_json, language):
+        """Genera PDF de Log-Rank Test con datos REALES del análisis actualizado"""
+        try:
+            # Generar nombre de archivo
+            if not filename or filename.strip() == '':
+                var_str = logrank_variable if logrank_variable else 'general'
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"logrank_{var_str}_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+            
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+            
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Log-Rank', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+            
+            print(f"\n[LOGRANK PDF] ========== INICIANDO EXPORTACIÓN ==========")
+            print(f"[LOGRANK PDF] Opciones marcadas: {options}")
+            print(f"[LOGRANK PDF] Variables seleccionadas: {logrank_covariables}")
+            
+            # CAPTURAR DATOS REALES DEL ANÁLISIS ACTUAL
+            df = None
+            logrank_results = None
+            logrank_figure = None
+            
+            if df_json and logrank_covariables:
+                df = pd.read_json(df_json, orient='split')
+                
+                # RECALCULAR LOG-RANK TEST CON LA VARIABLE SELECCIONADA
+                from log_rank_test import perform_log_rank_test, create_logrank_figure
+                
+                # Procesar cada covariable y acumular resultados
+                all_results = []
+                for covariable in logrank_covariables:
+                    res_df = perform_log_rank_test(df, covariable)
+                    if not res_df.empty:
+                        all_results.append(res_df)
+                
+                if all_results:
+                    logrank_results = pd.concat(all_results, ignore_index=True)
+                
+                # GENERAR GRÁFICA SI SE SOLICITA
+                if 'graph' in options and logrank_covariables:
+                    print(f"[LOGRANK PDF] Generando gráfica...")
+                    try:
+                        logrank_figure = create_logrank_figure(df, logrank_covariables[0])
+                        if logrank_figure:
+                            print(f"[LOGRANK PDF] ✓ Gráfica Log-Rank generada")
+                    except Exception as e:
+                        print(f"[LOGRANK PDF] ✗ Error generando gráfica: {e}")
+                        logrank_figure = None
+            
+            # CALCULAR ESTADÍSTICAS DE RESUMEN
+            n_patients = len(df) if df is not None else 0
+            n_events = int(df['final_result'].sum()) if df is not None and 'final_result' in df.columns else 0
+            follow_up_mean = float(df['date'].mean()) if df is not None and 'date' in df.columns else 0
+            follow_up_median = float(df['date'].median()) if df is not None and 'date' in df.columns else 0
+            
+            summary_stats = {
+                'n_patients': n_patients,
+                'n_events': n_events,
+                'follow_up_mean': follow_up_mean,
+                'follow_up_median': follow_up_median,
+                'variable_name': ', '.join(logrank_covariables) if logrank_covariables else 'N/A'
+            }
+            
+            print(f"[LOGRANK PDF] Tabla será incluida: {'table' in options and logrank_results is not None}")
+            print(f"[LOGRANK PDF] Gráfica será incluida: {'graph' in options and logrank_figure is not None}")
+            print(f"[LOGRANK PDF] Resumen será incluido: {'summary' in options}")
+
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                print(f"[LOGRANK PDF] Generando interpretación de IA...")
+                ai_text = ai_text_from_page or generate_interpretation_for_pdf('log-rank', summary_stats, logrank_results, language=language)
+                ai_text = clean_markdown_text(ai_text)
+            
+            # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
+            report_title = (
+                f"LOG-RANK TEST REPORT: {', '.join(logrank_covariables) if logrank_covariables else 'GENERAL'}"
+                if language == 'en'
+                else f"INFORME LOG-RANK TEST: {', '.join(logrank_covariables) if logrank_covariables else 'GENERAL'}"
+            )
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
+                include_km=False,
+                include_cox=False,
+                include_logrank='table' in options or 'graph' in options,  # Mostrar Log-Rank si marcó tabla O gráfica
+                logrank_figure=logrank_figure if 'graph' in options else None,  # Mostrar gráfica SOLO si se marcó
+                logrank_results=logrank_results if 'table' in options else None,
+                include_ai_interpretation='ai_interpretation' in options,
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language,
+                landscape_tables=['logrank']  # Hacer tabla Log-Rank en horizontal
+            )
+            
+            print(f"[LOGRANK PDF] ✓ PDF generado en: {pdf_path}")
+            print(f"[LOGRANK PDF] ========== EXPORTACIÓN COMPLETADA ==========\n")
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+        
+        except Exception as e:
+            print(f"ERROR en download_logrank_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (f"❌ Error al generar el PDF de Log-Rank: {str(e)}" if language == 'es' else f"❌ Error generating the Log-Rank PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+
+
+    # ===== WEIBULL PDF CALLBACKS =====
+
+    @app.callback(
+        [Output('weibull-pdf-modal-overlay', 'style'),
+         Output('weibull-pdf-modal-container', 'style')],
+        [Input('export-weibull-btn', 'n_clicks'),
+         Input('weibull-pdf-modal-close-btn', 'n_clicks'),
+         Input('weibull-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_weibull_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación Weibull"""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+
+        if triggered_id == 'export-weibull-btn' and export_clicks:
+            return _get_modal_styles(True)
+
+        return {'display': 'none'}, {'display': 'none'}
+
+
+    @app.callback(
+        [Output('weibull-pdf-modal-download', 'data'),
+         Output('weibull-pdf-modal-error', 'children'),
+         Output('weibull-pdf-modal-error', 'style')],
+        Input('weibull-pdf-modal-download-btn', 'n_clicks'),
+        [State('weibull-pdf-modal-filename', 'value'),
+         State('weibull-pdf-modal-checklist-content', 'value'),
+         State('openai-answer-weibull', 'children'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_weibull_pdf(n_clicks, filename, options, ai_text_from_page, df_json, language):
+        """Genera PDF de Weibull con datos REALES del dataset limpio"""
+        try:
+            if not filename or filename.strip() == '':
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"weibull_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Weibull', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            df = None
+            if df_json:
+                try:
+                    df = pd.read_json(df_json, orient='split')
+                except Exception:
+                    df = None
+
+            analysis = build_weibull_analysis(df) if df is not None else None
+            if not analysis:
+                return None, ("❌ No hay datos suficientes para generar el PDF de Weibull." if language == 'es' else "❌ Not enough data to generate the Weibull PDF."), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            summary_stats = {
+                'n_patients': analysis['n_observations'],
+                'n_events': analysis['n_events'],
+                'event_rate': analysis['event_rate'],
+                'variable_name': 'Weibull'
+            }
+
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                ai_text = ai_text_from_page or generate_interpretation_for_pdf('weibull', summary_stats, analysis['summary_df'], language=language)
+                ai_text = clean_markdown_text(ai_text)
+
+            report_title = "INFORME MÉTODO WEIBULL" if language == 'es' else "WEIBULL METHOD REPORT"
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,
+                include_km=False,
+                include_cox=False,
+                include_logrank=False,
+                include_weibull='table' in options or 'graph' in options,
+                weibull_table=analysis['summary_df'] if 'table' in options else None,
+                weibull_figure=analysis['figure'] if 'graph' in options else None,
+                include_ai_interpretation='ai_interpretation' in options,
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language
+            )
+
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+
+        except Exception as e:
+            print(f"ERROR en download_weibull_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (f"❌ Error al generar el PDF de Weibull: {str(e)}" if language == 'es' else f"❌ Error generating the Weibull PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+
+
+def _get_modal_styles(show=True):
+    """Helper para obtener estilos del modal"""
+    if not show:
+        return {'display': 'none'}, {'display': 'none'}
+    
+    overlay_style = {
+        'display': 'block',
+        'position': 'fixed',
+        'top': 0,
+        'left': 0,
+        'width': '100%',
+        'height': '100%',
+        'backgroundColor': 'rgba(0,0,0,0.5)',
+        'zIndex': 999
+    }
+    container_style = {
+        'display': 'block',
+        'position': 'fixed',
+        'top': '50%',
+        'left': '50%',
+        'transform': 'translate(-50%, -50%)',
+        'backgroundColor': 'white',
+        'padding': '30px',
+        'borderRadius': '12px',
+        'boxShadow': '0 4px 20px rgba(0,0,0,0.3)',
+        'zIndex': 1000,
+        'width': '90%',
+        'maxWidth': '500px',
+        'maxHeight': '600px',
+        'overflowY': 'auto'
+    }
+    return overlay_style, container_style

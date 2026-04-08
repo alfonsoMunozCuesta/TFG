@@ -1,35 +1,53 @@
-# 🚀 ARRANQUE RÁPIDO - Llama-Server + Survival Analysis
+# 🚀 ARRANQUE RÁPIDO - Ollama + Survival Analysis
 
-## ⚡ Quick Start (3 pasos)
+## ⚡ Quick Start (4 pasos)
 
-### Paso 1: Abre Terminal 1 - Inicia Llama-Server
+### Paso 0: Verificar Prerequisites
+
+1. **Ollama instalado**: Descargar desde https://ollama.ai
+2. **Qwen2.5 disponible**: El script descargará automáticamente si falta
+
+---
+
+### Paso 1: Abre Terminal 1 - Inicia Ollama Server
 
 **Opción A (Recomendado - Automático):**
 ```powershell
 cd C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis
-python setup_llama_server.py
+.\START_LLAMA_SERVER.bat
 ```
 
-**Opción B (Manual - Batch):**
-```
-Doble-click: START_LLAMA_SERVER.bat
-```
-
-**Opción C (Manual - PowerShell):**
+**Opción B (Manual - PowerShell):**
 ```powershell
-C:\Users\LENOVO\Desktop\IA\llama.cpp\llama-server.exe `
-  -m "C:\Users\LENOVO\Desktop\IA\qwen2.5-1.5b-instruct-q4_k_m.gguf" `
-  --host 127.0.0.1 --port 8000 -ngl 0 -t 4 --chat-format chatml
+ollama pull qwen2.5    # Descargar modelo (solo primera vez)
+ollama serve           # Iniciar servidor
 ```
 
 **Espera este mensaje:**
 ```
-llama_print_timings: ...
+Listening on 127.0.0.1:11434
 ```
 
 ---
 
-### Paso 2: Abre Terminal 2 - Inicia Dash App
+### Paso 2: Abre Terminal 2 - Verifica Ollama
+
+En otra ventana de terminal, ejecuta el test de conexión:
+```powershell
+cd C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis
+python test_ollama_connection.py
+```
+
+Deberías ver:
+```
+✓ TODOS LOS TESTS PASARON - OLLAMA FUNCIONA CORRECTAMENTE
+```
+
+Si algo falla, consulta [OLLAMA_SETUP.md](OLLAMA_SETUP.md#troubleshooting).
+
+---
+
+### Paso 3: Abre Terminal 3 - Inicia Dash App
 
 ```powershell
 cd C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis
@@ -43,11 +61,19 @@ START_DASH_APP.bat
 
 ---
 
-### Paso 3: Accede a la App
+### Paso 4: Accede a la App
 
 ```
 🌐 http://localhost:8050
 ```
+
+---
+
+## 📝 Notas
+
+- **Ollama debe estar corriendo todo el tiempo** que uses la app
+- **Las explicaciones de IA requieren que Ollama esté activo**
+- Para más detalles, ver [OLLAMA_SETUP.md](OLLAMA_SETUP.md)
 
 ✅ **¡Listo!** Comenzarás a ver preguntas al LLM automáticamente.
 

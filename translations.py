@@ -2,6 +2,10 @@
 translations = {
     'es': {
         # Navbar
+        'navbar_home': 'INICIO',
+        'navbar_view_dataset': 'VER DATASET',
+        'navbar_covariate_analysis': 'ANÁLISIS DE COVARIABLES',
+        'navbar_survival_analysis': 'ANÁLISIS DE SUPERVIVENCIA',
         'inicio': 'INICIO',
         'ver_dataset': 'VER DATASET',
         'analisis_covariables': 'ANÁLISIS DE COVARIABLES',
@@ -17,21 +21,48 @@ translations = {
         'archivo_correcto': 'Este sistema es compatible únicamente con el dataset temp_data.csv',
         'archivo_bruto': 'Archivo Bruto',
         'archivo_preprocesado': 'Archivo Preprocesado',
+        'home_banner_subtitle': 'Analiza, compara y exporta resultados de supervivencia con soporte en español e inglés.',
+        'home_upload_hint': 'Carga un CSV para comenzar.',
+        'pdf_modal_title': 'Generar Informe PDF',
+        'pdf_modal_instruction': 'Haz clic y selecciona qué quieres incluir en el PDF:',
+        'pdf_modal_content': 'Contenido a incluir:',
+        'pdf_modal_filename_label': 'Nombre del archivo:',
+        'pdf_modal_filename_placeholder': 'informe_supervivencia',
+        'pdf_modal_no_extension': 'No incluir extensión .pdf',
+        'pdf_modal_cancel': 'Cancelar',
+        'pdf_modal_download': 'Descargar PDF',
+        'pdf_modal_error_prefix': 'Error',
         
         # Diálogo de confirmación
         'confirmar_inicio': '¿Estás seguro de que deseas volver a la página inicial? Perderás el dataset cargado y todo el análisis realizado.',
         
         # Survival Analysis
         'survival_analysis': 'Análisis de Supervivencia',
+        'survival_analysis_prefix': 'Análisis de Supervivencia: {name}',
         'kaplan_meier': 'Kaplan-Meier',
         'cox_regression': 'Regresión de Cox',
         'log_rank_test': 'Test de Log-Rank',
+        'weibull_analysis': 'Análisis Weibull',
+        'random_survival_forest': 'Random Survival Forest',
+        'exponential_analysis': 'Análisis Exponencial',
+        'weibull_intro': 'Este análisis ajusta una distribución Weibull a los tiempos de supervivencia para modelar cómo cambia el riesgo a lo largo del tiempo.',
+        'weibull_note': 'La curva ajustada resume el comportamiento paramétrico estimado del modelo y la tabla recoge los parámetros clave del ajuste.',
+        'weibull_graph_title': 'Método Weibull',
+        'weibull_summary_title': 'Resumen del ajuste Weibull',
+        'explicar_weibull': 'Explicar',
+        'weibull_metric': 'Métrica',
+        'weibull_value': 'Valor',
+        'weibull_interpretation': 'Interpretación',
+        'weibull_no_data': 'No hay datos suficientes para aplicar Weibull.',
         
         # Dataset Limpio
         'dataset_limpio': 'Dataset Limpio',
         
         # Análisis de Covariables
         'analisis_covariables_title': 'Análisis de Covariables',
+        'analisis_covariables_intro': 'Analiza cómo diferentes variables influyen en el abandono estudiantil',
+        'selecciona_el_analisis': 'Selecciona el análisis:',
+        'interpretacion': 'Interpretación',
         'abandono_total': 'Abandono Total',
         'abandono_genero': 'Abandono por Género',
         'abandono_discapacidad': 'Abandono por Discapacidad',
@@ -59,6 +90,8 @@ translations = {
         'selecciona_covariable_kaplan': 'Selecciona 1 covariable para ver su curva de Kaplan:',
         'genero': 'Género',
         'discapacidad': 'Discapacidad',
+        'grupo_edad': 'Grupo de Edad',
+        'nivel_educativo': 'Nivel Educativo',
         'ninguna': 'Ninguna',
         
         # Cox Regression page
@@ -103,6 +136,23 @@ translations = {
         'exp_studied_credits': '''Este gráfico muestra la distribución del abandono según los créditos estudiados por los estudiantes. Podemos observar si existe una relación
             entre la cantidad de créditos cursados y la probabilidad de abandonar. Este análisis es importante para entender cómo el progreso académico
             influye en la retención del estudiante.''',
+        'error_loading_csv_title': 'ERROR al cargar archivo',
+        'error_loading_csv_body': 'No se pudo leer el archivo CSV. Verifica que:',
+        'error_loading_csv_tip_1': 'El archivo sea un CSV válido',
+        'error_loading_csv_tip_2': 'Utilice ";" como separador',
+        'error_loading_csv_tip_3': 'La codificación sea UTF-8',
+        'error_preprocess_title': 'ERROR en preprocesamiento',
+        'error_preprocess_body': 'Verifica que el archivo contiene todas las columnas requeridas:',
+        'error_unexpected_title': 'ERROR inesperado',
+        'error_unexpected_body': 'Algo salió mal durante el preprocesamiento.',
+        'error_unexpected_contact': 'Contacta al administrador si el problema persiste.',
+        'error_dataset_not_loaded': 'Para acceder a esta parte del dashboard es necesario cargar el dataset académico primero.',
+        'error_no_data': 'No hay datos disponibles.',
+        'error_select_variable': 'Por favor, selecciona una covariable primero',
+        'error_select_covariate': 'Por favor, selecciona al menos una covariable primero',
+        'error_select_logrank': 'Por favor, realiza un Test de Log-Rank primero',
+        'error_timeout': 'Timeout: El servidor tardó más de 10 minutos. Intenta más tarde.',
+        'error_connection': 'Servidor llama-server no disponible. Ejecuta: START_LLAMA_SERVER.bat',
         
         # General
         'cargando': 'Cargando...',
@@ -110,6 +160,10 @@ translations = {
     },
     'en': {
         # Navbar
+        'navbar_home': 'HOME',
+        'navbar_view_dataset': 'VIEW DATASET',
+        'navbar_covariate_analysis': 'COVARIATE ANALYSIS',
+        'navbar_survival_analysis': 'SURVIVAL ANALYSIS',
         'inicio': 'HOME',
         'ver_dataset': 'VIEW DATASET',
         'analisis_covariables': 'COVARIATE ANALYSIS',
@@ -125,6 +179,17 @@ translations = {
         'archivo_correcto': 'This system is only compatible with the temp_data.csv dataset',
         'archivo_bruto': 'Raw File',
         'archivo_preprocesado': 'Preprocessed File',
+        'home_banner_subtitle': 'Analyze, compare, and export survival results with Spanish and English support.',
+        'home_upload_hint': 'Upload a CSV to get started.',
+        'pdf_modal_title': 'Generate PDF Report',
+        'pdf_modal_instruction': 'Click and select what you want to include in the PDF:',
+        'pdf_modal_content': 'Content to include:',
+        'pdf_modal_filename_label': 'File name:',
+        'pdf_modal_filename_placeholder': 'survival_report',
+        'pdf_modal_no_extension': 'Do not include the .pdf extension',
+        'pdf_modal_cancel': 'Cancel',
+        'pdf_modal_download': 'Download PDF',
+        'pdf_modal_error_prefix': 'Error',
         
         # Diálogo de confirmación
         'confirmar_inicio': 'Are you sure you want to return to the home page? You will lose the loaded dataset and all analysis performed.',
@@ -134,8 +199,20 @@ translations = {
         'kaplan_meier': 'Kaplan-Meier',
         'cox_regression': 'Cox Regression',
         'log_rank_test': 'Log-Rank Test',
+        'weibull_analysis': 'Weibull Analysis',
+        'random_survival_forest': 'Random Survival Forest',
+        'exponential_analysis': 'Exponential Analysis',
+        'weibull_intro': 'This analysis fits a Weibull distribution to the survival times to model how the risk changes over time.',
+        'weibull_note': 'The fitted curve summarizes the estimated parametric behavior of the model, and the table collects the key parameters of the fit.',
+        'weibull_graph_title': 'Weibull method',
+        'weibull_summary_title': 'Weibull fit summary',
+        'explicar_weibull': 'Explain',
+        'weibull_metric': 'Metric',
+        'weibull_value': 'Value',
+        'weibull_interpretation': 'Interpretation',
+        'weibull_no_data': 'Not enough data is available to apply Weibull.',
         
-        #abandono_age_band': 'Dropout by Age Band',
+        'abandono_age_band': 'Dropout by Age Band',
         'abandono_highest_education': 'Dropout by Highest Education',
         'femenino': 'Female',
         'masculino': 'Male',
@@ -146,15 +223,9 @@ translations = {
         'withdrawn': 'Withdrawn',
         'edad_banda': 'Age Band',
         'educacion_mas_alta': 'Highest Education',
-        'creditos_estudiados': 'Studied Creditspout by Gender',
+        'creditos_estudiados': 'Studied Credits',
         'abandono_discapacidad': 'Dropout by Disability',
-        'femenino': 'Female',
-        'masculino': 'Male',
-        'con_discapacidad': 'With Disability',
-        'sin_discapacidad': 'Without Disability',
-        'abandono': 'Dropout',
-        'no_abandono': 'No Dropout',
-        'withdrawn': 'Withdrawn',
+        'survival_analysis_prefix': 'Survival Analysis: {name}',
         
         # Kaplan-Meier
         'curva_supervivencia': 'Kaplan-Meier Survival Curve',
@@ -167,6 +238,8 @@ translations = {
         'selecciona_covariable_kaplan': 'Select 1 covariate to see its Kaplan curve:',
         'genero': 'Gender',
         'discapacidad': 'Disability',
+        'grupo_edad': 'Age Group',
+        'nivel_educativo': 'Education Level',
         'ninguna': 'None',
         
         # Cox Regression page
@@ -197,6 +270,23 @@ translations = {
         'exp_studied_credits': '''This chart shows the distribution of dropout by the studied credits of students. We can observe if there is a relationship
             between the number of credits taken and the probability of dropping out. This analysis is important to understand how academic progress
             influences student retention.''',
+        'error_loading_csv_title': 'ERROR loading file',
+        'error_loading_csv_body': 'Could not read the CSV file. Check that:',
+        'error_loading_csv_tip_1': 'The file is a valid CSV',
+        'error_loading_csv_tip_2': 'It uses ";" as separator',
+        'error_loading_csv_tip_3': 'The encoding is UTF-8',
+        'error_preprocess_title': 'ERROR during preprocessing',
+        'error_preprocess_body': 'Make sure the file contains all required columns:',
+        'error_unexpected_title': 'Unexpected ERROR',
+        'error_unexpected_body': 'Something went wrong during preprocessing.',
+        'error_unexpected_contact': 'Contact the administrator if the problem persists.',
+        'error_dataset_not_loaded': 'To access this part of the dashboard, you must load the academic dataset first.',
+        'error_no_data': 'No data available.',
+        'error_select_variable': 'Please select a covariate first',
+        'error_select_covariate': 'Please select at least one covariate first',
+        'error_select_logrank': 'Please run a Log-Rank Test first',
+        'error_timeout': 'Timeout: The server took more than 10 minutes. Try again later.',
+        'error_connection': 'llama-server is not available. Run: START_LLAMA_SERVER.bat',
         'exp_abandono': '''This chart shows the distribution of students based on whether they have dropped out or not. 
             The green column represents students who have not dropped out, while the purple represents those who have.
             As can be seen, most students have not experienced the dropout event, suggesting that the dropout rate is relatively low in this dataset.''',
@@ -218,5 +308,25 @@ translations = {
 }
 
 def get_translation(lang, key):
-    """Obtiene una traducción basada en el idioma y la clave"""
-    return translations.get(lang, {}).get(key, key)
+    """
+    Obtiene una traducción basada en el idioma y la clave.
+    
+    ✅ ERROR #5: Manejo seguro de traducciones faltantes
+    - Valida que el idioma exista
+    - Retorna clave como fallback si traducción no existe
+    - Loguea advertencias para debugging
+    """
+    # Validar idioma
+    if lang not in translations:
+        print(f"⚠️  [TRANSLATION] Idioma '{lang}' no soportado, usando 'es'")
+        lang = 'es'
+    
+    # Obtener traducción
+    translation = translations.get(lang, {}).get(key, None)
+    
+    # Si no existe, retornar la clave como fallback
+    if translation is None:
+        print(f"⚠️  [TRANSLATION] Clave '{key}' no encontrada para idioma '{lang}'")
+        return key
+    
+    return translation
