@@ -3,10 +3,81 @@ import json
 import time
 import sys
 import pandas as pd
+from config import LLAMA_SERVER_URL, MODEL_NAME
 
-# Configuración de llama-server (llama.cpp)
-LLAMA_SERVER_URL = "http://127.0.0.1:8000/v1/chat/completions"
-MODEL_NAME = "qwen2.5-1.5b-instruct"
+DEFAULT_TEMPERATURE = 0.15
+PDF_MAX_TOKENS = 480
+EXPLAIN_MAX_TOKENS = 260
+REQUEST_TIMEOUT_S = 240
+
+
+def _looks_like_list_output(text):
+    if not text:
+        return False
+    stripped = text.strip()
+    if stripped.startswith('-') or stripped.startswith('*'):
+        return True
+    return any(marker in stripped for marker in ('1)', '2)', '3)', '1.', '2.', '3.'))
+
+
+def _academic_system_prompt(language='es'):
+    if language == 'en':
+        return (
+            "You are a survival-analysis assistant for an academic thesis. "
+            "Write in formal, clear, evidence-based prose using only provided results. "
+            "Return 2-3 short paragraphs with no bullet points and no numbered lists."
+        )
+    return (
+        "Eres un asistente de análisis de supervivencia para un TFG. "
+        "Redacta en prosa académica clara y basada en evidencias, usando solo resultados proporcionados. "
+        "Devuelve 2-3 párrafos breves, sin viñetas ni listas numeradas."
+    )
+
+
+def _rewrite_to_prose_if_needed(content, max_tokens, language='es', timeout=REQUEST_TIMEOUT_S):
+    if not _looks_like_list_output(content):
+        return content
+
+    rewrite_payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": _academic_system_prompt(language)},
+            {
+                "role": "user",
+                "content": (
+                    "Reescribe este contenido en prosa académica manteniendo exactamente los hechos, "
+                    "sin viñetas ni numeración:\n\n" + content
+                ),
+            },
+        ],
+        "temperature": 0.1,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    response = requests.post(LLAMA_SERVER_URL, json=rewrite_payload, timeout=timeout)
+    response.raise_for_status()
+    result = response.json()
+    rewritten = result['choices'][0]['message']['content'].strip()
+    return rewritten or content
+
+
+def _call_llm(prompt, max_tokens, temperature=DEFAULT_TEMPERATURE, timeout=REQUEST_TIMEOUT_S, language='es'):
+    """Invoca llama-server con parámetros homogéneos y salida académica consistente."""
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": _academic_system_prompt(language)},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    response = requests.post(LLAMA_SERVER_URL, json=payload, timeout=timeout)
+    response.raise_for_status()
+    result = response.json()
+    content = result['choices'][0]['message']['content'].strip()
+    return _rewrite_to_prose_if_needed(content, max_tokens=max_tokens, language=language, timeout=timeout)
 
 def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data=None, language='es'):
     """
@@ -30,31 +101,17 @@ def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data
         prompt = _build_logrank_prompt(data_summary, table_data, language)
     elif analysis_type == 'weibull':
         prompt = _build_weibull_prompt(data_summary, table_data, language)
+    elif analysis_type == 'exponential':
+        prompt = _build_exponential_prompt(data_summary, table_data, language)
     else:
         return "Could not generate an interpretation for this type of analysis." if language == 'en' else "No se pudo generar interpretación para este tipo de análisis."
     
     try:
         print(f"⏳ Generando interpretación de IA para {analysis_type}...")
-        
-        payload = {
-            "model": MODEL_NAME,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.2,
-            "max_tokens": 900,
-            "stream": False
-        }
-        
+
         inicio = time.time()
-        response = requests.post(LLAMA_SERVER_URL, json=payload, timeout=300)
-        response.raise_for_status()
-        
+        interpretation = _call_llm(prompt, max_tokens=PDF_MAX_TOKENS, language=language)
         tiempo_respuesta = time.time() - inicio
-        result = response.json()
-        
-        # Extraer el contenido
-        interpretation = result['choices'][0]['message']['content'].strip()
         print(f"✓ Interpretación generada en {tiempo_respuesta:.2f}s")
         
         return interpretation
@@ -68,10 +125,29 @@ def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data
 
 def _build_km_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Kaplan-Meier"""
+    km_lines = []
+    if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
+        try:
+            sample = table_data.head(8)
+            col_t = sample.columns[0]
+            col_s = sample.columns[1] if len(sample.columns) > 1 else None
+            for _, row in sample.iterrows():
+                t_val = row.get(col_t, '')
+                s_val = row.get(col_s, '') if col_s else ''
+                if col_s:
+                    km_lines.append(f"- t={t_val}, S(t)={s_val}")
+                else:
+                    km_lines.append(f"- {t_val}")
+        except Exception:
+            km_lines.append("- Tabla KM disponible pero no parseable")
+
+    km_text = "\n".join(km_lines) if km_lines else "- No hay tabla KM disponible"
+
     if language == 'en':
         prompt = f"""
 You are an expert in biostatistics and survival analysis.
-Provide a clear, direct, and concise interpretation (2-3 paragraphs) of the following Kaplan-Meier analysis:
+Provide a concise interpretation (max 140 words) of this Kaplan-Meier analysis.
+Use only the information provided and do not invent values.
 
 STUDY DATA:
 - Number of patients: {data_summary.get('n_patients', 0)}
@@ -80,21 +156,19 @@ STUDY DATA:
 - Mean follow-up: {data_summary.get('follow_up_mean', 0):.1f} months
 - Median follow-up: {data_summary.get('follow_up_median', 0):.1f} months
 
-CURVE RESULTS:
-- Survival at 12 months: ~92.1%
-- Survival at 24 months: ~75.3%
-- Survival at 36 months: ~49.2%
+KM TABLE (sample):
+{km_text}
 
-Please explain:
-1. What these data mean
-2. How to interpret the curve
-3. Relevant clinical information
-4. Important limitations or considerations, without being too verbose
+Return exactly 3 short paragraphs:
+1) curve behavior and risk trend
+2) practical meaning
+3) one limitation
 """
     else:
         prompt = f"""
-Eres un experto en bioestadística y análisis de supervivencia. 
-Proporciona una interpretación clara, directa y breve (2-3 párrafos) del siguiente análisis de Kaplan-Meier:
+Eres experto en bioestadística y supervivencia.
+Da una interpretación concisa (máximo 140 palabras) del análisis Kaplan-Meier.
+Usa solo los datos disponibles y no inventes valores.
 
 DATOS DEL ESTUDIO:
 - Número de pacientes: {data_summary.get('n_patients', 0)}
@@ -103,16 +177,13 @@ DATOS DEL ESTUDIO:
 - Follow-up medio: {data_summary.get('follow_up_mean', 0):.1f} meses
 - Follow-up mediano: {data_summary.get('follow_up_median', 0):.1f} meses
 
-RESULTADOS DE LA CURVA:
-- Supervivencia a 12 meses: ~92.1%
-- Supervivencia a 24 meses: ~75.3%
-- Supervivencia a 36 meses: ~49.2%
+TABLA KM (muestra):
+{km_text}
 
-Por favor, explica:
-1. Qué significan estos datos
-2. Cómo se interpreta la curva
-3. Información clínica relevante
-4. Limitaciones o consideraciones importantes, sin extenderte demasiado
+Devuelve exactamente 3 párrafos cortos:
+1) comportamiento de la curva y tendencia de riesgo
+2) interpretación práctica
+3) una limitación
 """
     return prompt
 
@@ -191,9 +262,24 @@ Por favor:
 
 def _build_logrank_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Log-Rank Test"""
+    logrank_text = "- No hay tabla de Log-Rank disponible"
+    if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
+        try:
+            rows = []
+            for _, row in table_data.head(8).iterrows():
+                cov = row.get('Covariable', row.get('Variable', 'N/A'))
+                chi2 = row.get('test_statistic', row.get('chi2', 'N/A'))
+                pval = row.get('p_value', row.get('p', 'N/A'))
+                rows.append(f"- {cov}: chi2={chi2}, p={pval}")
+            logrank_text = "\n".join(rows)
+        except Exception:
+            logrank_text = "- Tabla de Log-Rank disponible pero no parseable"
+
     if language == 'en':
         prompt = f"""
-You are an expert in biostatistics. Provide a clear and concise interpretation of the log-rank test (2-3 paragraphs):
+You are an expert in biostatistics.
+Provide a concise interpretation of this log-rank test (max 130 words).
+Do not invent any values.
 
 CONTEXT:
 - Number of patients: {data_summary.get('n_patients', 0)}
@@ -201,18 +287,17 @@ CONTEXT:
 - Compared variable: {data_summary.get('variable_name', 'unknown')}
 
 RESULTS:
-- Chi-square: 4.327
-- p-value: 0.0376
-- Groups: 2
+{logrank_text}
 
-Please:
-1. Explain whether there is a significant difference between groups
-2. How to interpret the p-value
-3. Clinical implications of the result, without being too verbose
+Return exactly 2 paragraphs:
+1) significance and p-value interpretation
+2) practical implication and one caveat
 """
     else:
         prompt = f"""
-Eres experto en bioestadística. Proporciona una interpretación clara y breve del test de log-rank (2-3 párrafos):
+Eres experto en bioestadística.
+Da una interpretación breve del test Log-Rank (máximo 130 palabras).
+No inventes datos.
 
 CONTEXTO:
 - Número de pacientes: {data_summary.get('n_patients', 0)}
@@ -220,14 +305,11 @@ CONTEXTO:
 - Variable comparada: {data_summary.get('variable_name', 'desconocida')}
 
 RESULTADOS:
-- Chi-cuadrado: 4.327
-- p-valor: 0.0376
-- Grupos: 2
+{logrank_text}
 
-Por favor:
-1. Explica si hay diferencia significativa entre grupos
-2. Cómo se interpreta el p-valor
-3. Implicaciones clínicas del resultado, sin alargar la respuesta
+Devuelve exactamente 2 párrafos:
+1) significación e interpretación del p-valor
+2) implicación práctica y una limitación
 """
     return prompt
 
@@ -287,6 +369,60 @@ Por favor:
     return prompt
 
 
+def _build_exponential_prompt(data_summary, table_data, language='es'):
+    """Construye prompt para Exponential Survival."""
+    table_text = ""
+    if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
+        try:
+            lines = []
+            for _, row in table_data.iterrows():
+                metric = row.get('Metrica') or row.get('Metric') or row.iloc[0]
+                value = row.get('Valor') or row.get('Value') or row.iloc[1]
+                lines.append(f"- {metric}: {value}")
+            table_text = "\n".join(lines)
+        except Exception:
+            table_text = "- Tabla de resultados no parseable"
+    else:
+        table_text = "- No hay tabla de resultados disponible"
+
+    if language == 'en':
+        return f"""
+You are an expert in survival analysis.
+Interpret the Exponential model shown in the dashboard using only the provided table/curve information.
+
+DATA:
+- Observations: {data_summary.get('n_patients', 0)}
+- Events: {data_summary.get('n_events', 0)}
+- Event rate: {data_summary.get('event_rate', 0):.1f}%
+
+TABLE SUMMARY:
+{table_text}
+
+Return exactly 3 short paragraphs:
+1) what lambda implies (constant hazard over time)
+2) how the exponential fit compares conceptually to empirical KM curve
+3) one practical implication and one limitation
+"""
+
+    return f"""
+Eres experto en análisis de supervivencia.
+Interpreta el modelo Exponencial mostrado en el dashboard usando solo la información de tabla y curva.
+
+DATOS:
+- Observaciones: {data_summary.get('n_patients', 0)}
+- Eventos: {data_summary.get('n_events', 0)}
+- Tasa de eventos: {data_summary.get('event_rate', 0):.1f}%
+
+TABLA RESUMEN:
+{table_text}
+
+Devuelve exactamente 3 párrafos cortos:
+1) qué implica lambda (riesgo constante en el tiempo)
+2) cómo encaja el modelo exponencial frente a la curva KM empírica
+3) una implicación práctica y una limitación
+"""
+
+
 def generate_explanation(graph_data, model_type):
     """
     Genera explicaciones usando llama.cpp (llama-server) con Qwen2.5-1.5B-Instruct.
@@ -303,33 +439,15 @@ def generate_explanation(graph_data, model_type):
         prompt = f"Explica los resultados principales de la regresión de Cox en 3-4 frases, basándote solo en la tabla y el forest plot mostrados."
 
     try:
-        # Payload para el endpoint OpenAI-compatible de llama-server
-        payload = {
-            "model": MODEL_NAME,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.2,
-            "max_tokens": 800,
-            "stream": False
-        }
-        
         # Registro de inicio
         inicio = time.time()
         print(f"\n⏳ Enviando solicitud al LLM...")
         print(f"🔄 Esperando respuesta (sin límite de tiempo)...\n")
         sys.stdout.flush()
-        
-        # Enviar solicitud HTTP al servidor llama.cpp (timeout sin limite)
-        response = requests.post(LLAMA_SERVER_URL, json=payload, timeout=600)  # 10 minutos máximo
-        response.raise_for_status()
+        explanation = _call_llm(prompt, max_tokens=EXPLAIN_MAX_TOKENS, timeout=REQUEST_TIMEOUT_S, language='es')
         
         # Calcular tiempo de respuesta
         tiempo_respuesta = time.time() - inicio
-        
-        # Extraer el contenido de la respuesta
-        result = response.json()
-        explanation = result['choices'][0]['message']['content'].strip()
         
         # Mostrar tiempo de procesamiento
         minutos = int(tiempo_respuesta // 60)

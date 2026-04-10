@@ -1,6 +1,8 @@
 import dash
 from dash import Dash, dcc, html, dash_table
 import pandas as pd
+from pathlib import Path
+import dash_daq as daq
 from dash.dependencies import Input, Output, State
 import base64
 import plotly.express as px
@@ -29,14 +31,16 @@ from dash import callback_context
 from dash.exceptions import PreventUpdate
 from translations import get_translation
 from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
+from config import LLAMA_SERVER_URL, MODEL_NAME
 
 # Inicializar la aplicación Dash
 app = Dash(__name__, suppress_callback_exceptions=True)
 app.config['suppress_callback_exceptions'] = True
 
-# Configuración de llama-server con puerto 8000
-LLAMA_SERVER_URL = "http://127.0.0.1:8000/v1/chat/completions"
-MODEL_NAME = "qwen2.5-1.5b-instruct"
+# Rutas base del proyecto
+BASE_DIR = Path(__file__).resolve().parent
+TEMP_DATA_PATH = BASE_DIR / 'data' / 'temp_data.csv'
+CLEAN_DATA_PATH = BASE_DIR / 'dataset_limpio.csv'
 
 # Inicializar como None - se cargarán cuando sea necesario
 df = None
@@ -47,12 +51,12 @@ def load_dataframes():
     global df, df_limpio
     if df is None:
         try:
-            df = pd.read_csv(r"C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\data\temp_data.csv", sep=';')
+            df = pd.read_csv(TEMP_DATA_PATH, sep=';')
         except FileNotFoundError:
             print("⚠️  Advertencia: temp_data.csv no encontrado")
     if df_limpio is None:
         try:
-            df_limpio = pd.read_csv(r'C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\dataset_limpio.csv', sep=';')
+            df_limpio = pd.read_csv(CLEAN_DATA_PATH, sep=';')
         except FileNotFoundError:
             print("⚠️  Advertencia: dataset_limpio.csv no encontrado")
 
@@ -64,6 +68,35 @@ def _read_split_json(json_value):
     if isinstance(json_value, str):
         return pd.read_json(io.StringIO(json_value), orient='split')
     return pd.read_json(json_value, orient='split')
+
+
+def _humanize_label(value):
+    """Convierte etiquetas técnicas a texto legible para interpretación narrativa."""
+    if value is None:
+        return "N/A"
+
+    text = str(value)
+    replacements = {
+        'highest_education_': 'education_',
+        'age_band_': 'age_',
+        'gender_F': 'Female',
+        'disability_N': 'No disability',
+        '_': ' ',
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text.strip()
+
+
+def _looks_like_list_output(text):
+    """Detecta respuestas tipo lista para relanzar reescritura en prosa."""
+    if not text:
+        return False
+    stripped = text.strip()
+    if stripped.startswith('-') or stripped.startswith('*'):
+        return True
+    list_markers = ('1)', '2)', '3)', '1.', '2.', '3.')
+    return any(marker in stripped for marker in list_markers)
 
 # ==================== FUNCIÓN DE IA ====================
 def responder_pregunta_con_llama3(pregunta: str) -> str:
@@ -78,10 +111,19 @@ def responder_pregunta_con_llama3(pregunta: str) -> str:
         payload = {
             "model": MODEL_NAME,
             "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Eres un analista estadístico para un TFG de supervivencia. "
+                        "Redacta en estilo académico claro y profesional, en 2-3 párrafos breves, "
+                        "sin listas numeradas ni viñetas. "
+                        "No inventes datos; usa solo los resultados proporcionados."
+                    )
+                },
                 {"role": "user", "content": pregunta}
             ],
-            "temperature": 0.2,
-            "max_tokens": 450
+            "temperature": 0.15,
+            "max_tokens": 320
         }
         
         # Registro de inicio
@@ -97,6 +139,33 @@ def responder_pregunta_con_llama3(pregunta: str) -> str:
         # Extrae la respuesta generada (formato OpenAI)
         result = response.json()
         content = result['choices'][0]['message']['content'].strip()
+
+        if _looks_like_list_output(content):
+            rewrite_payload = {
+                "model": MODEL_NAME,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Reescribe en estilo académico de TFG, en prosa, 2 párrafos breves, "
+                            "sin listas numeradas ni viñetas. Mantén exactamente el contenido factual."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Reescribe en prosa académica este texto sin listas:\n\n{content}"
+                    }
+                ],
+                "temperature": 0.1,
+                "max_tokens": 320,
+                "stream": False
+            }
+            rewrite_response = requests.post(LLAMA_SERVER_URL, json=rewrite_payload, timeout=600)
+            rewrite_response.raise_for_status()
+            rewrite_result = rewrite_response.json()
+            rewritten = rewrite_result['choices'][0]['message']['content'].strip()
+            if rewritten:
+                content = rewritten
         
         if not content:
             raise ValueError("No se recibió una respuesta válida del modelo.")
@@ -197,26 +266,41 @@ def _build_logrank_interpretation_context(logrank_store_data):
     if not isinstance(logrank_store_data, dict):
         return ""
 
-    results_json = logrank_store_data.get('results_json')
-    if not results_json:
-        return ""
+    result_blocks = []
 
-    try:
-        results_df = _read_split_json(results_json)
-    except Exception:
-        return str(logrank_store_data)[:400]
+    # Formato heredado: {'results_json': '...'}
+    if logrank_store_data.get('results_json'):
+        result_blocks.append(logrank_store_data.get('results_json'))
 
-    if results_df.empty:
+    # Formato actual: {'results': [{'results_json': '...'}, ...]}
+    for item in logrank_store_data.get('results', []) or []:
+        if isinstance(item, dict) and item.get('results_json'):
+            result_blocks.append(item.get('results_json'))
+
+    if not result_blocks:
         return ""
 
     lines = []
-    for _, row in results_df.head(8).iterrows():
-        p_value = row.get('p_value', row.get('p', None))
-        stat = row.get('test_statistic', row.get('chi2', None))
-        conclusion = row.get('Conclusión', '')
-        lines.append(
-            f"- {row.get('Covariable', 'N/A')}: chi2={stat}, p={p_value}, decisión={row.get('Decisión', '')}, conclusión={conclusion}"
-        )
+    for block in result_blocks:
+        try:
+            results_df = _read_split_json(block)
+        except Exception:
+            continue
+
+        if results_df is None or results_df.empty:
+            continue
+
+        for _, row in results_df.head(8).iterrows():
+            p_value = row.get('p_value', row.get('p', None))
+            stat = row.get('test_statistic', row.get('chi2', None))
+            conclusion = row.get('Conclusión', '')
+            group_a = _humanize_label(row.get('Grupo A', 'N/A'))
+            group_b = _humanize_label(row.get('Grupo B', 'N/A'))
+            decision = row.get('Decisión', '')
+            lines.append(
+                f"- {_humanize_label(row.get('Covariable', row.get('Variable', 'N/A')))} | {group_a} vs {group_b}: chi2={stat}, p={p_value}, decisión={decision}, conclusión={conclusion}"
+            )
+
     return "\n".join(lines)
 
 
@@ -229,26 +313,39 @@ navbar = html.Div([
             dcc.Link(get_translation('es', 'navbar_covariate_analysis'), href='/covariate-analysis', className='navbar-link', id='navbar-covariate-analysis'),
             dcc.Link(get_translation('es', 'navbar_survival_analysis'), href='/survival-analysis', className='navbar-link', id='navbar-survival-analysis'),
         ], className='navbar-links', style={'flex': '1'}),
-        # Botón de idioma en la esquina derecha
+        # Selector de idioma con banderas + switch en la esquina derecha
         html.Div([
-            dcc.RadioItems(
-                id='language-selector',
-                options=[
-                    {'label': 'ES', 'value': 'es'},
-                    {'label': 'EN', 'value': 'en'},
-                ],
-                value='es',
-                labelStyle={'display': 'inline-block', 'marginRight': '20px'},
+            html.Img(
+                src='/assets/spain.jpg',
+                alt='Español',
                 style={
-                    'fontSize': '14px',
-                    'fontWeight': 'bold',
-                    'padding': '5px 15px',
-                    'borderRadius': '5px',
-                    'backgroundColor': 'rgba(26, 188, 156, 0.05)',
+                    'width': '28px',
+                    'height': '20px',
+                    'objectFit': 'cover',
+                    'borderRadius': '3px',
+                    'boxShadow': '0 1px 4px rgba(0,0,0,0.2)'
+                }
+            ),
+            daq.ToggleSwitch(
+                id='language-toggle',
+                value=False,
+                size=36,
+                color='#4a4a4a',
+                style={'margin': '0 10px'}
+            ),
+            html.Img(
+                src='/assets/ingles.png',
+                alt='English',
+                style={
+                    'width': '28px',
+                    'height': '20px',
+                    'objectFit': 'cover',
+                    'borderRadius': '3px',
+                    'boxShadow': '0 1px 4px rgba(0,0,0,0.2)'
                 }
             )
-        ], style={'marginRight': '30px', 'display': 'flex', 'alignItems': 'center'})
-    ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'width': '100%'})
+        ], className='language-switch-wrap', style={'marginRight': '42px', 'display': 'flex', 'alignItems': 'center', 'gap': '2px'})
+    ], className='navbar-inner', style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'width': '100%'})
 ], id='navbar', style={'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'background-color': '#f4f7f6', 'padding': '10px', 'z-index': '1000'})
 
 app.layout = html.Div([ 
@@ -278,10 +375,10 @@ app.layout = html.Div([
 # Callback para almacenar el idioma seleccionado
 @app.callback(
     Output('language-store', 'data'),
-    Input('language-selector', 'value')
+    Input('language-toggle', 'value')
 )
-def update_language(selected_language):
-    return selected_language
+def update_language(toggle_value):
+    return 'en' if toggle_value else 'es'
 
 
 @app.callback(
@@ -424,30 +521,35 @@ def create_home_page(language='es'):
                 }
             )
         ], id="banner-container", style={'width': '100%', 'padding': '0', 'margin': '0'}),
-            
-        html.Div([ 
-            html.Img(src='/assets/datos.png', style={'height': '150px', 'marginTop': '10px', 'marginLeft': '20px', 'display': 'none'}), 
-            html.H1(get_translation(language, 'dashboard_title'), style={'textAlign': 'center', 'fontSize': '2.5em', 'display': 'inline-block'})
-        ], style={'textAlign': 'center', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'marginBottom': '0px'}), 
-        
-        dcc.Loading(
-            id="loading-spinner",
-            type="circle",  
-            children=html.Div([  
-                html.H3(get_translation(language, 'cargar_dataset'), id='upload-text'), 
-                dcc.Upload(
-                    id='upload-data',
-                    children=html.Button(get_translation(language, 'sube_csv')),
-                    multiple=False
+
+        html.Div([
+            html.Div([
+                html.H1(get_translation(language, 'dashboard_title'), className='home-title-formal', style={'textAlign': 'center'}),
+                html.P(
+                    'Entorno de análisis estadístico para el estudio de abandono y supervivencia académica.' if language == 'es'
+                    else 'Statistical analysis environment for dropout and academic survival studies.',
+                    className='home-subtitle-formal'
                 ),
-                html.Div(id='output-data-upload') 
-            ], style={'textAlign': 'center', 'marginTop': '30px'}),
-        ),
-        
-        # Botón para limpiar y cargar el dataset limpio
-        html.Div([ 
-            html.Button(get_translation(language, 'preprocesa_csv'), id='load-clean', n_clicks=0),
-        ], style={'textAlign': 'center', 'marginTop': '20px'}),
+
+                dcc.Loading(
+                    id="loading-spinner",
+                    type="circle",
+                    children=html.Div([
+                        html.H3(get_translation(language, 'cargar_dataset'), id='upload-text', className='home-upload-title'),
+                        dcc.Upload(
+                            id='upload-data',
+                            children=html.Button(get_translation(language, 'sube_csv'), className='home-upload-btn'),
+                            multiple=False
+                        ),
+                        html.Div(id='output-data-upload', className='home-upload-feedback')
+                    ], className='home-upload-block')
+                ),
+
+                html.Div([
+                    html.Button(get_translation(language, 'preprocesa_csv'), id='load-clean', n_clicks=0, className='home-preprocess-btn'),
+                ], className='home-preprocess-block')
+            ], className='home-main-panel')
+        ], style={'padding': '10px 0 30px 0'}),
     ])
 
 # Página inicial
@@ -761,13 +863,13 @@ def explicar_kaplan(n_clicks, variable_actual, language, df_json):
         
         # Construir prompt con datos reales
         if language == 'en':
-            prompt = f"""Analyze the Kaplan-Meier survival curve for '{variable_actual}' using the actual group data below:
+            prompt = f"""Write an academic interpretation of the Kaplan-Meier output for '{_humanize_label(variable_actual)}' using only the real group results below:
 {stats_info}
-Focus on: 1) Which groups survive longer or decline faster, 2) What the curve shape suggests statistically, 3) Which groups look riskier or more protective. Be concise and base your answer only on these results."""
+Produce exactly 2 short paragraphs: first paragraph for statistical interpretation of curve behavior, second paragraph for practical implication and one limitation. Do not use bullet points."""
         else:
-            prompt = f"""Analiza la curva de supervivencia Kaplan-Meier para '{variable_actual}' usando los datos reales de los grupos:
+            prompt = f"""Redacta una interpretación académica de la salida Kaplan-Meier para '{_humanize_label(variable_actual)}' usando solo los resultados reales de grupos:
 {stats_info}
-Enfócate en: 1) Qué grupos sobreviven más o caen antes, 2) Qué sugiere la forma de la curva estadísticamente, 3) Qué grupos parecen más arriesgados o protectores. Sé conciso y basa tu respuesta solo en estos resultados."""
+Devuelve exactamente 2 párrafos breves: el primero con lectura estadística del comportamiento de curvas y el segundo con implicación práctica y una limitación. Sin viñetas ni listas numeradas."""
         
         respuesta = responder_pregunta_con_llama3(prompt)
         return respuesta if respuesta else "⚠️  Error: Respuesta vacía"
@@ -810,6 +912,12 @@ def update_graph(col_chosen, language, df_json):
     # ✅ VALIDACIÓN 2: Verificar que language es válido
     if language not in ['es', 'en']:
         language = 'es'
+
+    def _pick_existing(df_local, candidates):
+        for col in candidates:
+            if col in df_local.columns:
+                return col
+        return None
     
     try:
         if col_chosen == 'abandono':
@@ -831,10 +939,19 @@ def update_graph(col_chosen, language, df_json):
             return fig, get_translation(language, 'exp_abandono')
         
         elif col_chosen == 'gender':
-            conteo_genero = df_data['gender'].value_counts().sort_index()
-            label_masculino = get_translation(language, 'masculino')
-            label_femenino = get_translation(language, 'femenino')
-            fig = px.histogram(df_data, x='gender', color='final_result', barmode='group',
+            # Soporta datasets con columna original ('gender') o one-hot ('gender_F')
+            if 'gender' in df_data.columns:
+                plot_df = df_data.copy()
+                plot_df['gender_plot'] = plot_df['gender']
+            elif 'gender_F' in df_data.columns:
+                plot_df = df_data.copy()
+                plot_df['gender_plot'] = plot_df['gender_F'].apply(
+                    lambda x: get_translation(language, 'femenino') if x == 1 else get_translation(language, 'masculino')
+                )
+            else:
+                raise KeyError('gender / gender_F')
+
+            fig = px.histogram(plot_df, x='gender_plot', color='final_result', barmode='group',
                                title=get_translation(language, 'abandono_genero_title'),
                                color_discrete_map={0: '#1abc9c', 1: '#006400'})
             fig.update_layout(
@@ -845,10 +962,20 @@ def update_graph(col_chosen, language, df_json):
             return fig, get_translation(language, 'exp_genero')
         
         elif col_chosen == 'disability':
-            conteo_discapacidad = df_data['disability'].value_counts().sort_index()
-            label_sin_discapacidad = get_translation(language, 'sin_discapacidad')
-            label_con_discapacidad = get_translation(language, 'con_discapacidad')
-            fig = px.histogram(df_data, x='disability', color='final_result', barmode='group',
+            # Soporta datasets con columna original ('disability') o one-hot ('disability_N')
+            if 'disability' in df_data.columns:
+                plot_df = df_data.copy()
+                plot_df['disability_plot'] = plot_df['disability']
+            elif 'disability_N' in df_data.columns:
+                plot_df = df_data.copy()
+                # disability_N=1 -> sin discapacidad ; disability_N=0 -> con discapacidad
+                plot_df['disability_plot'] = plot_df['disability_N'].apply(
+                    lambda x: get_translation(language, 'sin_discapacidad') if x == 1 else get_translation(language, 'con_discapacidad')
+                )
+            else:
+                raise KeyError('disability / disability_N')
+
+            fig = px.histogram(plot_df, x='disability_plot', color='final_result', barmode='group',
                                title=get_translation(language, 'abandono_discapacidad_title'),
                                color_discrete_map={0: '#1abc9c', 1: '#006400'})
             fig.update_layout(
@@ -860,7 +987,17 @@ def update_graph(col_chosen, language, df_json):
         
         elif col_chosen == 'age_band':
             data_age = []
-            for col, label in [('age_band_0-35', '0-35'), ('age_band_35-55', '35-55'), ('age_band_55<=', '55+')]:
+            age_candidates = [
+                ('age_band_0-35', '0-35'),
+                ('age_band_35-55', '35-55'),
+                ('age_band_55<=', '55+'),
+                ('age_band_55+', '55+'),
+            ]
+            available_age = [(col, label) for col, label in age_candidates if col in df_data.columns]
+            if not available_age:
+                raise KeyError('age_band_*')
+
+            for col, label in available_age:
                 for result in [0, 1]:
                     count = len(df_data[(df_data[col] == 1) & (df_data['final_result'] == result)])
                     data_age.append({'age_group': label, 'final_result': result, 'count': count})
@@ -876,12 +1013,34 @@ def update_graph(col_chosen, language, df_json):
             return fig, get_translation(language, 'exp_age_band')
         
         elif col_chosen == 'highest_education':
-            education_cols = ['highest_education_A Level or Equivalent', 'highest_education_HE Qualification',
-                             'highest_education_Lower Than A Level', 'highest_education_No Formal quals',
-                             'highest_education_Post Graduate Qualification']
-            education_labels = ['A Level', 'HE Qualification', 'Lower than A Level', 'No Formal', 'Post Graduate']
+            education_candidates = [
+                ('highest_education_A Level or Equivalent', 'A Level'),
+                ('highest_education_HE Qualification', 'HE Qualification'),
+                ('highest_education_Lower Than A Level', 'Lower than A Level'),
+                ('highest_education_No Formal quals', 'No Formal'),
+                ('highest_education_Post Graduate Qualification', 'Post Graduate'),
+            ]
+            available_edu = [(col, label) for col, label in education_candidates if col in df_data.columns]
+            if not available_edu:
+                # Fallback: intentar columna categórica original
+                edu_col = _pick_existing(df_data, ['highest_education', 'education'])
+                if edu_col is None:
+                    raise KeyError('highest_education_* / highest_education')
+
+                plot_df = df_data.copy()
+                fig = px.histogram(plot_df, x=edu_col, color='final_result', barmode='group',
+                                   title=get_translation(language, 'abandono_highest_education_title'),
+                                   color_discrete_map={0: '#1abc9c', 1: '#006400'})
+                fig.update_layout(
+                    xaxis_title=get_translation(language, 'nivel_educativo'),
+                    yaxis_title=get_translation(language, 'num_estudiantes'),
+                    legend=dict(title=get_translation(language, 'abandono')),
+                    xaxis_tickangle=-45
+                )
+                return fig, get_translation(language, 'exp_highest_education')
+
             data_edu = []
-            for col, label in zip(education_cols, education_labels):
+            for col, label in available_edu:
                 for result in [0, 1]:
                     count = len(df_data[(df_data[col] == 1) & (df_data['final_result'] == result)])
                     data_edu.append({'education': label, 'final_result': result, 'count': count})
@@ -898,6 +1057,8 @@ def update_graph(col_chosen, language, df_json):
             return fig, get_translation(language, 'exp_highest_education')
         
         elif col_chosen == 'studied_credits':
+            if 'studied_credits' not in df_data.columns:
+                raise KeyError('studied_credits')
             df_credits = df_data[['studied_credits', 'final_result']].copy()
             
             # ✅ ERROR #6: Validación de quintiles - verificar que hay datos suficientes
@@ -1410,30 +1571,56 @@ def explicar_rsf(n_clicks, rsf_store_data, language):
     train_c_index = rsf_store_data.get('train_c_index', None)
     n_features = rsf_store_data.get('n_features', 0)
 
+    summary_text = ""
+    summary_json = rsf_store_data.get('summary_json')
+    if summary_json:
+        try:
+            summary_df = _read_split_json(summary_json)
+            if summary_df is not None and not summary_df.empty:
+                summary_lines = []
+                for _, row in summary_df.head(12).iterrows():
+                    metric = row.get('Metrica', row.get('Metric', 'Métrica'))
+                    value = row.get('Valor', row.get('Value', 'N/A'))
+                    summary_lines.append(f"- {metric}: {value}")
+                summary_text = "\n".join(summary_lines)
+        except Exception:
+            summary_text = ""
+
     if language == 'en':
-        if oob_score is not None:
-            return (
-                f"The Random Survival Forest uses {n_features} predictors and combines many bootstrap trees to estimate survival. "
-                f"Train concordance is {train_c_index:.3f} and OOB concordance is {oob_score:.3f}. "
-                f"The most influential variable is {top_feature}. The survival curves separate low-, medium-, and high-risk profiles clearly."
-            )
-        return (
-            f"The Random Survival Forest uses {n_features} predictors and combines many bootstrap trees to estimate survival. "
-            f"Train concordance is {train_c_index:.3f}. The most influential variable is {top_feature}. "
-            f"The survival curves separate low-, medium-, and high-risk profiles clearly."
+        prompt = (
+            "Interpret the RSF dashboard outputs using ONLY the visible chart/table information.\n"
+            f"- Predictors: {n_features}\n"
+            f"- Train c-index: {train_c_index}\n"
+            f"- OOB c-index: {oob_score}\n"
+            f"- Top feature: {top_feature}\n"
+            f"- Summary table:\n{summary_text}\n"
+            "Focus on: 1) calibration/discrimination quality, 2) what the survival curves imply for low/medium/high risk profiles, "
+            "3) practical implication and one limitation. Keep it concise and factual."
+        )
+    else:
+        prompt = (
+            "Interpreta la salida de RSF usando SOLO la información visible en gráfica y tabla del dashboard.\n"
+            f"- Predictores: {n_features}\n"
+            f"- c-index entrenamiento: {train_c_index}\n"
+            f"- c-index OOB: {oob_score}\n"
+            f"- Variable más importante: {top_feature}\n"
+            f"- Tabla resumen:\n{summary_text}\n"
+            "Enfócate en: 1) calidad de discriminación/calibración, 2) qué implican las curvas para perfiles de riesgo bajo/medio/alto, "
+            "3) implicación práctica y una limitación. Sé conciso y factual."
         )
 
-    if oob_score is not None:
-        return (
-            f"El Random Survival Forest utiliza {n_features} variables predictoras y combina muchos árboles bootstrap para estimar la supervivencia. "
-            f"La concordancia en entrenamiento es {train_c_index:.3f} y la concordancia OOB es {oob_score:.3f}. "
-            f"La variable más influyente es {top_feature}. Las curvas separan con claridad los perfiles de bajo, medio y alto riesgo."
-        )
+    respuesta = responder_pregunta_con_llama3(prompt)
+    if respuesta:
+        return respuesta
 
+    if language == 'en':
+        return (
+            f"RSF uses {n_features} predictors. Train c-index={train_c_index}, OOB c-index={oob_score}, and top feature={top_feature}. "
+            "The dashboard curves suggest meaningful separation across risk profiles; confirm with external validation."
+        )
     return (
-        f"El Random Survival Forest utiliza {n_features} variables predictoras y combina muchos árboles bootstrap para estimar la supervivencia. "
-        f"La concordancia en entrenamiento es {train_c_index:.3f}. La variable más influyente es {top_feature}. "
-        f"Las curvas separan con claridad los perfiles de bajo, medio y alto riesgo."
+        f"RSF usa {n_features} predictores. c-index entrenamiento={train_c_index}, c-index OOB={oob_score}, y variable principal={top_feature}. "
+        "Las curvas del dashboard sugieren separación entre perfiles de riesgo; conviene validar externamente."
     )
 
 
@@ -1514,7 +1701,18 @@ def explicar_exponential(n_clicks, df_json, language):
         if not analysis:
             return get_translation(language, 'exponential_no_data')
 
-        return analysis['interpretation']
+        respuesta = generate_interpretation_for_pdf(
+            'exponential',
+            {
+                'n_patients': analysis['n_observations'],
+                'n_events': analysis['n_events'],
+                'event_rate': analysis['event_rate'],
+                'variable_name': 'Exponential'
+            },
+            analysis['summary_df'],
+            language=language
+        )
+        return respuesta if respuesta else analysis['interpretation']
     except Exception as e:
         print(f"❌ Error en explicar_exponential: {str(e)}")
         return get_translation(language, 'exponential_no_data')
@@ -1546,23 +1744,25 @@ def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language):
                 if 'summary_json' in cox_store_data and cox_store_data['summary_json']:
                     summary_df = _read_split_json(cox_store_data['summary_json'])
                     table_summary = "\nDatos de la tabla Cox:"
-                    for idx, row in summary_df.iterrows():
-                        coef = round(float(row.get('coef', 0)), 3) if row.get('coef') else 'N/A'
-                        hr = round(float(row.get('exp(coef)', 0)), 3) if row.get('exp(coef)') else 'N/A'
-                        p_val = round(float(row.get('p', 1)), 4) if row.get('p') else 'N/A'
-                        table_summary += f"\n- {list(summary_df.index)[idx]}: HR={hr}, p={p_val}"
+                    for _, row in summary_df.iterrows():
+                        cov_name = _humanize_label(row.get('Covariable', 'N/A'))
+                        hr = row.get('exp(Coef.)', row.get('exp(coef)', 'N/A'))
+                        p_val = row.get('p', 'N/A')
+                        hr_text = f"{float(hr):.3f}" if hr not in [None, 'N/A'] else 'N/A'
+                        p_text = f"{float(p_val):.4f}" if p_val not in [None, 'N/A'] else 'N/A'
+                        table_summary += f"\n- {cov_name}: HR={hr_text}, p={p_text}"
             except Exception as e:
                 print(f"Error extrayendo tabla Cox: {e}")
         
         # Construir prompt con datos reales
         if language == 'en':
-            prompt = (f"Interpret Cox Regression results for: {variables_seleccionadas}. {table_summary}\n"
-                     f"Explain: 1) What each HR means and its effect on dropout risk, 2) Significant covariates (p<0.05), "
-                     f"3) HR>1 (risk increase) or HR<1 (protective), 4) Key conclusions. Be concise (3-4 sentences).")
+            prompt = (f"Write an academic interpretation of Cox Regression for {_humanize_label(variables_seleccionadas)} using only this real table summary:{table_summary}\n"
+                     f"Return 2 short paragraphs: first paragraph with significant/non-significant covariates and HR interpretation (risk vs protective), "
+                     f"second paragraph with practical conclusion and one methodological limitation. No bullet points.")
         else:
-            prompt = (f"Interpreta los resultados de Cox Regression para: {variables_seleccionadas}. {table_summary}\n"
-                     f"Explica: 1) Qué significa cada HR y su efecto en el riesgo de abandono, 2) Covariables significativas (p<0.05), "
-                     f"3) HR>1 (aumenta riesgo) o HR<1 (efecto protector), 4) Conclusiones clave. Sé conciso (3-4 oraciones).")
+            prompt = (f"Redacta una interpretación académica de la Regresión de Cox para {_humanize_label(variables_seleccionadas)} usando solo este resumen real de tabla:{table_summary}\n"
+                     f"Devuelve 2 párrafos breves: el primero con covariables significativas/no significativas y lectura de HR (riesgo vs protector), "
+                     f"el segundo con conclusión práctica y una limitación metodológica. Sin viñetas ni listas.")
         
         respuesta = responder_pregunta_con_llama3(prompt)
         return respuesta if respuesta else "⚠️  Error: Respuesta vacía"
@@ -1673,15 +1873,15 @@ def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, languag
         
         # Construir prompt con datos reales
         if language == 'en':
-            prompt = (f"Explain the Log-Rank Test results for {variables_seleccionadas} using the real table below:\n"
+            prompt = (f"Write an academic interpretation of the Log-Rank output for {_humanize_label(variables_seleccionadas)} using only the real comparisons below:\n"
                      f"{logrank_data_str}\n"
-                     f"Focus on: 1) Which comparisons are significant (p<0.05), 2) Which groups differ the most, "
-                     f"3) What the survival curves imply in practical terms. Be concise and factual.")
+                     f"Return 2 short paragraphs in prose: first paragraph identifying statistically significant contrasts and direction of differences, "
+                     f"second paragraph with practical reading of survival-curve separation and one limitation. No bullet points.")
         else:
-            prompt = (f"Explica los resultados del Test de Log-Rank para {variables_seleccionadas} usando la tabla real:\n"
+            prompt = (f"Redacta una interpretación académica del Test Log-Rank para {_humanize_label(variables_seleccionadas)} usando solo las comparaciones reales:\n"
                      f"{logrank_data_str}\n"
-                     f"Enfócate en: 1) Qué comparaciones son significativas (p<0.05), 2) Qué grupos difieren más, "
-                     f"3) Qué implican las curvas de supervivencia en la práctica. Sé conciso y factual.")
+                     f"Devuelve 2 párrafos en prosa: el primero identificando contrastes significativos y diferencias principales, "
+                     f"el segundo con lectura práctica de la separación de curvas y una limitación. Sin viñetas ni listas numeradas.")
         
         respuesta = responder_pregunta_con_llama3(prompt)
         if len(respuesta) > 3000:

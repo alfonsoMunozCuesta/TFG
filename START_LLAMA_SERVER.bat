@@ -5,8 +5,17 @@ REM ===========================================================
 setlocal enabledelayedexpansion
 
 REM Rutas al modelo y servidor
-set MODEL_PATH=C:\Users\LENOVO\Desktop\IA\qwen2.5-1.5b-instruct-q4_k_m.gguf
-set LLAMA_SERVER=C:\Users\LENOVO\Desktop\IA\llama.cpp\llama-server.exe
+if "%MODEL_PATH%"=="" set MODEL_PATH=C:\Users\LENOVO\Desktop\IA\qwen2.5-1.5b-instruct-q4_k_m.gguf
+if "%LLAMA_SERVER%"=="" set LLAMA_SERVER=C:\Users\LENOVO\Desktop\IA\llama.cpp\llama-server.exe
+
+REM ==========================
+REM Parametros de inferencia
+REM ==========================
+REM Ajusta estos valores segun tu CPU/RAM.
+if "%N_THREADS%"=="" set N_THREADS=8
+if "%N_CTX%"=="" set N_CTX=4096
+if "%N_BATCH%"=="" set N_BATCH=512
+if "%N_UBATCH%"=="" set N_UBATCH=128
 
 echo.
 echo ========================================
@@ -34,6 +43,7 @@ if not exist "%MODEL_PATH%" (
 
 echo [✓] Modelo encontrado: %MODEL_PATH%
 echo [✓] Servidor encontrado: %LLAMA_SERVER%
+echo [i] N_THREADS=%N_THREADS%  N_CTX=%N_CTX%  N_BATCH=%N_BATCH%  N_UBATCH=%N_UBATCH%
 echo.
 echo Iniciando servidor en: http://127.0.0.1:8000
 echo.
@@ -47,12 +57,11 @@ REM Ejecutar llama-server (sin límite de tiempo)
   -m "%MODEL_PATH%" ^
   --host 127.0.0.1 ^
   --port 8000 ^
-  -ngl 0
-
-pause
-
-
-  -t 8
+  -c %N_CTX% ^
+  -b %N_BATCH% ^
+  -ub %N_UBATCH% ^
+  -ngl 0 ^
+  -t %N_THREADS%
 
 REM La aplicación seguirá ejecutándose indefinidamente
 REM Presiona Ctrl+C para detener

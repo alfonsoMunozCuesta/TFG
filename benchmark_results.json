@@ -1,0 +1,21 @@
+{
+  "ok": 8,
+  "errors": 0,
+  "error_examples": [],
+  "latency_mean_s": 7.133790737425443,
+  "latency_p95_s": 7.444750899914652,
+  "latency_max_s": 7.801415199879557,
+  "approx_tokens_total": 1226,
+  "throughput_req_s": 0.2797837632450079,
+  "throughput_tok_s": 42.876861717297466,
+  "system_cpu_mean_pct": 59.9,
+  "system_cpu_max_pct": 92.6,
+  "system_ram_mean_mb": 5515.797012061404,
+  "system_ram_max_mb": 5704.5859375,
+  "llama_detected": true,
+  "llama_cpu_mean_pct": 794.8649122807018,
+  "llama_cpu_max_pct": 1152.5,
+  "llama_ram_mean_mb": 1293.777069627193,
+  "llama_ram_max_mb": 1366.87109375,
+  "elapsed_wall_s": 28.593510599806905
+}

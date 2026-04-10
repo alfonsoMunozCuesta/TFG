@@ -306,9 +306,9 @@ def create_survival_analysis_page(language='es'):
             html.Div([
                 html.Img(src=technique['image'], style=technique['image_style']),
                 dcc.Link(get_translation(language, technique['label_key']), href=technique['href'], className='home-link'),
-            ], style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'marginTop': '20px', 'width': '30%', 'minWidth': '220px'})
+            ], className='survival-technique-card', style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'marginTop': '20px', 'width': '30%', 'minWidth': '220px'})
             for technique in techniques
-        ], style={'textAlign': 'center', 'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap', 'gap': '30px', 'marginTop': '20px', 'paddingBottom': '90px'}),  
+        ], className='survival-techniques-grid', style={'textAlign': 'center', 'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap', 'gap': '30px', 'marginTop': '20px', 'paddingBottom': '90px'}),  
 
         # Contenedor para mostrar el gráfico de Kaplan-Meier
         html.Div(id='survival_analysis_page', children=[]),
@@ -676,7 +676,7 @@ def create_covariate_analysis_page(language='es'):
                     'marginBottom': '30px'
                 }
             )
-        ], style={'backgroundColor': '#f8fbff', 'padding': '30px', 'borderRadius': '10px', 'margin': '20px'}),
+        ], className='section-header formal-card', style={'backgroundColor': '#f8fbff', 'padding': '30px', 'borderRadius': '10px', 'margin': '20px'}),
         
         # Botones de selección
         html.Div([
@@ -709,7 +709,7 @@ def create_covariate_analysis_page(language='es'):
                         'textAlign': 'center'
                     }
                 )
-            ], style={
+            ], className='formal-card', style={
                 'padding': '20px',
                 'backgroundColor': 'white',
                 'borderRadius': '10px',
@@ -749,7 +749,7 @@ def create_covariate_analysis_page(language='es'):
                         className='explanation-panel',
                         style={'minHeight': '400px', 'overflow': 'auto'}
                     )
-                ], style={
+                ], className='interpretation-card formal-card', style={
                     'width': '320px',
                     'display': 'inline-block',
                     'verticalAlign': 'top',
@@ -758,7 +758,7 @@ def create_covariate_analysis_page(language='es'):
                     'borderRadius': '10px',
                     'boxShadow': '0 2px 8px rgba(0,0,0,0.1)'
                 })
-            ], style={'padding': '20px', 'display': 'flex', 'gap': '0'})
+            ], className='covariate-main-layout', style={'padding': '20px', 'display': 'flex', 'gap': '0'})
         ], style={'margin': '20px'})
     ])
 
