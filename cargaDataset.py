@@ -9,7 +9,7 @@ from layout import (
     create_survival_analysis_page, create_covariate_analysis_page, 
     create_kaplan_meier_page, create_cox_regression_page, 
     create_log_rank_page, create_ver_dataset_page, 
-    create_weibull_analysis_page,
+    create_weibull_analysis_page, create_exponential_analysis_page,
     create_rsf_analysis_page,
     display_logrank_summary_table
 )
@@ -19,7 +19,8 @@ from log_rank_test import perform_log_rank_test
 from survival_plots import plot_logrank_curves, plot_cox_hazard_ratios
 from preprocesamiento import preprocess_data
 from weibull import build_weibull_analysis
-from rsf import build_rsf_analysis
+from exponential import build_exponential_analysis
+from rsf import build_rsf_analysis, build_rsf_profile_analysis
 import matplotlib.pyplot as plt
 import requests
 from ollama_AI import generate_explanation, generate_interpretation_for_pdf
@@ -355,7 +356,7 @@ def display_page(pathname, language, df_json):
     if pathname == '/':
         return create_home_page(language)
 
-    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull', '/survival-analysis/rsf'] and not dataset_loaded:
+    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull', '/survival-analysis/exponential', '/survival-analysis/rsf'] and not dataset_loaded:
         return _create_dataset_locked_message(language)
 
     if pathname == '/covariate-analysis':
@@ -370,6 +371,8 @@ def display_page(pathname, language, df_json):
         return create_log_rank_page(language)
     elif pathname == '/survival-analysis/weibull':
         return create_weibull_analysis_page(language)
+    elif pathname == '/survival-analysis/exponential':
+        return create_exponential_analysis_page(language)
     elif pathname == '/survival-analysis/rsf':
         return create_rsf_analysis_page(language)
     elif pathname == '/ver-dataset':
@@ -1130,6 +1133,71 @@ def render_weibull_output(language, df_json, pathname):
 
 
 @app.callback(
+    Output('exponential-analysis-output', 'children'),
+    [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
+)
+def render_exponential_output(language, df_json, pathname):
+    if pathname != '/survival-analysis/exponential':
+        raise PreventUpdate
+
+    def _no_data_message():
+        return html.Div(
+            get_translation(language, 'exponential_no_data'),
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
+        )
+
+    if df_json is None:
+        return _no_data_message()
+
+    try:
+        df_data = _read_split_json(df_json)
+    except Exception:
+        return _no_data_message()
+
+    analysis = build_exponential_analysis(df_data)
+    if not analysis:
+        return _no_data_message()
+
+    summary_df = analysis['summary_df']
+    table = dash_table.DataTable(
+        id='exponential-summary-table',
+        columns=[
+            {"name": get_translation(language, 'exponential_metric'), "id": "Metrica"},
+            {"name": get_translation(language, 'exponential_value'), "id": "Valor"},
+            {"name": get_translation(language, 'exponential_interpretation'), "id": "Interpretacion"},
+        ],
+        data=summary_df.to_dict('records'),
+        style_table={'overflowX': 'auto', 'maxHeight': '360px', 'overflowY': 'auto', 'marginTop': '10px'},
+        style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+        style_header={'fontWeight': 'bold', 'backgroundColor': '#f4f7f6'},
+        style_data_conditional=[{'if': {'column_id': 'Metrica'}, 'fontWeight': 'bold'}]
+    )
+
+    return html.Div([
+        html.Div([
+            html.H3(get_translation(language, 'exponential_summary_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
+            table,
+        ], style={
+            'backgroundColor': 'white',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+        html.Div([
+            html.H3(get_translation(language, 'exponential_graph_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+            dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True})
+        ], style={
+            'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+    ])
+
+
+@app.callback(
     [Output('rsf-analysis-output', 'children'),
      Output('rsf-analysis-data', 'data')],
     [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
@@ -1218,6 +1286,110 @@ def render_rsf_output(language, df_json, pathname):
     }
 
     return output_children, store_data
+
+
+@app.callback(
+    Output('rsf-profile-output', 'children'),
+    [Input('rsf-profile-simulate-btn', 'n_clicks'),
+     Input('df-store', 'data')],
+    [State('rsf-profile-gender', 'value'),
+     State('rsf-profile-disability', 'value'),
+     State('rsf-profile-age-band', 'value'),
+     State('rsf-profile-education', 'value'),
+     State('rsf-profile-credits', 'value'),
+     State('language-store', 'data')],
+    prevent_initial_call=False
+)
+def simulate_rsf_profile(n_clicks, df_json, gender, disability, age_band, education, credits_level, language):
+    if not df_json:
+        return html.Div(
+            get_translation(language, 'rsf_no_data'),
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
+        )
+
+    try:
+        df_data = _read_split_json(df_json)
+    except Exception:
+        return html.Div(
+            get_translation(language, 'rsf_no_data'),
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
+        )
+
+    credits_map = {'few': 30, 'medium': 60, 'many': 120}
+    profile = {
+        'gender_F': gender,
+        'disability_N': disability,
+        'age_band': age_band,
+        'highest_education': education,
+        'studied_credits': credits_map.get(credits_level, 30),
+    }
+
+    analysis = build_rsf_profile_analysis(df_data, profile)
+    if not analysis:
+        return html.Div(
+            get_translation(language, 'rsf_no_data'),
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
+        )
+
+    show_table = bool(n_clicks and n_clicks > 0)
+
+    profile_table = dash_table.DataTable(
+        columns=[{"name": "Métrica" if language == 'es' else "Metric", "id": "Metrica"}, {"name": "Valor" if language == 'es' else "Value", "id": "Valor"}],
+        data=analysis['summary_df'].to_dict('records'),
+        style_table={'overflowX': 'auto', 'maxHeight': '320px', 'overflowY': 'auto', 'marginTop': '10px'},
+        style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+        style_header={'fontWeight': 'bold', 'backgroundColor': '#f4f7f6'},
+        style_data_conditional=[{'if': {'column_id': 'Metrica'}, 'fontWeight': 'bold'}]
+    )
+
+    profile_title = 'Curva del perfil simulado' if language == 'es' else 'Simulated profile curve'
+    profile_summary_title = 'Perfil simulado' if language == 'es' else 'Simulated profile'
+
+    graph_block = html.Div([
+        html.H4(profile_title, style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
+        dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True, 'scrollZoom': False, 'doubleClick': 'reset'})
+    ], style={
+        'backgroundColor': '#f8f9fa',
+        'padding': '18px',
+        'borderRadius': '10px',
+        'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
+        'marginBottom': '22px'
+    })
+
+    if not show_table:
+        return html.Div([
+            graph_block,
+            html.Div(analysis['interpretation'], style={
+                'backgroundColor': '#eef7ff',
+                'padding': '14px 16px',
+                'borderRadius': '8px',
+                'border': '1px solid #d9e8ff',
+                'color': '#2c3e50',
+                'lineHeight': '1.6'
+            })
+        ])
+
+    return html.Div([
+        html.Div([
+            html.H4(profile_summary_title, style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
+            profile_table,
+        ], style={
+            'backgroundColor': '#ffffff',
+            'padding': '18px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
+            'marginBottom': '22px'
+        }),
+        graph_block,
+        html.Div(analysis['interpretation'], style={
+            'backgroundColor': '#eef7ff',
+            'padding': '14px 16px',
+            'borderRadius': '8px',
+            'border': '1px solid #d9e8ff',
+            'color': '#2c3e50',
+            'lineHeight': '1.6'
+        })
+    ])
 
 
 @app.callback(
@@ -1321,6 +1493,31 @@ def explicar_weibull(n_clicks, df_json, language):
     except Exception as e:
         print(f"❌ Error en explicar_weibull: {str(e)}")
         return get_translation(language, 'weibull_no_data')
+
+
+@app.callback(
+    Output('openai-answer-exponential', 'children'),
+    [Input('btn-exponential', 'n_clicks')],
+    [State('df-store', 'data'), State('language-store', 'data')],
+    prevent_initial_call=True
+)
+def explicar_exponential(n_clicks, df_json, language):
+    if n_clicks is None or n_clicks <= 0:
+        return ""
+
+    if not df_json:
+        return get_translation(language, 'exponential_no_data')
+
+    try:
+        df_data = _read_split_json(df_json)
+        analysis = build_exponential_analysis(df_data)
+        if not analysis:
+            return get_translation(language, 'exponential_no_data')
+
+        return analysis['interpretation']
+    except Exception as e:
+        print(f"❌ Error en explicar_exponential: {str(e)}")
+        return get_translation(language, 'exponential_no_data')
 
 @app.callback(
     Output('openai-answer-cox', 'value'),

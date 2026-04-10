@@ -16,6 +16,55 @@ COVARIABLE_MAPPING = {
     'studied_credits': ['studied_credits']
 }
 
+
+def _rgba_with_alpha(color, alpha):
+    if color.startswith('rgba(') and color.endswith(')'):
+        parts = [part.strip() for part in color[5:-1].split(',')]
+        if len(parts) >= 3:
+            return f"rgba({parts[0]}, {parts[1]}, {parts[2]}, {alpha})"
+    return color
+
+
+def _add_km_trace_with_ci(fig, kmf, name, color, show_legend=True):
+    survival_col = kmf.survival_function_.columns[0]
+    timeline = kmf.timeline.tolist()
+    survival_values = kmf.survival_function_[survival_col].tolist()
+    ci = kmf.confidence_interval_survival_function_
+    upper_values = ci.iloc[:, 1].tolist()
+    lower_values = ci.iloc[:, 0].tolist()
+
+    fig.add_trace(go.Scatter(
+        x=timeline,
+        y=upper_values,
+        mode='lines',
+        line=dict(color='rgba(0,0,0,0)', width=0),
+        hoverinfo='skip',
+        showlegend=False,
+        name=f'{name} IC superior'
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=timeline,
+        y=lower_values,
+        mode='lines',
+        line=dict(color='rgba(0,0,0,0)', width=0),
+        fill='tonexty',
+        fillcolor=_rgba_with_alpha(color, 0.18),
+        hoverinfo='skip',
+        showlegend=False,
+        name=f'{name} IC inferior'
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=timeline,
+        y=survival_values,
+        mode='lines',
+        name=name,
+        line=dict(color=_rgba_with_alpha(color, 1.0), width=2),
+        hovertemplate='(%{x:.0f}, %{y:.3f})<extra></extra>',
+        showlegend=show_legend
+    ))
+
 def plot_kaplan_meier(df):
     # ✅ ERROR #3: Validar estructura de datos antes de análisis
     if df is None or len(df) == 0:
@@ -32,15 +81,7 @@ def plot_kaplan_meier(df):
     fig = go.Figure()
 
     # curva de Kaplan-Meier
-    fig.add_trace(go.Scatter(
-        x=kmf.timeline.tolist(),
-        y=kmf.survival_function_['KM_estimate'].tolist(),
-        mode='lines',
-        name='',
-        line=dict(color='blue', width=2),
-        hovertemplate="(%{x:.0f}, %{y:.3f})" 
-
-    ))
+    _add_km_trace_with_ci(fig, kmf, '', 'rgba(0, 0, 255, 1.0)', show_legend=False)
 
     fig.update_layout(
         title="Curva de Supervivencia Kaplan-Meier",
@@ -123,19 +164,13 @@ def plot_km_by_covariate(df, covariable_name='gender_F'):
                 kmf.fit(df_group['date'], 
                        event_observed=df_group['final_result'],
                        label=group_label)
-                
-                survival_col = kmf.survival_function_.columns[0]
-                
-                fig.add_trace(go.Scatter(
-                    x=kmf.timeline.tolist(),
-                    y=kmf.survival_function_[survival_col].tolist(),
-                    mode='lines',
-                    name=group_label,
-                    line=dict(width=2),
-                    fill='tonexty',
-                    fillcolor=colors[idx % len(colors)],
-                    hovertemplate="(%{x:.0f}, %{y:.3f})"
-                ))
+
+                _add_km_trace_with_ci(
+                    fig,
+                    kmf,
+                    group_label,
+                    colors[idx % len(colors)]
+                )
     
     # Para variables categóricas multi-valor (age_band, highest_education)
     elif len(columns) > 1:
@@ -160,19 +195,13 @@ def plot_km_by_covariate(df, covariable_name='gender_F'):
                 kmf.fit(df_group['date'],
                        event_observed=df_group['final_result'],
                        label=f"{label} (n={len(df_group)})")
-                
-                survival_col = kmf.survival_function_.columns[0]
-                
-                fig.add_trace(go.Scatter(
-                    x=kmf.timeline.tolist(),
-                    y=kmf.survival_function_[survival_col].tolist(),
-                    mode='lines',
-                    name=f"{label} (n={len(df_group)})",
-                    line=dict(width=2),
-                    fill='tonexty',
-                    fillcolor=colors[idx % len(colors)],
-                    hovertemplate="(%{x:.0f}, %{y:.3f})"
-                ))
+
+                _add_km_trace_with_ci(
+                    fig,
+                    kmf,
+                    f"{label} (n={len(df_group)})",
+                    colors[idx % len(colors)]
+                )
             else:
                 # Grupo sin observaciones - mostrar en leyenda como línea punteada gris
                 fig.add_trace(go.Scatter(
@@ -213,19 +242,13 @@ def plot_km_by_covariate(df, covariable_name='gender_F'):
                     kmf.fit(df_group['date'],
                            event_observed=df_group['final_result'],
                            label=group_label)
-                    
-                    survival_col = kmf.survival_function_.columns[0]
-                    
-                    fig.add_trace(go.Scatter(
-                        x=kmf.timeline.tolist(),
-                        y=kmf.survival_function_[survival_col].tolist(),
-                        mode='lines',
-                        name=group_label,
-                        line=dict(width=2),
-                        fill='tonexty',
-                        fillcolor=colors[idx % len(colors)],
-                        hovertemplate="(%{x:.0f}, %{y:.3f})"
-                    ))
+
+                    _add_km_trace_with_ci(
+                        fig,
+                        kmf,
+                        group_label,
+                        colors[idx % len(colors)]
+                    )
     
     # Configurar la gráfica
     fig.update_layout(
@@ -313,19 +336,13 @@ def _create_km_figure(df, covariable_name='gender_F'):
                 kmf.fit(df_group['date'], 
                        event_observed=df_group['final_result'],
                        label=group_label)
-                
-                survival_col = kmf.survival_function_.columns[0]
-                
-                fig.add_trace(go.Scatter(
-                    x=kmf.timeline.tolist(),
-                    y=kmf.survival_function_[survival_col].tolist(),
-                    mode='lines',
-                    name=group_label,
-                    line=dict(width=2),
-                    fill='tonexty',
-                    fillcolor=colors[idx % len(colors)],
-                    hovertemplate="(%{x:.0f}, %{y:.3f})"
-                ))
+
+                _add_km_trace_with_ci(
+                    fig,
+                    kmf,
+                    group_label,
+                    colors[idx % len(colors)]
+                )
     
     # Para variables categóricas multi-valor (age_band, highest_education)
     elif len(columns) > 1:
@@ -350,19 +367,13 @@ def _create_km_figure(df, covariable_name='gender_F'):
                 kmf.fit(df_group['date'],
                        event_observed=df_group['final_result'],
                        label=label)
-                
-                survival_col = kmf.survival_function_.columns[0]
-                
-                fig.add_trace(go.Scatter(
-                    x=kmf.timeline.tolist(),
-                    y=kmf.survival_function_[survival_col].tolist(),
-                    mode='lines',
-                    name=label,
-                    line=dict(width=2),
-                    fill='tonexty',
-                    fillcolor=colors[idx % len(colors)],
-                    hovertemplate="(%{x:.0f}, %{y:.3f})"
-                ))
+
+                _add_km_trace_with_ci(
+                    fig,
+                    kmf,
+                    label,
+                    colors[idx % len(colors)]
+                )
                 idx += 1
     
     # Para variables continuas (studied_credits)
@@ -386,19 +397,13 @@ def _create_km_figure(df, covariable_name='gender_F'):
                             kmf.fit(df_group['date'],
                                    event_observed=df_group['final_result'],
                                    label=group_label)
-                            
-                            survival_col = kmf.survival_function_.columns[0]
-                            
-                            fig.add_trace(go.Scatter(
-                                x=kmf.timeline.tolist(),
-                                y=kmf.survival_function_[survival_col].tolist(),
-                                mode='lines',
-                                name=group_label,
-                                line=dict(width=2),
-                                fill='tonexty',
-                                fillcolor=colors[idx % len(colors)],
-                                hovertemplate="(%{x:.0f}, %{y:.3f})"
-                            ))
+
+                            _add_km_trace_with_ci(
+                                fig,
+                                kmf,
+                                group_label,
+                                colors[idx % len(colors)]
+                            )
     
     # Configurar la gráfica
     fig.update_layout(

@@ -164,6 +164,22 @@ class SurvivalAnalysisPDFExporter:
             textColor=colors.HexColor('#34495e')
         ))
 
+        self.styles.add(ParagraphStyle(
+            name='TableCell',
+            parent=self.styles['Normal'],
+            fontSize=8,
+            leading=9.5,
+            alignment=1,
+            fontName='Times-Roman',
+            textColor=colors.HexColor('#1f1f1f')
+        ))
+
+        self.styles.add(ParagraphStyle(
+            name='TableCellLeft',
+            parent=self.styles['TableCell'],
+            alignment=0
+        ))
+
     def _is_english(self):
         return self.language == 'en'
     
@@ -244,7 +260,7 @@ class SurvivalAnalysisPDFExporter:
             ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ]))
         self.elements.append(underline)
-        self.elements.append(Spacer(1, 0.12*inch))
+        self.elements.append(Spacer(1, 0.18*inch))
     
     def add_summary_section(self, n_patients, n_events, follow_up_mean, follow_up_median):
         """Agrega sección de resumen general con estilo profesional y sin solapamiento"""
@@ -586,6 +602,81 @@ class SurvivalAnalysisPDFExporter:
 
         self.elements.append(Spacer(1, 0.3 * inch))
 
+    def add_exponential_section(self, exponential_table=None):
+        """Agrega sección de Exponencial - 2. TABLA DE RESULTADOS"""
+        self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
+
+        intro_text = (
+            "The Exponential model is a parametric survival model with constant hazard over time. It is a special case of Weibull when the shape parameter k = 1. The table below summarizes the fitted model and its main statistics, and the graph compares the fitted curve against the empirical Kaplan-Meier survival curve."
+            if self._is_english() else
+            "El modelo Exponencial es un modelo paramétrico de supervivencia con hazard constante en el tiempo. Es un caso particular del Weibull cuando el parámetro de forma k = 1. La tabla siguiente resume el ajuste y sus estadísticas principales, y la gráfica compara la curva ajustada con la curva empírica de Kaplan-Meier."
+        )
+        self.elements.append(Paragraph(intro_text, self.styles['DescriptionText']))
+        self.elements.append(Spacer(1, 0.15 * inch))
+
+        if exponential_table is not None and isinstance(exponential_table, pd.DataFrame) and len(exponential_table) > 0:
+            self.elements.append(Spacer(1, 0.1 * inch))
+
+            def _cell(value, header=False, left=False):
+                style = self.styles['TableCellLeft'] if left else self.styles['TableCell']
+                text = str(value).replace("\n", "<br/>")
+                if header:
+                    text = f"<b>{text}</b>"
+                return Paragraph(text, style)
+
+            table_data = [[_cell(column, header=True, left=index == 0) for index, column in enumerate(exponential_table.columns)]]
+            for row in exponential_table.values:
+                row_str = []
+                for index, val in enumerate(row):
+                    if isinstance(val, float):
+                        cell_value = f"{val:.4f}"
+                    else:
+                        cell_value = str(val)
+                    row_str.append(_cell(cell_value, left=index == 0))
+                table_data.append(row_str)
+
+            num_cols = len(exponential_table.columns)
+            total_width = 8.0 * inch
+            if num_cols == 3:
+                col_widths = [2.05 * inch, 1.25 * inch, 4.70 * inch]
+            elif num_cols > 1:
+                col_widths = [2.2 * inch] + [(total_width - 2.2 * inch) / (num_cols - 1)] * (num_cols - 1)
+            else:
+                col_widths = [total_width]
+
+            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e67e22')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold'),
+                ('FONTNAME', (0, 1), (-1, -1), 'Times-Roman'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8.5),
+                ('FONTSIZE', (0, 1), (-1, -1), 7.6),
+                ('LEADING', (0, 0), (-1, -1), 8.5),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#fef5ed')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#fef5ed')])
+            ]))
+
+            self.elements.append(table)
+            self.elements.append(Spacer(1, 0.2 * inch))
+            print(f"  ✓ Tabla Exponencial agregada: {len(table_data)} rows")
+        else:
+            self.elements.append(Paragraph(
+                ("Exponential Fit Summary<br/>" if self._is_english() else "Resumen del Ajuste Exponencial<br/>")
+                + ("The Exponential fit is summarized in the table above." if self._is_english() else "El ajuste Exponencial se resume en la tabla anterior."),
+                self.styles['NormalText']
+            ))
+
+        self.elements.append(Spacer(1, 0.3 * inch))
+
     def add_rsf_section(self, rsf_table=None):
         """Agrega sección de Random Survival Forest - 2. TABLA DE RESULTADOS"""
         self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
@@ -793,7 +884,7 @@ class SurvivalAnalysisPDFExporter:
             # Título
             canvas_obj.setFont('Times-Bold', 10.5)
             canvas_obj.setFillColor(colors.HexColor('#1f77b4'))
-            canvas_obj.drawCentredString(page_width / 2, page_height - 0.34 * inch, title)
+            canvas_obj.drawCentredString(page_width / 2, page_height - 0.28 * inch, title)
 
             # Pie
             canvas_obj.setStrokeColor(colors.HexColor('#d9e5f3'))
@@ -829,10 +920,16 @@ def export_survival_analysis_to_pdf(
     include_weibull=False,
     weibull_figure=None,
     weibull_table=None,
+    include_exponential=False,
+    exponential_figure=None,
+    exponential_table=None,
     include_rsf=False,
     rsf_figure=None,
     rsf_importance_figure=None,
     rsf_table=None,
+    include_rsf_profile=False,
+    rsf_profile_figure=None,
+    rsf_profile_text="",
     include_ai_interpretation=False,
     ai_text="",
     summary_stats=None,
@@ -859,7 +956,9 @@ def export_survival_analysis_to_pdf(
                     (include_cox and forest_figure is not None) or \
                     (include_logrank and logrank_figure is not None) or \
                     (include_weibull and weibull_figure is not None) or \
-                    (include_rsf and (rsf_figure is not None or rsf_importance_figure is not None))
+                    (include_exponential and exponential_figure is not None) or \
+                    (include_rsf and (rsf_figure is not None or rsf_importance_figure is not None)) or \
+                    (include_rsf_profile and rsf_profile_figure is not None)
     else:
         # Usar valor explícito (True = forzar landscape, False = forzar portrait)
         has_graph = include_graph
@@ -869,10 +968,10 @@ def export_survival_analysis_to_pdf(
         landscape_tables = []
     
     # ENCABEZADO SIMPLE (solo título y fecha) - MINIMAL SPACING
-    exporter.elements.append(Spacer(1, 0.12*inch))
+    exporter.elements.append(Spacer(1, 0.18*inch))
     title_para = Paragraph(title, exporter.styles['CustomTitle'])
     exporter.elements.append(title_para)
-    exporter.elements.append(Spacer(1, 0.08*inch))
+    exporter.elements.append(Spacer(1, 0.16*inch))
     
     print(f"[PDF BUILDER] Elementos iniciales (header): {len(exporter.elements)}")
     
@@ -913,6 +1012,10 @@ def export_survival_analysis_to_pdf(
         _start_new_section()
         exporter.add_weibull_section(weibull_table)
         tabla_agregada = True
+    elif include_exponential:
+        _start_new_section()
+        exporter.add_exponential_section(exponential_table)
+        tabla_agregada = True
     elif include_rsf:
         _start_new_section()
         exporter.add_rsf_section(rsf_table)
@@ -943,6 +1046,11 @@ def export_survival_analysis_to_pdf(
         exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
         exporter.add_plotly_figure(weibull_figure, "Weibull fitted curve" if language == 'en' else "Curva ajustada Weibull")
         grafica_agregada = True
+    elif include_exponential and exponential_figure is not None:
+        _start_new_section()
+        exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
+        exporter.add_plotly_figure(exponential_figure, "Exponential fitted curve" if language == 'en' else "Curva ajustada Exponencial")
+        grafica_agregada = True
     elif include_rsf and rsf_figure is not None:
         _start_new_section()
         exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
@@ -958,6 +1066,19 @@ def export_survival_analysis_to_pdf(
         _start_new_section()
         exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
         exporter.add_plotly_figure(rsf_importance_figure, "Variable importance" if language == 'en' else "Importancia de variables")
+        grafica_agregada = True
+
+    if include_rsf_profile and rsf_profile_figure is not None:
+        if grafica_agregada:
+            numero_seccion += 1
+        _start_new_section()
+        exporter.add_graph_section(f"{numero_seccion}. GRAPH" if exporter._is_english() else f"{numero_seccion}. GRÁFICA")
+        exporter.add_plotly_figure(
+            rsf_profile_figure,
+            "Simulated individual profile" if language == 'en' else "Perfil individual simulado"
+        )
+        if rsf_profile_text:
+            exporter._add_paragraph_block(rsf_profile_text, 'InterpretationText')
         grafica_agregada = True
     
     if grafica_agregada:

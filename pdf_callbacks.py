@@ -15,7 +15,8 @@ import pandas as pd
 import traceback
 import re
 from weibull import build_weibull_analysis
-from rsf import build_rsf_analysis
+from exponential import build_exponential_analysis
+from rsf import build_rsf_analysis, build_rsf_profile_analysis
 
 
 def clean_markdown_text(text):
@@ -109,7 +110,7 @@ def register_pdf_export_callbacks(app):
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
             
-            options = options or ['summary', 'table']
+            options = options or ['summary', 'graph']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Kaplan-Meier', language)
             if ai_error:
                 return None, ai_error, {
@@ -293,7 +294,7 @@ def register_pdf_export_callbacks(app):
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
             
-            options = options or ['summary', 'table']
+            options = options or ['summary', 'graph']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Cox Regression', language)
             if ai_error:
                 return None, ai_error, {
@@ -747,6 +748,137 @@ def register_pdf_export_callbacks(app):
             }
 
 
+    # ===== EXPONENTIAL PDF CALLBACKS =====
+
+    @app.callback(
+        [Output('exponential-pdf-modal-overlay', 'style'),
+         Output('exponential-pdf-modal-container', 'style')],
+        [Input('export-exponential-btn', 'n_clicks'),
+         Input('exponential-pdf-modal-close-btn', 'n_clicks'),
+         Input('exponential-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_exponential_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+
+        if triggered_id == 'export-exponential-btn' and export_clicks:
+            return _get_modal_styles(True)
+
+        return {'display': 'none'}, {'display': 'none'}
+
+
+    @app.callback(
+        [Output('exponential-pdf-modal-download', 'data'),
+         Output('exponential-pdf-modal-error', 'children'),
+         Output('exponential-pdf-modal-error', 'style')],
+        Input('exponential-pdf-modal-download-btn', 'n_clicks'),
+        [State('exponential-pdf-modal-filename', 'value'),
+         State('exponential-pdf-modal-checklist-content', 'value'),
+         State('openai-answer-exponential', 'children'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_exponential_pdf(n_clicks, filename, options, ai_text_from_page, df_json, language):
+        try:
+            if not filename or filename.strip() == '':
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"exponential_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+
+            options = options or ['summary', 'table']
+            ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Exponencial', language)
+            if ai_error:
+                return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            df = None
+            if df_json:
+                try:
+                    df = pd.read_json(df_json, orient='split')
+                except Exception:
+                    df = None
+
+            analysis = build_exponential_analysis(df) if df is not None else None
+            if not analysis:
+                return None, ("❌ No hay datos suficientes para generar el PDF de Exponencial." if language == 'es' else "❌ Not enough data to generate the Exponential PDF."), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            summary_stats = {
+                'n_patients': analysis['n_observations'],
+                'n_events': analysis['n_events'],
+                'follow_up_mean': float(df['date'].mean()) if df is not None and 'date' in df.columns else 0,
+                'follow_up_median': float(df['date'].median()) if df is not None and 'date' in df.columns else 0,
+                'variable_name': 'Exponencial'
+            }
+
+            ai_text = ""
+            if 'ai_interpretation' in options:
+                ai_text = ai_text_from_page or analysis['interpretation']
+                ai_text = clean_markdown_text(ai_text)
+
+            report_title = "INFORME MÉTODO EXPONENCIAL" if language == 'es' else "EXPONENTIAL METHOD REPORT"
+            export_survival_analysis_to_pdf(
+                filename=pdf_path,
+                title=report_title,
+                include_summary='summary' in options,
+                include_km=False,
+                include_cox=False,
+                include_logrank=False,
+                include_weibull=False,
+                include_exponential=True,
+                exponential_table=analysis['summary_df'],
+                exponential_figure=analysis['figure'] if 'graph' in options else None,
+                include_ai_interpretation='ai_interpretation' in options,
+                ai_text=ai_text,
+                summary_stats=summary_stats if 'summary' in options else None,
+                language=language
+            )
+
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+
+        except Exception as e:
+            print(f"ERROR en download_exponential_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (f"❌ Error al generar el PDF de Exponencial: {str(e)}" if language == 'es' else f"❌ Error generating the Exponential PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+
+
     # ===== RSF PDF CALLBACKS =====
 
     @app.callback(
@@ -779,11 +911,29 @@ def register_pdf_export_callbacks(app):
          State('rsf-pdf-modal-checklist-content', 'value'),
          State('rsf-analysis-data', 'data'),
          State('openai-answer-rsf', 'value'),
+         State('rsf-profile-gender', 'value'),
+         State('rsf-profile-disability', 'value'),
+         State('rsf-profile-age-band', 'value'),
+         State('rsf-profile-education', 'value'),
+         State('rsf-profile-credits', 'value'),
          State('df-store', 'data'),
          State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def download_rsf_pdf(n_clicks, filename, options, rsf_store_data, ai_text_from_page, df_json, language):
+    def download_rsf_pdf(
+        n_clicks,
+        filename,
+        options,
+        rsf_store_data,
+        ai_text_from_page,
+        profile_gender,
+        profile_disability,
+        profile_age_band,
+        profile_education,
+        profile_credits_level,
+        df_json,
+        language,
+    ):
         """Genera PDF de Random Survival Forest con datos reales del análisis actual"""
         try:
             if not filename or filename.strip() == '':
@@ -796,7 +946,7 @@ def register_pdf_export_callbacks(app):
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
 
-            options = options or ['summary', 'table']
+            options = options or ['general_summary', 'model_summary']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Random Survival Forest', language)
             if ai_error:
                 return None, ai_error, {
@@ -832,6 +982,15 @@ def register_pdf_export_callbacks(app):
                     'fontWeight': 'bold'
                 }
 
+            # Usar la misma tabla que se pinta en el dashboard para que el PDF refleje exactamente
+            # el bloque "Resumen del modelo RSF" mostrado arriba.
+            rsf_table_for_pdf = analysis['summary_df']
+            if rsf_store_data and isinstance(rsf_store_data, dict) and rsf_store_data.get('summary_json'):
+                try:
+                    rsf_table_for_pdf = pd.read_json(rsf_store_data['summary_json'], orient='split')
+                except Exception:
+                    rsf_table_for_pdf = analysis['summary_df']
+
             summary_stats = {
                 'n_patients': analysis['n_observations'],
                 'n_events': analysis['n_events'],
@@ -840,29 +999,57 @@ def register_pdf_export_callbacks(app):
                 'variable_name': analysis['top_feature']
             }
 
+            rsf_profile_analysis = None
+            if 'profile' in options:
+                credits_map = {'few': 30, 'medium': 60, 'many': 120}
+                profile = {
+                    'gender_F': profile_gender if profile_gender is not None else 1,
+                    'disability_N': profile_disability if profile_disability is not None else 1,
+                    'age_band': profile_age_band if profile_age_band else 'age_band_0-35',
+                    'highest_education': profile_education if profile_education else 'highest_education_A Level or Equivalent',
+                    'studied_credits': credits_map.get(profile_credits_level, 30),
+                }
+                rsf_profile_analysis = build_rsf_profile_analysis(df, profile)
+
             ai_text = ""
             if 'ai_interpretation' in options:
                 ai_text = ai_text_from_page or analysis['interpretation']
                 ai_text = clean_markdown_text(ai_text)
 
             report_title = "INFORME RANDOM SURVIVAL FOREST" if language == 'es' else "RANDOM SURVIVAL FOREST REPORT"
-            export_survival_analysis_to_pdf(
+            export_kwargs = dict(
                 filename=pdf_path,
                 title=report_title,
-                include_summary='summary' in options,
+                include_summary='general_summary' in options,
                 include_km=False,
                 include_cox=False,
                 include_logrank=False,
                 include_weibull=False,
-                include_rsf='table' in options or 'graph' in options or 'importance' in options,
-                rsf_table=analysis['summary_df'] if 'table' in options else None,
+                include_rsf='model_summary' in options or 'graph' in options or 'importance' in options,
+                rsf_table=rsf_table_for_pdf if 'model_summary' in options else None,
                 rsf_figure=analysis['figure'] if 'graph' in options else None,
                 rsf_importance_figure=analysis['importance_figure'] if 'importance' in options else None,
+                include_rsf_profile='profile' in options and rsf_profile_analysis is not None,
+                rsf_profile_figure=rsf_profile_analysis['figure'] if rsf_profile_analysis is not None else None,
+                rsf_profile_text=clean_markdown_text(rsf_profile_analysis['interpretation']) if rsf_profile_analysis is not None else "",
                 include_ai_interpretation='ai_interpretation' in options,
                 ai_text=ai_text,
-                summary_stats=summary_stats if 'summary' in options else None,
-                language=language
+                summary_stats=summary_stats if 'general_summary' in options else None,
+                language=language,
             )
+
+            try:
+                export_survival_analysis_to_pdf(**export_kwargs)
+            except TypeError as type_error:
+                # Compatibilidad con recargas parciales en caliente (firma antigua de exportador en memoria).
+                if "include_rsf_profile" not in str(type_error):
+                    raise
+
+                fallback_kwargs = dict(export_kwargs)
+                fallback_kwargs.pop('include_rsf_profile', None)
+                fallback_kwargs.pop('rsf_profile_figure', None)
+                fallback_kwargs.pop('rsf_profile_text', None)
+                export_survival_analysis_to_pdf(**fallback_kwargs)
 
             return dcc.send_file(pdf_path), "", {'display': 'none'}
 

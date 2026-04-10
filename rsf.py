@@ -12,6 +12,35 @@ from sksurv.metrics import concordance_index_censored
 from sksurv.util import Surv
 
 
+PROFILE_CATEGORIES = {
+    "gender_F": {
+        1: "Femenino",
+        0: "Masculino",
+    },
+    "disability_N": {
+        1: "Con discapacidad",
+        0: "Sin discapacidad",
+    },
+    "age_band": {
+        "age_band_0-35": "0-35 años",
+        "age_band_35-55": "35-55 años",
+        "age_band_55<=": "55+ años",
+    },
+    "highest_education": {
+        "highest_education_A Level or Equivalent": "A Level o equivalente",
+        "highest_education_HE Qualification": "HE Qualification",
+        "highest_education_Lower Than A Level": "Inferior a A Level",
+        "highest_education_Post Graduate Qualification": "Postgrado",
+    },
+}
+
+PROFILE_CREDIT_LEVELS = {
+    "few": 30,
+    "medium": 60,
+    "many": 120,
+}
+
+
 def _coerce_event_column(series: pd.Series) -> pd.Series:
     numeric = pd.to_numeric(series, errors="coerce")
     if numeric.notna().any():
@@ -74,9 +103,7 @@ def _build_importance_proxy(feature_df: pd.DataFrame, risk_scores: np.ndarray) -
     return np.asarray(correlations, dtype=float)
 
 
-def build_rsf_analysis(df: pd.DataFrame):
-    """Fit a Random Survival Forest and build reusable outputs for the dashboard."""
-
+def _fit_rsf_model(df: pd.DataFrame):
     feature_df, durations, events = _build_feature_matrix(df)
     if feature_df.empty or durations.nunique() < 2:
         return None
@@ -101,6 +128,91 @@ def build_rsf_analysis(df: pd.DataFrame):
     train_c_index = concordance_index_censored(events.astype(bool).to_numpy(), durations.to_numpy(dtype=float), risk_scores)[0]
     oob_score = getattr(rsf, "oob_score_", None)
 
+    return {
+        "model": rsf,
+        "feature_df": feature_df,
+        "durations": durations,
+        "events": events,
+        "risk_scores": risk_scores,
+        "train_c_index": float(train_c_index),
+        "oob_score": None if oob_score is None else float(oob_score),
+    }
+
+
+def _build_profile_defaults(df: pd.DataFrame) -> dict:
+    defaults = {}
+    if df is None or df.empty:
+        return defaults
+
+    feature_columns = [column for column in df.columns if column not in {"date", "final_result"}]
+    for column in feature_columns:
+        series = df[column]
+        numeric_series = pd.to_numeric(series, errors="coerce")
+        if numeric_series.notna().any():
+            defaults[column] = float(numeric_series.median())
+        else:
+            mode = series.mode(dropna=True)
+            if not mode.empty:
+                defaults[column] = mode.iloc[0]
+            else:
+                defaults[column] = 0
+
+    return defaults
+
+
+def _apply_profile_overrides(defaults: dict, profile: dict, df: pd.DataFrame) -> dict:
+    profile_values = dict(defaults)
+
+    if "gender_F" in df.columns:
+        profile_values["gender_F"] = 1 if int(profile.get("gender_F", 1)) == 1 else 0
+
+    if "disability_N" in df.columns:
+        profile_values["disability_N"] = 1 if int(profile.get("disability_N", 1)) == 1 else 0
+
+    age_choice = profile.get("age_band", "age_band_0-35")
+    for column in PROFILE_CATEGORIES["age_band"]:
+        if column in df.columns:
+            profile_values[column] = 1 if column == age_choice else 0
+
+    education_choice = profile.get("highest_education", "highest_education_A Level or Equivalent")
+    for column in PROFILE_CATEGORIES["highest_education"]:
+        if column in df.columns:
+            profile_values[column] = 1 if column == education_choice else 0
+
+    if "studied_credits" in df.columns:
+        credits_value = profile.get("studied_credits", PROFILE_CREDIT_LEVELS["few"])
+        try:
+            profile_values["studied_credits"] = float(credits_value)
+        except (TypeError, ValueError):
+            profile_values["studied_credits"] = float(PROFILE_CREDIT_LEVELS["few"])
+
+    return profile_values
+
+
+def _build_profile_feature_frame(df: pd.DataFrame, profile: dict, feature_columns: pd.Index) -> pd.DataFrame:
+    defaults = _build_profile_defaults(df)
+    profile_values = _apply_profile_overrides(defaults, profile, df)
+    profile_df = pd.DataFrame([profile_values])
+    profile_df = pd.get_dummies(profile_df, drop_first=False)
+    profile_df = profile_df.reindex(columns=feature_columns, fill_value=0)
+    profile_df = profile_df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
+    return profile_df
+
+
+def build_rsf_analysis(df: pd.DataFrame):
+    """Fit a Random Survival Forest and build reusable outputs for the dashboard."""
+    fitted = _fit_rsf_model(df)
+    if not fitted:
+        return None
+
+    rsf = fitted["model"]
+    feature_df = fitted["feature_df"]
+    durations = fitted["durations"]
+    events = fitted["events"]
+    risk_scores = fitted["risk_scores"]
+    train_c_index = fitted["train_c_index"]
+    oob_score = fitted["oob_score"]
+
     sorted_indices = np.argsort(risk_scores)
     if len(sorted_indices) == 0:
         return None
@@ -117,6 +229,7 @@ def build_rsf_analysis(df: pd.DataFrame):
 
     survival_curves = rsf.predict_survival_function(feature_df.iloc[representative_indices], return_array=True)
     curve_times = np.asarray(rsf.unique_times_, dtype=float)
+    curve_times_plot = [float(value) for value in curve_times.tolist()]
 
     if len(feature_df.columns) > 0:
         try:
@@ -164,16 +277,17 @@ def build_rsf_analysis(df: pd.DataFrame):
 
     for index, row_index in enumerate(representative_indices):
         curve = survival_curves[index]
+        curve_plot = [float(value) for value in np.asarray(curve, dtype=float).tolist()]
         y_min = min(y_min, float(np.min(curve)))
         fig_survival.add_trace(
             go.Scatter(
-                x=curve_times,
-                y=curve,
+                x=curve_times_plot,
+                y=curve_plot,
                 mode="lines+markers",
                 name=f"{survival_labels[index]} (score={risk_scores[row_index]:.3f})",
                 line=dict(color=colors[index % len(colors)], width=4),
-                line_shape="hv",
-                marker=dict(size=5, color=colors[index % len(colors)]),
+                line_shape="linear",
+                marker=dict(size=7, color=colors[index % len(colors)]),
                 hovertemplate="<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
                 showlegend=True,
             )
@@ -284,4 +398,93 @@ def build_rsf_analysis(df: pd.DataFrame):
         "top_feature_importance": float(top_feature_value),
         "top_features": top_features,
         "survival_labels": survival_labels,
+    }
+
+
+def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict):
+    """Fit RSF and build a survival curve for a single simulated profile."""
+
+    fitted = _fit_rsf_model(df)
+    if not fitted:
+        return None
+
+    rsf = fitted["model"]
+    feature_df = fitted["feature_df"]
+    risk_scores = fitted["risk_scores"]
+    train_c_index = fitted["train_c_index"]
+    oob_score = fitted["oob_score"]
+
+    profile_features = _build_profile_feature_frame(df, profile, feature_df.columns)
+    survival_curve = rsf.predict_survival_function(profile_features, return_array=True)[0]
+    curve_times = np.asarray(rsf.unique_times_, dtype=float)
+    curve_times_plot = [float(value) for value in curve_times.tolist()]
+    survival_curve_plot = [float(value) for value in np.asarray(survival_curve, dtype=float).tolist()]
+    profile_risk_score = float(rsf.predict(profile_features)[0])
+
+    fig_profile = go.Figure()
+    curve_min = float(np.min(survival_curve)) if len(survival_curve) else 0.0
+    curve_max = float(np.max(survival_curve)) if len(survival_curve) else 1.0
+    fig_profile.add_trace(
+        go.Scatter(
+            x=curve_times_plot,
+            y=survival_curve_plot,
+            mode="lines+markers",
+            name="Perfil simulado",
+            line=dict(color="#8e44ad", width=5),
+            marker=dict(color="#8e44ad", size=8),
+            line_shape="linear",
+            fill="tozeroy",
+            fillcolor="rgba(142, 68, 173, 0.12)",
+            hovertemplate="<b>Perfil simulado</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+        )
+    )
+    y_min_visible = max(0.70, min(0.95, curve_min - 0.06))
+    y_max_visible = min(1.02, max(1.0, curve_max + 0.02))
+    if y_max_visible - y_min_visible < 0.08:
+        y_min_visible = max(0.75, curve_min - 0.05)
+        y_max_visible = 1.02
+
+    fig_profile.update_layout(
+        title="RSF: curva para un perfil individual",
+        xaxis_title="Tiempo",
+        yaxis_title="Probabilidad de supervivencia",
+        xaxis=dict(range=[0, float(np.max(curve_times)) if len(curve_times) else 1.0], fixedrange=True),
+        yaxis=dict(range=[y_min_visible, y_max_visible], fixedrange=True),
+        template="plotly_white",
+        hovermode="x unified",
+        margin=dict(l=60, r=30, t=80, b=60),
+        showlegend=False,
+    )
+    fig_profile.add_hline(y=1.0, line_dash="dot", line_color="#95a5a6", opacity=0.55)
+
+    profile_labels = {
+        "gender_F": PROFILE_CATEGORIES["gender_F"].get(int(profile.get("gender_F", 1)), "Femenino"),
+        "disability_N": PROFILE_CATEGORIES["disability_N"].get(int(profile.get("disability_N", 1)), "Con discapacidad"),
+        "age_band": PROFILE_CATEGORIES["age_band"].get(profile.get("age_band", "age_band_0-35"), "0-35 años"),
+        "highest_education": PROFILE_CATEGORIES["highest_education"].get(profile.get("highest_education", "highest_education_A Level or Equivalent"), "A Level o equivalente"),
+        "studied_credits": f"{float(profile.get('studied_credits', PROFILE_CREDIT_LEVELS['few'])):.0f}",
+    }
+
+    profile_summary = pd.DataFrame([
+        {"Metrica": "Género", "Valor": profile_labels["gender_F"]},
+        {"Metrica": "Discapacidad", "Valor": profile_labels["disability_N"]},
+        {"Metrica": "Edad", "Valor": profile_labels["age_band"]},
+        {"Metrica": "Nivel educativo", "Valor": profile_labels["highest_education"]},
+        {"Metrica": "Créditos estudiados", "Valor": profile_labels["studied_credits"]},
+        {"Metrica": "Score de riesgo", "Valor": f"{profile_risk_score:.3f}"},
+        {"Metrica": "Concordancia train", "Valor": f"{train_c_index:.3f}"},
+        {"Metrica": "Concordancia OOB", "Valor": f"{oob_score:.3f}" if oob_score is not None else "N/A"},
+    ])
+
+    interpretation = (
+        f"Este perfil individual se simula con RSF usando género {profile_labels['gender_F']}, "
+        f"{profile_labels['disability_N'].lower()}, edad {profile_labels['age_band']} y {profile_labels['studied_credits']} créditos. "
+        f"La curva muestra la supervivencia estimada para ese caso concreto, que es la forma más fiel de representar RSF."
+    )
+
+    return {
+        "figure": fig_profile,
+        "summary_df": profile_summary,
+        "interpretation": interpretation,
+        "risk_score": profile_risk_score,
     }

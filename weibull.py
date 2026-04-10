@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from lifelines import KaplanMeierFitter, WeibullFitter
+from lifelines import KaplanMeierFitter, WeibullFitter, ExponentialFitter
 
 
 def build_weibull_analysis(df):
@@ -31,6 +31,9 @@ def build_weibull_analysis(df):
     wbf = WeibullFitter()
     wbf.fit(durations, event_observed=events, label="Weibull")
 
+    expf = ExponentialFitter()
+    expf.fit(durations, event_observed=events, label="Exponential")
+
     kmf = KaplanMeierFitter()
     kmf.fit(durations, event_observed=events, label="Kaplan-Meier")
 
@@ -40,6 +43,9 @@ def build_weibull_analysis(df):
 
     fitted_times = [float(value) for value in time_grid.tolist()]
     fitted_values = [float(value) for value in fitted_survival.tolist()]
+
+    exponential_survival = expf.survival_function_at_times(time_grid).values
+    exponential_values = [float(value) for value in exponential_survival.tolist()]
 
     fig = go.Figure()
     fig.add_trace(
@@ -62,9 +68,19 @@ def build_weibull_analysis(df):
             hovertemplate="<b>Weibull</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
         )
     )
+    fig.add_trace(
+        go.Scatter(
+            x=fitted_times,
+            y=exponential_values,
+            mode="lines",
+            name="Exponencial ajustado",
+            line=dict(color="#f39c12", width=2.5, dash="dot"),
+            hovertemplate="<b>Exponencial</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
-        title="Método Weibull vs Kaplan-Meier",
+        title="Método Weibull vs Kaplan-Meier vs Exponencial",
         xaxis_title="Tiempo",
         yaxis_title="Probabilidad de supervivencia",
         yaxis=dict(range=[0, 1]),
@@ -78,11 +94,13 @@ def build_weibull_analysis(df):
     shape = float(wbf.rho_)
     scale = float(wbf.lambda_)
     median_survival = float(wbf.median_survival_time_)
+    exponential_scale = float(expf.lambda_)
     hazard_note = (
         "Aumenta con el tiempo" if shape > 1.05 else
         "Disminuye con el tiempo" if shape < 0.95 else
         "Se mantiene aproximadamente constante"
     )
+    better_model = "Weibull" if float(wbf.AIC_) < float(expf.AIC_) else "Exponencial"
 
     summary_df = pd.DataFrame([
         {"Metrica": "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Tamanio muestral usado en el ajuste"},
@@ -90,16 +108,20 @@ def build_weibull_analysis(df):
         {"Metrica": "Tasa de eventos", "Valor": f"{event_rate:.1f}%", "Interpretacion": "Proporcion de abandonos sobre el total"},
         {"Metrica": "Shape (rho)", "Valor": f"{shape:.4f}", "Interpretacion": f"El riesgo {hazard_note.lower()}"},
         {"Metrica": "Scale (lambda)", "Valor": f"{scale:.4f}", "Interpretacion": "Escala temporal del modelo Weibull"},
+        {"Metrica": "Scale exponencial (lambda)", "Valor": f"{exponential_scale:.4f}", "Interpretacion": "Escala temporal del modelo exponencial"},
         {"Metrica": "Mediana de supervivencia", "Valor": f"{median_survival:.4f}", "Interpretacion": "Tiempo en el que la supervivencia cae al 50%"},
         {"Metrica": "Log-likelihood", "Valor": f"{float(wbf.log_likelihood_):.4f}", "Interpretacion": "Cuanto mayor, mejor ajuste relativo"},
         {"Metrica": "AIC", "Valor": f"{float(wbf.AIC_):.4f}", "Interpretacion": "Menor valor indica mejor equilibrio entre ajuste y complejidad"},
+        {"Metrica": "AIC Exponencial", "Valor": f"{float(expf.AIC_):.4f}", "Interpretacion": "Sirve como referencia para comparar con Weibull"},
+        {"Metrica": "Mejor ajuste AIC", "Valor": better_model, "Interpretacion": "El modelo con menor AIC se considera preferible"},
     ])
 
     interpretation = (
         f"Shape = {shape:.3f}. "
         f"Si es mayor que 1, el riesgo aumenta con el tiempo; si es menor que 1, disminuye. "
         f"En este ajuste, el comportamiento del riesgo es: {hazard_note.lower()}. "
-        f"La curva Weibull se muestra junto a la Kaplan-Meier empírica para comprobar visualmente el ajuste."
+        f"La curva Weibull se muestra junto a la Kaplan-Meier empírica y la exponencial para comprobar visualmente el ajuste. "
+        f"Según el AIC, el modelo con mejor ajuste relativo es: {better_model}."
     )
 
     return {

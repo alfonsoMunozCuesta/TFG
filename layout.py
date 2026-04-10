@@ -71,9 +71,11 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
         ]
     elif analysis_type == 'rsf':
         options = [
-            {'label': f" {get_translation(language, 'rsf_pdf_option_summary')}", 'value': 'summary'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_general_summary')}", 'value': 'general_summary'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_model_summary')}", 'value': 'model_summary'},
             {'label': f" {get_translation(language, 'rsf_pdf_option_graph')}", 'value': 'graph'},
             {'label': f" {get_translation(language, 'rsf_pdf_option_importance')}", 'value': 'importance'},
+            {'label': f" {get_translation(language, 'rsf_pdf_option_profile')}", 'value': 'profile'},
             {'label': f" {get_translation(language, 'rsf_pdf_option_ai')}", 'value': 'ai_interpretation'},
         ]
     elif analysis_type == 'weibull':
@@ -81,6 +83,12 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
             {'label': f" {'Resumen general' if language == 'es' else 'Summary'}", 'value': 'summary'},
             {'label': f" {'Gráfica principal' if language == 'es' else 'Main graph'}", 'value': 'graph'},
             {'label': f" {'Tabla de resultados' if language == 'es' else 'Results table'}", 'value': 'table'},
+            {'label': f" {'Interpretación automática IA' if language == 'es' else 'AI interpretation'}", 'value': 'ai_interpretation'},
+        ]
+    elif analysis_type == 'exponential':
+        options = [
+            {'label': f" {'Resumen del ajuste exponencial' if language == 'es' else 'Exponential fit summary'}", 'value': 'summary'},
+            {'label': f" {'Gráfica principal' if language == 'es' else 'Main graph'}", 'value': 'graph'},
             {'label': f" {'Interpretación automática IA' if language == 'es' else 'AI interpretation'}", 'value': 'ai_interpretation'},
         ]
     else:  # cox-regression, log-rank
@@ -269,7 +277,7 @@ def create_survival_analysis_page(language='es'):
             'image': '/assets/exponential.svg',
             'image_style': {'width': '78%', 'display': 'block', 'margin': '0 auto', 'marginTop': '30px', 'marginBottom': '20px'},
             'label_key': 'exponential_analysis',
-            'href': '#'
+            'href': '/survival-analysis/exponential'
         },
         {
             'image': '/assets/kaplan.png',
@@ -376,7 +384,143 @@ def create_weibull_analysis_page(language='es'):
 
 weibull_analysis_page = create_weibull_analysis_page()
 
+
+def create_exponential_analysis_page(language='es'):
+    return html.Div([
+        html.H1(
+            get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'exponential_analysis')),
+            style={'textAlign': 'center', 'fontSize': '35px', 'marginBottom': '20px', 'color': '#1a1a1a', 'fontWeight': 'bold'}
+        ),
+
+        html.Div([
+            html.P(
+                get_translation(language, 'exponential_intro'),
+                style={'margin': 0, 'fontSize': '1.05em', 'lineHeight': '1.6', 'color': '#34495e'}
+            ),
+            html.P(
+                get_translation(language, 'exponential_note'),
+                style={'marginTop': '12px', 'marginBottom': 0, 'fontSize': '0.98em', 'lineHeight': '1.6', 'color': '#5d6d7e', 'fontStyle': 'italic'}
+            ),
+        ], style={
+            'backgroundColor': '#f8fbff',
+            'padding': '22px',
+            'borderRadius': '10px',
+            'border': '1px solid #dfe9f3',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
+            'margin': '0 20px 25px 20px'
+        }),
+
+        html.Div(
+            dcc.Loading(
+                id='loading-exponential',
+                type='circle',
+                children=html.Div(id='exponential-analysis-output')
+            ),
+            style={'margin': '0 20px 30px 20px'}
+        ),
+
+          html.Div([
+            html.Button(get_translation(language, 'explicar_exponential'), id='btn-exponential',
+                     style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
+                         'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
+            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-exponential-btn',
+                     style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
+                         'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
+          ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
+
+        html.Div(
+            id='openai-answer-exponential',
+            children=get_translation(language, 'respuesta'),
+            style={
+                'width': '80%',
+                'minHeight': '220px',
+                'whiteSpace': 'pre-wrap',
+                'margin': '20px auto',
+                'display': 'block',
+                'border': '1px solid #ccc',
+                'borderRadius': '8px',
+                'fontSize': '14px',
+                'padding': '14px',
+                'overflowY': 'auto',
+                'color': '#1a1a1a',
+                'backgroundColor': '#fff'
+            }
+        ),
+
+        create_pdf_export_modal('exponential-pdf-modal', 'exponential', language),
+    ])
+
+
+exponential_analysis_page = create_exponential_analysis_page()
+
 def create_rsf_analysis_page(language='es'):
+    if language == 'es':
+        profile_card_title = 'Simular perfil individual'
+        profile_card_note = 'Selecciona un perfil concreto para obtener su curva de supervivencia estimada por RSF.'
+        profile_button_label = 'Simular perfil'
+        profile_gender_label = 'Género'
+        profile_gender_options = [
+            {'label': 'Femenino', 'value': 1},
+            {'label': 'Masculino', 'value': 0},
+        ]
+        profile_disability_label = 'Discapacidad'
+        profile_disability_options = [
+            {'label': 'Con discapacidad', 'value': 1},
+            {'label': 'Sin discapacidad', 'value': 0},
+        ]
+        profile_age_label = 'Edad'
+        profile_age_options = [
+            {'label': '0-35 años', 'value': 'age_band_0-35'},
+            {'label': '35-55 años', 'value': 'age_band_35-55'},
+            {'label': '55+ años', 'value': 'age_band_55<='},
+        ]
+        profile_education_label = 'Nivel educativo'
+        profile_education_options = [
+            {'label': 'A Level o equivalente', 'value': 'highest_education_A Level or Equivalent'},
+            {'label': 'HE Qualification', 'value': 'highest_education_HE Qualification'},
+            {'label': 'Inferior a A Level', 'value': 'highest_education_Lower Than A Level'},
+            {'label': 'Postgrado', 'value': 'highest_education_Post Graduate Qualification'},
+        ]
+        profile_credits_label = 'Créditos estudiados'
+        profile_credits_options = [
+            {'label': 'Pocos créditos (~30)', 'value': 'few'},
+            {'label': 'Créditos medios (~60)', 'value': 'medium'},
+            {'label': 'Muchos créditos (~120)', 'value': 'many'},
+        ]
+    else:
+        profile_card_title = 'Simulate individual profile'
+        profile_card_note = 'Choose a concrete profile to obtain its RSF-estimated survival curve.'
+        profile_button_label = 'Simulate profile'
+        profile_gender_label = 'Gender'
+        profile_gender_options = [
+            {'label': 'Female', 'value': 1},
+            {'label': 'Male', 'value': 0},
+        ]
+        profile_disability_label = 'Disability'
+        profile_disability_options = [
+            {'label': 'With disability', 'value': 1},
+            {'label': 'Without disability', 'value': 0},
+        ]
+        profile_age_label = 'Age band'
+        profile_age_options = [
+            {'label': '0-35 years', 'value': 'age_band_0-35'},
+            {'label': '35-55 years', 'value': 'age_band_35-55'},
+            {'label': '55+ years', 'value': 'age_band_55<='},
+        ]
+        profile_education_label = 'Education level'
+        profile_education_options = [
+            {'label': 'A Level or Equivalent', 'value': 'highest_education_A Level or Equivalent'},
+            {'label': 'HE Qualification', 'value': 'highest_education_HE Qualification'},
+            {'label': 'Lower Than A Level', 'value': 'highest_education_Lower Than A Level'},
+            {'label': 'Post Graduate Qualification', 'value': 'highest_education_Post Graduate Qualification'},
+        ]
+        profile_credits_label = 'Studied credits'
+        profile_credits_options = [
+            {'label': 'Few credits (~30)', 'value': 'few'},
+            {'label': 'Medium credits (~60)', 'value': 'medium'},
+            {'label': 'Many credits (~120)', 'value': 'many'},
+        ]
+
     return html.Div([
         html.H1(
             get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'random_survival_forest')),
@@ -411,37 +555,77 @@ def create_rsf_analysis_page(language='es'):
         ),
 
         html.Div([
-            html.Button(get_translation(language, 'explicar_rsf'), id='btn-rsf',
-                       style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
-                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
-                     style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
-                         'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
-        ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
-
-        html.Div(
-            dcc.Textarea(
-                id='openai-answer-rsf',
-                value=get_translation(language, 'respuesta'),
-                style={
-                    'width': '80%',
-                    'minHeight': '220px',
-                    'resize': 'none',
-                    'whiteSpace': 'pre-wrap',
-                    'margin': '20px auto',
-                    'display': 'block',
-                    'border': '1px solid #ccc',
-                    'borderRadius': '8px',
-                    'fontSize': '14px',
-                    'padding': '14px',
-                    'overflowY': 'auto',
-                    'color': '#1a1a1a',
-                    'backgroundColor': '#fff'
-                },
-                disabled=True
+            html.H3(profile_card_title, style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
+            html.P(profile_card_note, style={'margin': '0 0 18px 0', 'fontSize': '0.98em', 'lineHeight': '1.6', 'color': '#5d6d7e', 'fontStyle': 'italic', 'textAlign': 'center'}),
+            html.Div([
+                html.Div([
+                    html.Label(profile_gender_label, style={'fontWeight': 'bold', 'marginBottom': '6px', 'display': 'block'}),
+                    dcc.Dropdown(id='rsf-profile-gender', options=profile_gender_options, value=1, clearable=False),
+                ]),
+                html.Div([
+                    html.Label(profile_disability_label, style={'fontWeight': 'bold', 'marginBottom': '6px', 'display': 'block'}),
+                    dcc.Dropdown(id='rsf-profile-disability', options=profile_disability_options, value=1, clearable=False),
+                ]),
+                html.Div([
+                    html.Label(profile_age_label, style={'fontWeight': 'bold', 'marginBottom': '6px', 'display': 'block'}),
+                    dcc.Dropdown(id='rsf-profile-age-band', options=profile_age_options, value='age_band_0-35', clearable=False),
+                ]),
+                html.Div([
+                    html.Label(profile_education_label, style={'fontWeight': 'bold', 'marginBottom': '6px', 'display': 'block'}),
+                    dcc.Dropdown(id='rsf-profile-education', options=profile_education_options, value='highest_education_A Level or Equivalent', clearable=False),
+                ]),
+                html.Div([
+                    html.Label(profile_credits_label, style={'fontWeight': 'bold', 'marginBottom': '6px', 'display': 'block'}),
+                    dcc.Dropdown(id='rsf-profile-credits', options=profile_credits_options, value='few', clearable=False),
+                ]),
+            ], style={
+                'display': 'grid',
+                'gridTemplateColumns': 'repeat(auto-fit, minmax(220px, 1fr))',
+                'gap': '14px',
+                'marginBottom': '18px'
+            }),
+            html.Div([
+                html.Button(profile_button_label, id='rsf-profile-simulate-btn', style={'padding': '10px 20px', 'backgroundColor': '#8e44ad', 'color': 'white', 'border': 'none', 'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
+            ], style={'textAlign': 'center'}),
+            html.Div(id='rsf-profile-output', style={'marginTop': '18px'}),
+            html.Div([
+                html.Button(get_translation(language, 'explicar_rsf'), id='btn-rsf',
+                           style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
+                                 'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
+                html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
+                         style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
+                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
+            ], style={'textAlign': 'center', 'marginTop': '18px', 'marginBottom': '16px'}),
+            html.Div(
+                dcc.Textarea(
+                    id='openai-answer-rsf',
+                    value=get_translation(language, 'respuesta'),
+                    style={
+                        'width': '90%',
+                        'minHeight': '180px',
+                        'resize': 'none',
+                        'whiteSpace': 'pre-wrap',
+                        'margin': '0 auto',
+                        'display': 'block',
+                        'border': '1px solid #ccc',
+                        'borderRadius': '8px',
+                        'fontSize': '14px',
+                        'padding': '14px',
+                        'overflowY': 'auto',
+                        'color': '#1a1a1a',
+                        'backgroundColor': '#fff'
+                    },
+                    disabled=True
+                ),
+                style={'textAlign': 'center'}
             ),
-            style={'textAlign': 'center'}
-        ),
+        ], style={
+            'backgroundColor': 'white',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'margin': '0 20px 30px 20px'
+        }),
 
             create_pdf_export_modal('rsf-pdf-modal', 'rsf', language),
         dcc.Store(id='rsf-analysis-data')
