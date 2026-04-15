@@ -99,7 +99,7 @@ def _looks_like_list_output(text):
     return any(marker in stripped for marker in list_markers)
 
 # ==================== FUNCIÓN DE IA ====================
-def responder_pregunta_con_llama3(pregunta: str) -> str:
+def responder_pregunta_con_llama3(pregunta: str, language: str = 'es') -> str:
     """
     Envía la pregunta a llama-server (compatibilidad OpenAI API).
     Si el servidor no está disponible, devuelve un mensaje amigable.
@@ -108,17 +108,26 @@ def responder_pregunta_con_llama3(pregunta: str) -> str:
     
     try:
         # Payload compatible con OpenAI API (formato que usa llama-server)
+        system_prompt = (
+            "You are a statistical analyst for a survival-analysis bachelor's thesis. "
+            "Write in clear and professional academic style, in 2-3 short paragraphs, "
+            "without numbered lists or bullet points. "
+            "Do not invent data; use only the provided results. "
+            "Write strictly in English."
+            if language == 'en' else
+            "Eres un analista estadístico para un TFG de supervivencia. "
+            "Redacta en estilo académico claro y profesional, en 2-3 párrafos breves, "
+            "sin listas numeradas ni viñetas. "
+            "No inventes datos; usa solo los resultados proporcionados. "
+            "Escribe estrictamente en español."
+        )
+
         payload = {
             "model": MODEL_NAME,
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "Eres un analista estadístico para un TFG de supervivencia. "
-                        "Redacta en estilo académico claro y profesional, en 2-3 párrafos breves, "
-                        "sin listas numeradas ni viñetas. "
-                        "No inventes datos; usa solo los resultados proporcionados."
-                    )
+                    "content": system_prompt
                 },
                 {"role": "user", "content": pregunta}
             ],
@@ -141,19 +150,32 @@ def responder_pregunta_con_llama3(pregunta: str) -> str:
         content = result['choices'][0]['message']['content'].strip()
 
         if _looks_like_list_output(content):
+            rewrite_system_prompt = (
+                "Rewrite in bachelor's-thesis academic style, in prose, 2 short paragraphs, "
+                "without numbered lists or bullet points. Keep exactly the same factual content. "
+                "Write strictly in English."
+                if language == 'en' else
+                "Reescribe en estilo académico de TFG, en prosa, 2 párrafos breves, "
+                "sin listas numeradas ni viñetas. Mantén exactamente el contenido factual. "
+                "Escribe estrictamente en español."
+            )
+
+            rewrite_user_prompt = (
+                f"Rewrite this text in academic prose without lists:\n\n{content}"
+                if language == 'en' else
+                f"Reescribe en prosa académica este texto sin listas:\n\n{content}"
+            )
+
             rewrite_payload = {
                 "model": MODEL_NAME,
                 "messages": [
                     {
                         "role": "system",
-                        "content": (
-                            "Reescribe en estilo académico de TFG, en prosa, 2 párrafos breves, "
-                            "sin listas numeradas ni viñetas. Mantén exactamente el contenido factual."
-                        )
+                        "content": rewrite_system_prompt
                     },
                     {
                         "role": "user",
-                        "content": f"Reescribe en prosa académica este texto sin listas:\n\n{content}"
+                        "content": rewrite_user_prompt
                     }
                 ],
                 "temperature": 0.1,
@@ -362,6 +384,10 @@ app.layout = html.Div([
     dcc.Store(id='cox-regression-output-store', data=None),  # Store para resultados de Cox
     dcc.Store(id='cox-figure-store', data=None),  # Store para gráfica Forest Plot de Cox
     dcc.Store(id='logrank-figure-store', data=None),  # Store para gráfica de Log-Rank
+    dcc.Store(id='weibull-ai-text-store', data=''),  # Store para guardar explicación IA Weibull
+    dcc.Store(id='exponential-ai-text-store', data=''),  # Store para guardar explicación IA Exponencial
+    dcc.Store(id='weibull-ai-language-store', data=''),  # Idioma en que se generó la IA de Weibull
+    dcc.Store(id='exponential-ai-language-store', data=''),  # Idioma en que se generó la IA de Exponencial
     html.Div(id='page-content'),  
     # Cuadro de confirmación
     dcc.ConfirmDialog(
@@ -414,7 +440,11 @@ def _create_dataset_locked_message(language):
                     html.H2("❌ " + get_translation(language, 'error_preprocess_title'), style={'marginBottom': '12px', 'color': '#b03a2e'}),
                     html.P(get_translation(language, 'error_dataset_not_loaded'), style={'fontSize': '18px', 'fontWeight': 'bold', 'marginBottom': '10px'}),
                     html.P(
-                        get_translation(language, 'home_upload_hint') if language == 'en' else 'Primero pulsa "Preprocesar CSV" desde la página de carga para habilitar esta sección.',
+                        (
+                            'First click "Preprocess CSV" on the upload page to enable this section.'
+                            if language == 'en' else
+                            'Primero pulsa "Preprocesar CSV" desde la página de carga para habilitar esta sección.'
+                        ),
                         style={'fontSize': '15px', 'color': '#555', 'marginBottom': '0'}
                     )
                 ],
@@ -557,7 +587,8 @@ home_page = create_home_page('es')
 #ocultar frase incial: "Cargar Dataset..."
 @app.callback(
     Output('upload-text', 'style'),  # Cambiar el estilo del texto
-    [Input('upload-data', 'contents')]
+    [Input('upload-data', 'contents')],
+    prevent_initial_call=True
 )
 def hide_upload_text(contents):
     # Si se ha cargado un archivo, ocultamos el texto
@@ -641,115 +672,153 @@ def verificar_archivo_correcto(contents, filename):
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename'), 
      Input('load-clean', 'n_clicks')],
-    [State('language-store', 'data')]
+    [State('language-store', 'data'),
+     State('df-store', 'data')]
 )
 
-def update_output(contents, filename, n_clicks, language):
-    if contents is None:
-        return {'display': 'block'},{'display': 'none'}, html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}), None
-    
-    if not verificar_archivo_correcto(contents, filename):
-        return {'display': 'none'}, {'display': 'none'}, html.Div(
-            [
-                get_translation(language, 'error_archivo'),
-                html.Br(), 
-                get_translation(language, 'archivo_correcto')
-            ],
-            style={
-                'color': 'red',       
-                'fontSize': '20px',   
-                'textAlign': 'center',
-                'marginTop': '20px'   
-            }
-        ), None
-    
-    # Cargar el archivo CSV con manejo de errores
+def update_output(contents, filename, n_clicks, language, current_df_json):
     try:
-        df = parse_contents(contents)
-    except Exception as e:
-        return {'display': 'none'}, {'display': 'none'}, html.Div(
-            [
-                html.H3(f"❌ {get_translation(language, 'error_loading_csv_title')}"),
-                html.P(get_translation(language, 'error_loading_csv_body')),
-                html.Ul([
-                    html.Li(get_translation(language, 'error_loading_csv_tip_1')),
-                    html.Li(get_translation(language, 'error_loading_csv_tip_2')),
-                    html.Li(get_translation(language, 'error_loading_csv_tip_3'))
-                ]),
-                html.P(f"Detalles: {str(e)}")
-            ],
-            style={
-                'color': 'red',       
-                'fontSize': '16px',   
-                'padding': '20px',
-                'border': '2px solid red',
-                'borderRadius': '5px',
-                'marginTop': '20px'   
-            }
-        ), None
-    
-    if n_clicks > 0:
-        # Ejecutar el preprocesamiento con manejo de errores
-        try:
-            df_procesado = preprocess_data(df)
-            return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado')), df_procesado.to_json(date_format='iso', orient='split')
-        except (ValueError, TypeError) as e:
+        if language not in ['es', 'en']:
+            language = 'es'
+
+        safe_clicks = n_clicks or 0
+
+        if contents is None:
+            # Si ya hay un dataset preprocesado en memoria, mantenerlo sin forzar recarga
+            if current_df_json is not None:
+                try:
+                    df_cached = _read_split_json(current_df_json)
+                    return (
+                        {'display': 'none'},
+                        {'display': 'none'},
+                        display_data(df_cached, get_translation(language, 'archivo_preprocesado')),
+                        current_df_json,
+                    )
+                except Exception:
+                    # Si falla la reconstrucción, limpiar estado corrupto de forma segura
+                    return (
+                        {'display': 'block'},
+                        {'display': 'none'},
+                        html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}),
+                        None,
+                    )
+
+            return {'display': 'block'}, {'display': 'none'}, html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}), None
+
+        if not verificar_archivo_correcto(contents, filename):
             return {'display': 'none'}, {'display': 'none'}, html.Div(
                 [
-                    html.H3(f"❌ {get_translation(language, 'error_preprocess_title')}"),
-                    html.P(str(e)),
-                    html.Hr(),
-                    html.P(get_translation(language, 'error_preprocess_body'))
-                    , html.Ul([
-                        html.Li("id_student"),
-                        html.Li("date"),
-                        html.Li("final_result"),
-                        html.Li("gender_F, disability_N"),
-                        html.Li("age_band_* (0-35, 35-55, 55<=)"),
-                        html.Li("highest_education_* (5 tipos)"),
-                        html.Li("studied_credits")
-                    ])
+                    get_translation(language, 'error_archivo'),
+                    html.Br(),
+                    get_translation(language, 'archivo_correcto')
                 ],
                 style={
-                    'color': 'red',       
-                    'fontSize': '14px',   
-                    'padding': '20px',
-                    'border': '2px solid red',
-                    'borderRadius': '5px',
-                    'marginTop': '20px',
-                    'backgroundColor': '#fff5f5'
+                    'color': 'red',
+                    'fontSize': '20px',
+                    'textAlign': 'center',
+                    'marginTop': '20px'
                 }
             ), None
+
+        # Cargar el archivo CSV con manejo de errores
+        try:
+            df = parse_contents(contents)
         except Exception as e:
             return {'display': 'none'}, {'display': 'none'}, html.Div(
                 [
-                    html.H3(f"❌ {get_translation(language, 'error_unexpected_title')}"),
-                    html.P(get_translation(language, 'error_unexpected_body')),
-                    html.P(f"Detalles: {str(e)}"),
-                    html.P(get_translation(language, 'error_unexpected_contact'))
+                    html.H3(f"❌ {get_translation(language, 'error_loading_csv_title')}"),
+                    html.P(get_translation(language, 'error_loading_csv_body')),
+                    html.Ul([
+                        html.Li(get_translation(language, 'error_loading_csv_tip_1')),
+                        html.Li(get_translation(language, 'error_loading_csv_tip_2')),
+                        html.Li(get_translation(language, 'error_loading_csv_tip_3'))
+                    ]),
+                    html.P(f"Detalles: {str(e)}")
                 ],
                 style={
-                    'color': 'red',       
-                    'fontSize': '14px',   
+                    'color': 'red',
+                    'fontSize': '16px',
                     'padding': '20px',
                     'border': '2px solid red',
                     'borderRadius': '5px',
-                    'marginTop': '20px',
-                    'backgroundColor': '#fff5f5'
+                    'marginTop': '20px'
                 }
             ), None
-    
-    # Si no se ha presionado el botón de limpiar, mostrar el archivo bruto
-    return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto')), None
+
+        if safe_clicks > 0:
+            # Ejecutar el preprocesamiento con manejo de errores
+            try:
+                df_procesado = preprocess_data(df)
+                return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado')), df_procesado.to_json(date_format='iso', orient='split')
+            except (ValueError, TypeError) as e:
+                return {'display': 'none'}, {'display': 'none'}, html.Div(
+                    [
+                        html.H3(f"❌ {get_translation(language, 'error_preprocess_title')}"),
+                        html.P(str(e)),
+                        html.Hr(),
+                        html.P(get_translation(language, 'error_preprocess_body'))
+                        , html.Ul([
+                            html.Li("id_student"),
+                            html.Li("date"),
+                            html.Li("final_result"),
+                            html.Li("gender_F, disability_N"),
+                            html.Li("age_band_* (0-35, 35-55, 55<=)"),
+                            html.Li("highest_education_* (5 tipos)"),
+                            html.Li("studied_credits")
+                        ])
+                    ],
+                    style={
+                        'color': 'red',
+                        'fontSize': '14px',
+                        'padding': '20px',
+                        'border': '2px solid red',
+                        'borderRadius': '5px',
+                        'marginTop': '20px',
+                        'backgroundColor': '#fff5f5'
+                    }
+                ), None
+            except Exception as e:
+                return {'display': 'none'}, {'display': 'none'}, html.Div(
+                    [
+                        html.H3(f"❌ {get_translation(language, 'error_unexpected_title')}"),
+                        html.P(get_translation(language, 'error_unexpected_body')),
+                        html.P(f"Detalles: {str(e)}"),
+                        html.P(get_translation(language, 'error_unexpected_contact'))
+                    ],
+                    style={
+                        'color': 'red',
+                        'fontSize': '14px',
+                        'padding': '20px',
+                        'border': '2px solid red',
+                        'borderRadius': '5px',
+                        'marginTop': '20px',
+                        'backgroundColor': '#fff5f5'
+                    }
+                ), None
+
+        # Si no se ha presionado el botón de limpiar, mostrar el archivo bruto
+        return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto')), None
+
+    except Exception as e:
+        print(f"[UPDATE_OUTPUT] Error no controlado: {e}")
+        return (
+            {'display': 'block'},
+            {'display': 'none'},
+            html.Div(
+                f"Error interno del servidor: {str(e)}" if language == 'es' else f"Internal server error: {str(e)}",
+                style={'color': '#b03a2e', 'fontWeight': 'bold', 'marginTop': '20px'}
+            ),
+            current_df_json
+        )
 
 
 #maneja que no aparezca la barra de navegacion hasta que se limpie el dataset
 @app.callback(
     Output('navbar', 'style'),
-    [Input('load-clean', 'n_clicks')]
+    [Input('df-store', 'data')]
 )
-def toggle_navbar(n_clicks):
-    if n_clicks > 0:
+def toggle_navbar(df_json):
+    if df_json is not None:
         return {'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'background-color': '#f4f7f6', 'padding': '10px', 'z-index': '1000'}
     return {'display': 'none'}  # Si no se ha presionado el botón, la barra de navegación permanece oculta
 
@@ -760,10 +829,11 @@ def toggle_navbar(n_clicks):
     [Input('botonG', 'n_clicks'), Input('botonDisc', 'n_clicks'), 
      Input('botonAge', 'n_clicks'), Input('botonEdu', 'n_clicks'), 
      Input('botonCredits', 'n_clicks'), Input('botonNone', 'n_clicks')],
-    [State('df-store', 'data')],
+    [State('df-store', 'data'),
+     State('language-store', 'data')],
     prevent_initial_call=True
 )
-def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, credits_clicks, none_clicks, df_json):
+def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, credits_clicks, none_clicks, df_json, language):
     try:
         ctx = callback_context
         if not ctx.triggered:
@@ -783,35 +853,35 @@ def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, cred
             from kaplan_meier import plot_km_by_covariate_with_figure
             graph_component, _ = plot_km_by_covariate_with_figure(df, 'gender_F')
             return html.Div([
-                html.H3("👥 Curva de Kaplan-Meier por Género", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                html.H3("👥 Kaplan-Meier Curve by Gender" if language == 'en' else "👥 Curva de Kaplan-Meier por Género", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                 graph_component
             ]), 'gender_F'
         elif button_id == 'botonDisc':
             from kaplan_meier import plot_km_by_covariate_with_figure
             graph_component, _ = plot_km_by_covariate_with_figure(df, 'disability_N')
             return html.Div([
-                html.H3("♿ Curva de Kaplan-Meier por Discapacidad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                html.H3("♿ Kaplan-Meier Curve by Disability" if language == 'en' else "♿ Curva de Kaplan-Meier por Discapacidad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                 graph_component
             ]), 'disability_N'
         elif button_id == 'botonAge':
             from kaplan_meier import plot_km_by_covariate_with_figure
             graph_component, _ = plot_km_by_covariate_with_figure(df, 'age_band')
             return html.Div([
-                html.H3("🎂 Curva de Kaplan-Meier por Banda de Edad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                html.H3("🎂 Kaplan-Meier Curve by Age Band" if language == 'en' else "🎂 Curva de Kaplan-Meier por Banda de Edad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                 graph_component
             ]), 'age_band'
         elif button_id == 'botonEdu':
             from kaplan_meier import plot_km_by_covariate_with_figure
             graph_component, _ = plot_km_by_covariate_with_figure(df, 'highest_education')
             return html.Div([
-                html.H3("🎓 Curva de Kaplan-Meier por Educación Más Alta", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                html.H3("🎓 Kaplan-Meier Curve by Highest Education" if language == 'en' else "🎓 Curva de Kaplan-Meier por Educación Más Alta", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                 graph_component
             ]), 'highest_education'
         elif button_id == 'botonCredits':
             from kaplan_meier import plot_km_by_covariate_with_figure
             graph_component, _ = plot_km_by_covariate_with_figure(df, 'studied_credits')
             return html.Div([
-                html.H3("📚 Curva de Kaplan-Meier por Créditos Estudiados", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                html.H3("📚 Kaplan-Meier Curve by Studied Credits" if language == 'en' else "📚 Curva de Kaplan-Meier por Créditos Estudiados", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                 graph_component
             ]), 'studied_credits'
         elif button_id == 'botonNone':
@@ -847,7 +917,7 @@ def explicar_kaplan(n_clicks, variable_actual, language, df_json):
             return ""
         
         if not variable_actual:
-            return "⚠️  Por favor, selecciona una covariable primero"
+            return f"⚠️  {get_translation(language, 'error_select_variable')}"
         
         if language not in ['es', 'en']:
             language = 'es'
@@ -871,11 +941,11 @@ Produce exactly 2 short paragraphs: first paragraph for statistical interpretati
 {stats_info}
 Devuelve exactamente 2 párrafos breves: el primero con lectura estadística del comportamiento de curvas y el segundo con implicación práctica y una limitación. Sin viñetas ni listas numeradas."""
         
-        respuesta = responder_pregunta_con_llama3(prompt)
-        return respuesta if respuesta else "⚠️  Error: Respuesta vacía"
+        respuesta = responder_pregunta_con_llama3(prompt, language)
+        return respuesta if respuesta else ("⚠️  Error: Empty response" if language == 'en' else "⚠️  Error: Respuesta vacía")
         
     except requests.exceptions.Timeout:
-        return "⚠️  Timeout: El servidor tardó más de 10 minutos. Intenta más tarde."
+        return f"⚠️  {get_translation(language, 'error_timeout')}"
     except Exception as e:
         print(f"❌ Error en explicar_kaplan: {str(e)}")
         return f"❌ Error: {str(e)}"
@@ -902,12 +972,15 @@ def update_graph(col_chosen, language, df_json):
     if df_data is None or df_data.empty:
         error_fig = go.Figure()
         error_fig.add_annotation(
-            text="❌ Por favor, carga primero un dataset válido",
+            text=get_translation(language, 'covariate_error_load_dataset'),
             showarrow=False,
             font=dict(size=14, color='red')
         )
-        error_fig.update_layout(title="Error: Dataset no cargado", template="plotly_white")
-        return error_fig, html.Div([html.H4("❌ Error de datos", style={'color': 'red'}), html.P("No hay datos disponibles.")])
+        error_fig.update_layout(title=get_translation(language, 'covariate_error_dataset_title'), template="plotly_white")
+        return error_fig, html.Div([
+            html.H4(get_translation(language, 'covariate_error_data_header'), style={'color': 'red'}),
+            html.P(get_translation(language, 'covariate_error_data_body'))
+        ])
     
     # ✅ VALIDACIÓN 2: Verificar que language es válido
     if language not in ['es', 'en']:
@@ -1097,16 +1170,26 @@ def update_graph(col_chosen, language, df_json):
     except KeyError as ke:
         # ✅ ERROR 2: Si falta una columna esperada
         error_fig = go.Figure()
-        error_fig.add_annotation(text=f"❌ Falta la columna '{str(ke)}'", showarrow=False, font=dict(size=12, color='red'))
-        error_fig.update_layout(title="Error: Columna faltante", template="plotly_white")
-        return error_fig, html.Div([html.H4("❌ Error de estructura", style={'color': 'red'}), html.P(f"Falta: {str(ke)}")])
+        error_fig.add_annotation(
+            text=f"{get_translation(language, 'covariate_error_missing_prefix')} '{str(ke)}'",
+            showarrow=False,
+            font=dict(size=12, color='red')
+        )
+        error_fig.update_layout(title=get_translation(language, 'covariate_error_missing_column_title'), template="plotly_white")
+        return error_fig, html.Div([
+            html.H4(get_translation(language, 'covariate_error_structure_header'), style={'color': 'red'}),
+            html.P(f"{get_translation(language, 'covariate_error_missing_prefix')} {str(ke)}")
+        ])
     
     except Exception as e:
         # ✅ ERROR 2: Cualquier otro error
         error_fig = go.Figure()
         error_fig.add_annotation(text=f"❌ Error: {str(e)[:40]}...", showarrow=False, font=dict(size=12, color='red'))
-        error_fig.update_layout(title="Error", template="plotly_white")
-        return error_fig, html.Div([html.H4("❌ Error inesperado", style={'color': 'red'}), html.P(str(e))])
+        error_fig.update_layout(title=get_translation(language, 'covariate_error_generic_title'), template="plotly_white")
+        return error_fig, html.Div([
+            html.H4(get_translation(language, 'covariate_error_unexpected_header'), style={'color': 'red'}),
+            html.P(str(e))
+        ])
 
 @app.callback(
     Output('cox-selected-covariables', 'data'),
@@ -1161,14 +1244,15 @@ def update_cox_model(covariables, language, df_json):
 
 @app.callback(
     Output('cox-regression-output', 'children'),
-    Input('cox-regression-output-store', 'data')
+    [Input('cox-regression-output-store', 'data'),
+     Input('language-store', 'data')]
 )
-def render_cox_output(store_data):
+def render_cox_output(store_data, language):
     """Renderiza tabla y gráfica de Cox desde el Store"""
     if store_data is None:
         return html.Div([
             html.Br(),
-            html.P("La respuesta es...", style={'textAlign': 'center', 'color': '#999', 'fontSize': '18px'})
+            html.P(get_translation(language, 'respuesta'), style={'textAlign': 'center', 'color': '#999', 'fontSize': '18px'})
         ])
     
     try:
@@ -1208,7 +1292,11 @@ def render_cox_output(store_data):
             try:
                 summary = _read_split_json(store_data['summary_json'])
                 if not summary.empty:
-                    forest_plot = plot_cox_hazard_ratios(summary, 'Covariables seleccionadas')
+                    forest_plot = plot_cox_hazard_ratios(
+                        summary,
+                        'Selected covariates' if language == 'en' else 'Covariables seleccionadas',
+                        language=language
+                    )
                     output_elements.append(forest_plot)
                     print(f"[RENDER COX] Forest plot creado exitosamente")
             except Exception as e:
@@ -1217,7 +1305,7 @@ def render_cox_output(store_data):
                 traceback.print_exc()
         
         if not output_elements:
-            return html.Div("No hay resultados para mostrar")
+            return html.Div("No results to display" if language == 'en' else "No hay resultados para mostrar")
         
         print(f"[RENDER COX] Renderizando {len(output_elements)} elementos")
         return html.Div(output_elements, style={'textAlign': 'center', 'marginTop': '20px'})
@@ -1226,7 +1314,9 @@ def render_cox_output(store_data):
         print(f"[RENDER COX] Error: {e}")
         import traceback
         traceback.print_exc()
-        return html.Div(f"Error renderizando resultados: {str(e)}")
+        return html.Div(
+            f"Error rendering results: {str(e)}" if language == 'en' else f"Error renderizando resultados: {str(e)}"
+        )
 
 
 @app.callback(
@@ -1251,7 +1341,7 @@ def render_weibull_output(language, df_json, pathname):
     except Exception:
         return _no_data_message()
 
-    analysis = build_weibull_analysis(df_data)
+    analysis = build_weibull_analysis(df_data, language=language)
     if not analysis:
         return _no_data_message()
 
@@ -1315,7 +1405,7 @@ def render_exponential_output(language, df_json, pathname):
     except Exception:
         return _no_data_message()
 
-    analysis = build_exponential_analysis(df_data)
+    analysis = build_exponential_analysis(df_data, language=language)
     if not analysis:
         return _no_data_message()
 
@@ -1381,7 +1471,7 @@ def render_rsf_output(language, df_json, pathname):
     except Exception:
         return _no_data_message()
 
-    analysis = build_rsf_analysis(df_data)
+    analysis = build_rsf_analysis(df_data, language=language)
     if not analysis:
         return _no_data_message()
 
@@ -1485,7 +1575,7 @@ def simulate_rsf_profile(n_clicks, df_json, gender, disability, age_band, educat
         'studied_credits': credits_map.get(credits_level, 30),
     }
 
-    analysis = build_rsf_profile_analysis(df_data, profile)
+    analysis = build_rsf_profile_analysis(df_data, profile, language=language)
     if not analysis:
         return html.Div(
             get_translation(language, 'rsf_no_data'),
@@ -1609,7 +1699,7 @@ def explicar_rsf(n_clicks, rsf_store_data, language):
             "3) implicación práctica y una limitación. Sé conciso y factual."
         )
 
-    respuesta = responder_pregunta_con_llama3(prompt)
+    respuesta = responder_pregunta_con_llama3(prompt, language)
     if respuesta:
         return respuesta
 
@@ -1625,23 +1715,27 @@ def explicar_rsf(n_clicks, rsf_store_data, language):
 
 
 @app.callback(
-    Output('openai-answer-weibull', 'children'),
+    [Output('openai-answer-weibull', 'children'),
+     Output('weibull-ai-text-store', 'data'),
+     Output('weibull-ai-language-store', 'data')],
     [Input('btn-weibull', 'n_clicks')],
     [State('df-store', 'data'), State('language-store', 'data')],
     prevent_initial_call=True
 )
 def explicar_weibull(n_clicks, df_json, language):
     if n_clicks is None or n_clicks <= 0:
-        return ""
+        return "", "", ""
 
     if not df_json:
-        return get_translation(language, 'weibull_no_data')
+        no_data_msg = get_translation(language, 'weibull_no_data')
+        return no_data_msg, "", ""
 
     try:
         df_data = _read_split_json(df_json)
-        analysis = build_weibull_analysis(df_data)
+        analysis = build_weibull_analysis(df_data, language=language)
         if not analysis:
-            return get_translation(language, 'weibull_no_data')
+            no_data_msg = get_translation(language, 'weibull_no_data')
+            return no_data_msg, "", ""
 
         def _fallback_weibull_explanation():
             shape = analysis['shape']
@@ -1676,28 +1770,33 @@ def explicar_weibull(n_clicks, df_json, language):
             analysis['summary_df'],
             language=language
         )
-        return respuesta if respuesta else _fallback_weibull_explanation()
+        final_text = respuesta if respuesta else _fallback_weibull_explanation()
+        return final_text, final_text, language
     except Exception as e:
         print(f"❌ Error en explicar_weibull: {str(e)}")
-        return get_translation(language, 'weibull_no_data')
+        error_msg = get_translation(language, 'weibull_no_data')
+        return error_msg, "", ""
 
 
 @app.callback(
-    Output('openai-answer-exponential', 'children'),
+    [Output('openai-answer-exponential', 'children'),
+     Output('exponential-ai-text-store', 'data'),
+     Output('exponential-ai-language-store', 'data')],
     [Input('btn-exponential', 'n_clicks')],
     [State('df-store', 'data'), State('language-store', 'data')],
     prevent_initial_call=True
 )
 def explicar_exponential(n_clicks, df_json, language):
     if n_clicks is None or n_clicks <= 0:
-        return ""
+        return "", "", ""
 
     if not df_json:
-        return get_translation(language, 'exponential_no_data')
+        no_data_msg = get_translation(language, 'exponential_no_data')
+        return no_data_msg, "", ""
 
     try:
         df_data = _read_split_json(df_json)
-        analysis = build_exponential_analysis(df_data)
+        analysis = build_exponential_analysis(df_data, language=language)
         if not analysis:
             return get_translation(language, 'exponential_no_data')
 
@@ -1712,10 +1811,12 @@ def explicar_exponential(n_clicks, df_json, language):
             analysis['summary_df'],
             language=language
         )
-        return respuesta if respuesta else analysis['interpretation']
+        final_text = respuesta if respuesta else analysis['interpretation']
+        return final_text, final_text, language
     except Exception as e:
         print(f"❌ Error en explicar_exponential: {str(e)}")
-        return get_translation(language, 'exponential_no_data')
+        error_msg = get_translation(language, 'exponential_no_data')
+        return error_msg, "", ""
 
 @app.callback(
     Output('openai-answer-cox', 'value'),
@@ -1732,7 +1833,7 @@ def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language):
             return ""
         
         if not variables_seleccionadas:
-            return "⚠️  Por favor, selecciona al menos una covariable primero"
+            return f"⚠️  {get_translation(language, 'error_select_covariate')}"
         
         if language not in ['es', 'en']:
             language = 'es'
@@ -1764,11 +1865,11 @@ def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language):
                      f"Devuelve 2 párrafos breves: el primero con covariables significativas/no significativas y lectura de HR (riesgo vs protector), "
                      f"el segundo con conclusión práctica y una limitación metodológica. Sin viñetas ni listas.")
         
-        respuesta = responder_pregunta_con_llama3(prompt)
-        return respuesta if respuesta else "⚠️  Error: Respuesta vacía"
+        respuesta = responder_pregunta_con_llama3(prompt, language)
+        return respuesta if respuesta else ("⚠️  Error: Empty response" if language == 'en' else "⚠️  Error: Respuesta vacía")
         
     except requests.exceptions.Timeout:
-        return "⚠️  Timeout: El servidor tardó más de 10 minutos. Intenta más tarde."
+        return f"⚠️  {get_translation(language, 'error_timeout')}"
     except Exception as e:
         print(f"❌ Error en explicar_cox: {str(e)}")
         return f"❌ Error: {str(e)}"
@@ -1819,7 +1920,7 @@ def update_logrank_test(covariables, language, df_json):
             
             # Crear panel con tabla de resultados del test y gráfica Kaplan-Meier estratificada
             table = display_logrank_summary_table(res_df)
-            graph_component = plot_logrank_curves(df_data, covariable)
+            graph_component = plot_logrank_curves(df_data, covariable, language=language)
 
             results_payload.append({
                 'covariable': covariable,
@@ -1863,7 +1964,7 @@ def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, languag
             return ""
         
         if not logrank_content:
-            return "⚠️  Por favor, realiza un Test de Log-Rank primero"
+            return f"⚠️  {get_translation(language, 'error_select_logrank')}"
         
         if language not in ['es', 'en']:
             language = 'es'
@@ -1883,15 +1984,15 @@ def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, languag
                      f"Devuelve 2 párrafos en prosa: el primero identificando contrastes significativos y diferencias principales, "
                      f"el segundo con lectura práctica de la separación de curvas y una limitación. Sin viñetas ni listas numeradas.")
         
-        respuesta = responder_pregunta_con_llama3(prompt)
+        respuesta = responder_pregunta_con_llama3(prompt, language)
         if len(respuesta) > 3000:
             max_length = 1500
             chunks = [respuesta[i:i + max_length] for i in range(0, len(respuesta), max_length)]
             return '\n\n'.join(chunks)
-        return respuesta if respuesta else "⚠️  Error: Respuesta vacía"
+        return respuesta if respuesta else ("⚠️  Error: Empty response" if language == 'en' else "⚠️  Error: Respuesta vacía")
         
     except requests.exceptions.Timeout:
-        return "⚠️  Timeout: El servidor tardó más de 10 minutos. Intenta más tarde."
+        return f"⚠️  {get_translation(language, 'error_timeout')}"
     except Exception as e:
         print(f"❌ Error en explicar_logrank: {str(e)}")
         return f"❌ Error: {str(e)}"
@@ -1899,9 +2000,10 @@ def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, languag
 # Callbacks para sincronizar stores con divs en las páginas
 @app.callback(
     Output('logrank-test-output', 'children'),
-    Input('logrank-test-output-store', 'data')
+    [Input('logrank-test-output-store', 'data'),
+     Input('language-store', 'data')]
 )
-def sync_logrank_output(data):
+def sync_logrank_output(data, language):
     if not data or not isinstance(data, dict):
         return data
 
@@ -1925,17 +2027,22 @@ def sync_logrank_output(data):
             if res_df.empty:
                 continue
             table = display_logrank_summary_table(res_df)
-            graph_component = plot_logrank_curves(df_data, covariable)
+            graph_component = plot_logrank_curves(df_data, covariable, language=language)
             panels.append(html.Div([
-                html.H3(f"Resultado del Test de Log-Rank para {covariable}", style={'textAlign': 'center'}),
+                html.H3(
+                    f"Log-Rank Test results for {covariable}" if language == 'en' else f"Resultado del Test de Log-Rank para {covariable}",
+                    style={'textAlign': 'center'}
+                ),
                 graph_component,
                 table
             ]))
 
-        return html.Div(panels) if panels else html.Div("No hay resultados para mostrar")
+        return html.Div(panels) if panels else html.Div("No results to display" if language == 'en' else "No hay resultados para mostrar")
     except Exception as e:
         print(f"[SYNC LOGRANK] Error reconstruyendo salida: {e}")
-        return html.Div(f"Error renderizando resultados: {str(e)}")
+        return html.Div(
+            f"Error rendering results: {str(e)}" if language == 'en' else f"Error renderizando resultados: {str(e)}"
+        )
 
 
 if __name__ == '__main__':

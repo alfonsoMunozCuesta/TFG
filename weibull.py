@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from lifelines import KaplanMeierFitter, WeibullFitter, ExponentialFitter
 
 
-def build_weibull_analysis(df):
+def build_weibull_analysis(df, language='es'):
     """Fit a Weibull model and build the figure and summary table."""
     if df is None or df.empty:
         return None
@@ -47,15 +47,21 @@ def build_weibull_analysis(df):
     exponential_survival = expf.survival_function_at_times(time_grid).values
     exponential_values = [float(value) for value in exponential_survival.tolist()]
 
+    is_en = language == 'en'
+
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
             x=kmf.timeline.tolist(),
             y=kmf.survival_function_.iloc[:, 0].tolist(),
             mode="lines",
-            name="Kaplan-Meier empírico",
+            name="Empirical Kaplan-Meier" if is_en else "Kaplan-Meier empírico",
             line=dict(color="#2c3e50", width=2, dash="dash"),
-            hovertemplate="<b>Kaplan-Meier</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Kaplan-Meier</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Kaplan-Meier</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
     fig.add_trace(
@@ -63,9 +69,13 @@ def build_weibull_analysis(df):
             x=fitted_times,
             y=fitted_values,
             mode="lines",
-            name="Weibull ajustado",
+            name="Fitted Weibull" if is_en else "Weibull ajustado",
             line=dict(color="#e74c3c", width=3),
-            hovertemplate="<b>Weibull</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Weibull</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Weibull</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
     fig.add_trace(
@@ -73,16 +83,20 @@ def build_weibull_analysis(df):
             x=fitted_times,
             y=exponential_values,
             mode="lines",
-            name="Exponencial ajustado",
+            name="Fitted Exponential" if is_en else "Exponencial ajustado",
             line=dict(color="#f39c12", width=2.5, dash="dot"),
-            hovertemplate="<b>Exponencial</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Exponential</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Exponencial</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
 
     fig.update_layout(
-        title="Método Weibull vs Kaplan-Meier vs Exponencial",
-        xaxis_title="Tiempo",
-        yaxis_title="Probabilidad de supervivencia",
+        title=("Weibull vs Kaplan-Meier vs Exponential" if is_en else "Método Weibull vs Kaplan-Meier vs Exponencial"),
+        xaxis_title=("Time" if is_en else "Tiempo"),
+        yaxis_title=("Survival probability" if is_en else "Probabilidad de supervivencia"),
         yaxis=dict(range=[0, 1]),
         hovermode="x unified",
         template="plotly_white",
@@ -96,32 +110,44 @@ def build_weibull_analysis(df):
     median_survival = float(wbf.median_survival_time_)
     exponential_scale = float(expf.lambda_)
     hazard_note = (
+        "Increases over time" if shape > 1.05 else
+        "Decreases over time" if shape < 0.95 else
+        "Remains approximately constant"
+    ) if is_en else (
         "Aumenta con el tiempo" if shape > 1.05 else
         "Disminuye con el tiempo" if shape < 0.95 else
         "Se mantiene aproximadamente constante"
     )
-    better_model = "Weibull" if float(wbf.AIC_) < float(expf.AIC_) else "Exponencial"
+    better_model = "Weibull" if float(wbf.AIC_) < float(expf.AIC_) else ("Exponential" if is_en else "Exponencial")
 
     summary_df = pd.DataFrame([
-        {"Metrica": "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Tamanio muestral usado en el ajuste"},
-        {"Metrica": "Numero de eventos", "Valor": f"{int(events.sum())}", "Interpretacion": "Casos en los que ocurre el evento"},
-        {"Metrica": "Tasa de eventos", "Valor": f"{event_rate:.1f}%", "Interpretacion": "Proporcion de abandonos sobre el total"},
-        {"Metrica": "Shape (rho)", "Valor": f"{shape:.4f}", "Interpretacion": f"El riesgo {hazard_note.lower()}"},
-        {"Metrica": "Scale (lambda)", "Valor": f"{scale:.4f}", "Interpretacion": "Escala temporal del modelo Weibull"},
-        {"Metrica": "Scale exponencial (lambda)", "Valor": f"{exponential_scale:.4f}", "Interpretacion": "Escala temporal del modelo exponencial"},
-        {"Metrica": "Mediana de supervivencia", "Valor": f"{median_survival:.4f}", "Interpretacion": "Tiempo en el que la supervivencia cae al 50%"},
-        {"Metrica": "Log-likelihood", "Valor": f"{float(wbf.log_likelihood_):.4f}", "Interpretacion": "Cuanto mayor, mejor ajuste relativo"},
-        {"Metrica": "AIC", "Valor": f"{float(wbf.AIC_):.4f}", "Interpretacion": "Menor valor indica mejor equilibrio entre ajuste y complejidad"},
-        {"Metrica": "AIC Exponencial", "Valor": f"{float(expf.AIC_):.4f}", "Interpretacion": "Sirve como referencia para comparar con Weibull"},
-        {"Metrica": "Mejor ajuste AIC", "Valor": better_model, "Interpretacion": "El modelo con menor AIC se considera preferible"},
+        {"Metrica": "Number of observations" if is_en else "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Sample size used for model fitting" if is_en else "Tamanio muestral usado en el ajuste"},
+        {"Metrica": "Number of events" if is_en else "Numero de eventos", "Valor": f"{int(events.sum())}", "Interpretacion": "Cases where the event occurs" if is_en else "Casos en los que ocurre el evento"},
+        {"Metrica": "Event rate" if is_en else "Tasa de eventos", "Valor": f"{event_rate:.1f}%", "Interpretacion": "Dropout proportion over the total" if is_en else "Proporcion de abandonos sobre el total"},
+        {"Metrica": "Shape (rho)", "Valor": f"{shape:.4f}", "Interpretacion": (f"Risk {hazard_note.lower()}" if is_en else f"El riesgo {hazard_note.lower()}")},
+        {"Metrica": "Scale (lambda)", "Valor": f"{scale:.4f}", "Interpretacion": "Time scale of the Weibull model" if is_en else "Escala temporal del modelo Weibull"},
+        {"Metrica": "Exponential scale (lambda)" if is_en else "Scale exponencial (lambda)", "Valor": f"{exponential_scale:.4f}", "Interpretacion": "Time scale of the Exponential model" if is_en else "Escala temporal del modelo exponencial"},
+        {"Metrica": "Median survival" if is_en else "Mediana de supervivencia", "Valor": f"{median_survival:.4f}", "Interpretacion": "Time when survival reaches 50%" if is_en else "Tiempo en el que la supervivencia cae al 50%"},
+        {"Metrica": "Log-likelihood", "Valor": f"{float(wbf.log_likelihood_):.4f}", "Interpretacion": "Higher values indicate relatively better fit" if is_en else "Cuanto mayor, mejor ajuste relativo"},
+        {"Metrica": "AIC", "Valor": f"{float(wbf.AIC_):.4f}", "Interpretacion": "Lower values indicate better fit-complexity tradeoff" if is_en else "Menor valor indica mejor equilibrio entre ajuste y complejidad"},
+        {"Metrica": "Exponential AIC" if is_en else "AIC Exponencial", "Valor": f"{float(expf.AIC_):.4f}", "Interpretacion": "Reference value to compare with Weibull" if is_en else "Sirve como referencia para comparar con Weibull"},
+        {"Metrica": "Best AIC fit" if is_en else "Mejor ajuste AIC", "Valor": better_model, "Interpretacion": "The model with lower AIC is preferred" if is_en else "El modelo con menor AIC se considera preferible"},
     ])
 
     interpretation = (
-        f"Shape = {shape:.3f}. "
-        f"Si es mayor que 1, el riesgo aumenta con el tiempo; si es menor que 1, disminuye. "
-        f"En este ajuste, el comportamiento del riesgo es: {hazard_note.lower()}. "
-        f"La curva Weibull se muestra junto a la Kaplan-Meier empírica y la exponencial para comprobar visualmente el ajuste. "
-        f"Según el AIC, el modelo con mejor ajuste relativo es: {better_model}."
+        (
+            f"Shape = {shape:.3f}. "
+            f"If it is greater than 1, risk increases over time; if lower than 1, it decreases. "
+            f"In this fit, risk behavior is: {hazard_note.lower()}. "
+            f"The Weibull curve is shown together with empirical Kaplan-Meier and Exponential to visually compare fit quality. "
+            f"According to AIC, the model with better relative fit is: {better_model}."
+        ) if is_en else (
+            f"Shape = {shape:.3f}. "
+            f"Si es mayor que 1, el riesgo aumenta con el tiempo; si es menor que 1, disminuye. "
+            f"En este ajuste, el comportamiento del riesgo es: {hazard_note.lower()}. "
+            f"La curva Weibull se muestra junto a la Kaplan-Meier empírica y la exponencial para comprobar visualmente el ajuste. "
+            f"Según el AIC, el modelo con mejor ajuste relativo es: {better_model}."
+        )
     )
 
     return {

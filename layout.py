@@ -59,6 +59,176 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
         modal_id: ID único del modal
         analysis_type: tipo de análisis ('kaplan-meier', 'cox-regression', 'log-rank')
     """
+    if analysis_type == 'weibull-exponential-combined':
+        return html.Div([
+            html.Div(
+                id=f"{modal_id}-overlay",
+                style={
+                    'display': 'none',
+                    'position': 'fixed',
+                    'top': 0,
+                    'left': 0,
+                    'width': '100%',
+                    'height': '100%',
+                    'backgroundColor': 'rgba(0,0,0,0.5)',
+                    'zIndex': 999,
+                    'cursor': 'pointer'
+                }
+            ),
+            html.Div(
+                id=f"{modal_id}-container",
+                style={
+                    'display': 'none',
+                    'position': 'fixed',
+                    'top': '50%',
+                    'left': '50%',
+                    'transform': 'translate(-50%, -50%)',
+                    'backgroundColor': 'white',
+                    'padding': '30px',
+                    'borderRadius': '12px',
+                    'boxShadow': '0 4px 20px rgba(0,0,0,0.3)',
+                    'zIndex': 1000,
+                    'width': '90%',
+                    'maxWidth': '560px',
+                    'maxHeight': '650px',
+                    'overflowY': 'auto'
+                },
+                children=[
+                    html.Div([
+                        html.H2(
+                            "📄 Informe combinado: Weibull + Exponencial" if language == 'es' else "📄 Combined report: Weibull + Exponential",
+                            style={'margin': 0, 'color': '#2c3e50'}
+                        ),
+                        html.Button(
+                            "✕",
+                            id=f"{modal_id}-close-btn",
+                            style={
+                                'position': 'absolute',
+                                'top': '15px',
+                                'right': '15px',
+                                'background': 'none',
+                                'border': 'none',
+                                'fontSize': '24px',
+                                'cursor': 'pointer',
+                                'color': '#999'
+                            }
+                        )
+                    ], style={'position': 'relative', 'marginBottom': '20px'}),
+
+                    html.Div([
+                        html.Label(
+                            "📁 Nombre del informe" if language == 'es' else "📁 Report name",
+                            style={'fontWeight': 'bold', 'color': '#34495e'}
+                        ),
+                        dcc.Input(
+                            id=f"{modal_id}-filename",
+                            type="text",
+                            placeholder=("Ejemplo: informe_weibull_exponencial" if language == 'es' else "Example: weibull_exponential_report"),
+                            style={
+                                'width': '100%',
+                                'padding': '8px',
+                                'border': '1px solid #ddd',
+                                'borderRadius': '6px',
+                                'marginTop': '5px',
+                                'boxSizing': 'border-box'
+                            }
+                        ),
+                        html.Small(
+                            "No incluir .pdf" if language == 'es' else "Do not include .pdf",
+                            style={'display': 'block', 'color': '#999', 'marginTop': '5px'}
+                        )
+                    ], style={'marginBottom': '18px'}),
+
+                    html.Div([
+                        html.H4("🧪 Técnicas" if language == 'es' else "🧪 Techniques", style={'color': '#34495e', 'marginTop': 0}),
+                        dcc.Checklist(
+                            id=f"{modal_id}-techniques",
+                            options=[
+                                {'label': ' Weibull', 'value': 'weibull'},
+                                {'label': ' Exponencial' if language == 'es' else ' Exponential', 'value': 'exponential'}
+                            ],
+                            value=['weibull', 'exponential'],
+                            style={'marginBottom': '8px', 'lineHeight': '1.8'},
+                            labelStyle={'display': 'block', 'marginBottom': '8px'}
+                        )
+                    ], style={'marginBottom': '14px', 'padding': '15px', 'backgroundColor': '#f8fbff', 'borderRadius': '8px'}),
+
+                    html.Div([
+                        html.H4("📋 Contenido" if language == 'es' else "📋 Content", style={'color': '#34495e', 'marginTop': 0}),
+                        dcc.Checklist(
+                            id=f"{modal_id}-content",
+                            options=[
+                                {'label': ' Resumen' if language == 'es' else ' Summary', 'value': 'summary'},
+                                {'label': ' Tabla de resultados' if language == 'es' else ' Results table', 'value': 'table'},
+                                {'label': ' Gráfica' if language == 'es' else ' Graph', 'value': 'graph'},
+                                {'label': ' Interpretación IA (opcional)' if language == 'es' else ' AI interpretation (optional)', 'value': 'ai_interpretation'}
+                            ],
+                            value=['summary', 'table', 'graph'],
+                            style={'marginBottom': '8px', 'lineHeight': '1.8'},
+                            labelStyle={'display': 'block', 'marginBottom': '8px'}
+                        )
+                    ], style={'marginBottom': '14px', 'padding': '15px', 'backgroundColor': '#f8fbff', 'borderRadius': '8px'}),
+
+                    html.Small(
+                        "Nota: Exponencial se incluirá como caso particular del modelo Weibull."
+                        if language == 'es' else
+                        "Note: Exponential will be included as a special case of the Weibull model.",
+                        style={'display': 'block', 'color': '#5d6d7e', 'fontStyle': 'italic', 'marginBottom': '18px'}
+                    ),
+
+                    html.Div([
+                        html.Button(
+                            "Cancelar" if language == 'es' else "Cancel",
+                            id=f"{modal_id}-cancel-btn",
+                            style={
+                                'padding': '10px 20px',
+                                'marginRight': '10px',
+                                'backgroundColor': '#95a5a6',
+                                'color': 'white',
+                                'border': 'none',
+                                'borderRadius': '6px',
+                                'cursor': 'pointer',
+                                'fontSize': '14px',
+                                'fontWeight': 'bold'
+                            }
+                        ),
+                        html.Button(
+                            "Descargar PDF" if language == 'es' else "Download PDF",
+                            id=f"{modal_id}-download-btn",
+                            style={
+                                'padding': '10px 20px',
+                                'backgroundColor': '#3498db',
+                                'color': 'white',
+                                'border': 'none',
+                                'borderRadius': '6px',
+                                'cursor': 'pointer',
+                                'fontSize': '14px',
+                                'fontWeight': 'bold',
+                                'boxShadow': '0 2px 8px rgba(52, 152, 219, 0.3)'
+                            }
+                        ),
+                    ], style={'textAlign': 'right'}),
+
+                    html.Div(
+                        id=f"{modal_id}-error",
+                        style={
+                            'display': 'none',
+                            'marginTop': '15px',
+                            'padding': '10px 12px',
+                            'borderRadius': '6px',
+                            'backgroundColor': '#fff1f0',
+                            'color': '#c0392b',
+                            'border': '1px solid #f5c6cb',
+                            'fontSize': '14px',
+                            'fontWeight': 'bold'
+                        }
+                    ),
+
+                    dcc.Download(id=f"{modal_id}-download"),
+                ]
+            )
+        ])
+
     # Todas las opciones comienzan DESMARCADAS por defecto
     default_values = []
     
@@ -357,7 +527,13 @@ def create_weibull_analysis_page(language='es'):
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-weibull-btn',
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
-                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'})
+                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
+            html.Button(
+                "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
+                id='export-weibexp-btn',
+                style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
+                       'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}
+            )
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
         html.Div(
@@ -379,7 +555,8 @@ def create_weibull_analysis_page(language='es'):
             }
         ),
 
-        create_pdf_export_modal('weibull-pdf-modal', 'weibull', language)
+        create_pdf_export_modal('weibull-pdf-modal', 'weibull', language),
+        create_pdf_export_modal('weibexp-pdf-modal', 'weibull-exponential-combined', language)
     ])
 
 weibull_analysis_page = create_weibull_analysis_page()
@@ -425,7 +602,13 @@ def create_exponential_analysis_page(language='es'):
                          'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-exponential-btn',
                      style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
-                         'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
+                                                 'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
+                        html.Button(
+                                "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
+                                id='export-weibexp-btn',
+                                style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
+                                             'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}
+                        ),
           ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
         html.Div(
@@ -448,6 +631,7 @@ def create_exponential_analysis_page(language='es'):
         ),
 
         create_pdf_export_modal('exponential-pdf-modal', 'exponential', language),
+        create_pdf_export_modal('weibexp-pdf-modal', 'weibull-exponential-combined', language),
     ])
 
 

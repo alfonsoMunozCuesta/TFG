@@ -129,10 +129,19 @@ translations = {
         'ninguna': 'Ninguna',
         
         # Cox Regression page
-        'elige_covariable_cox': 'Elige 1 o más covariable para la regresión de Cox',
+        'elige_covariable_cox': 'Elige 1 o más covariables para la regresión de Cox',
         'selecciona_covariable_logrank': 'Selecciona 1 o más covariables para el Test de Log-Rank:',
         'selecciona_covariable_minimo': 'Selecciona al menos una covariable.',
         'selecciona_covariable_comparar': 'Selecciona al menos una covariable para comparar.',
+        'covariate_error_load_dataset': '❌ Por favor, carga primero un dataset válido',
+        'covariate_error_dataset_title': 'Error: Dataset no cargado',
+        'covariate_error_data_header': '❌ Error de datos',
+        'covariate_error_data_body': 'No hay datos disponibles.',
+        'covariate_error_missing_column_title': 'Error: Columna faltante',
+        'covariate_error_structure_header': '❌ Error de estructura',
+        'covariate_error_missing_prefix': 'Falta:',
+        'covariate_error_generic_title': 'Error',
+        'covariate_error_unexpected_header': '❌ Error inesperado',
         
         # Gráficos - Titles
         'abandono_vs_no_abandono': 'Abandono vs No Abandono',
@@ -279,6 +288,15 @@ translations = {
         'weibull_value': 'Value',
         'weibull_interpretation': 'Interpretation',
         'weibull_no_data': 'Not enough data is available to apply Weibull.',
+
+        # Covariate Analysis
+        'analisis_covariables_title': 'Covariate Analysis',
+        'analisis_covariables_intro': 'Analyze how different variables influence student dropout.',
+        'selecciona_el_analisis': 'Select the analysis:',
+        'interpretacion': 'Interpretation',
+        'abandono_total': 'Total Dropout',
+        'abandono_genero': 'Dropout by Gender',
+        'abandono_discapacidad': 'Dropout by Disability',
         
         'abandono_age_band': 'Dropout by Age Band',
         'abandono_highest_education': 'Dropout by Highest Education',
@@ -313,10 +331,19 @@ translations = {
         # Cox Regression page
         'abandono_age_band_title': 'Dropout by Age Band',
         'abandono_highest_education_title': 'Dropout by Highest Education',
-        'elige_covariable_cox': 'Choose 1 or more covariate for Cox regression',
+        'elige_covariable_cox': 'Choose 1 or more covariates for Cox regression',
         'selecciona_covariable_logrank': 'Select 1 or more covariates for the Log-Rank Test:',
         'selecciona_covariable_minimo': 'Please select at least one covariate.',
         'selecciona_covariable_comparar': 'Please select at least one covariate to compare.',
+        'covariate_error_load_dataset': '❌ Please load a valid dataset first',
+        'covariate_error_dataset_title': 'Error: Dataset not loaded',
+        'covariate_error_data_header': '❌ Data error',
+        'covariate_error_data_body': 'No data available.',
+        'covariate_error_missing_column_title': 'Error: Missing column',
+        'covariate_error_structure_header': '❌ Structure error',
+        'covariate_error_missing_prefix': 'Missing:',
+        'covariate_error_generic_title': 'Error',
+        'covariate_error_unexpected_header': '❌ Unexpected error',
         
         # Gráficos - Titles
         'abandono_vs_no_abandono': 'Dropout vs No Dropout',

@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 from lifelines import KaplanMeierFitter, ExponentialFitter
 
 
-def build_exponential_analysis(df: pd.DataFrame):
+def build_exponential_analysis(df: pd.DataFrame, language: str = 'es'):
     """Fit an Exponential model and build the figure and summary table."""
     if df is None or df.empty:
         return None
@@ -47,15 +47,21 @@ def build_exponential_analysis(df: pd.DataFrame):
     fitted_times = [float(value) for value in time_grid.tolist()]
     fitted_values = [float(value) for value in fitted_survival.tolist()]
 
+    is_en = language == 'en'
+
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
             x=kmf.timeline.tolist(),
             y=kmf.survival_function_.iloc[:, 0].tolist(),
             mode="lines",
-            name="Kaplan-Meier empírico",
+            name="Empirical Kaplan-Meier" if is_en else "Kaplan-Meier empírico",
             line=dict(color="#2c3e50", width=2, dash="dash"),
-            hovertemplate="<b>Kaplan-Meier</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Kaplan-Meier</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Kaplan-Meier</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
     fig.add_trace(
@@ -63,9 +69,13 @@ def build_exponential_analysis(df: pd.DataFrame):
             x=fitted_times,
             y=fitted_values,
             mode="lines",
-            name="Curva de supervivencia exponencial",
+            name="Exponential survival curve" if is_en else "Curva de supervivencia exponencial",
             line=dict(color="#e67e22", width=3),
-            hovertemplate="<b>Exponencial</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Exponential</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Exponencial</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
 
@@ -74,9 +84,9 @@ def build_exponential_analysis(df: pd.DataFrame):
     aic = float(expf.AIC_)
 
     fig.update_layout(
-        title="Curva de supervivencia exponencial",
-        xaxis_title="Tiempo",
-        yaxis_title="Probabilidad de supervivencia",
+        title="Exponential survival curve" if is_en else "Curva de supervivencia exponencial",
+        xaxis_title="Time" if is_en else "Tiempo",
+        yaxis_title="Survival probability" if is_en else "Probabilidad de supervivencia",
         yaxis=dict(range=[0, 1]),
         hovermode="x unified",
         template="plotly_white",
@@ -98,8 +108,8 @@ def build_exponential_analysis(df: pd.DataFrame):
                 bgcolor="rgba(255,255,255,0.9)",
                 font=dict(size=12, color="#2c3e50"),
                 text=(
-                    f"<b>Valor de λ (tasa):</b> {lambda_value:.6f}<br>"
-                    f"<b>Métricas</b><br>"
+                    f"<b>{'Lambda value (rate)' if is_en else 'Valor de λ (tasa)'}:</b> {lambda_value:.6f}<br>"
+                    f"<b>{'Metrics' if is_en else 'Métricas'}</b><br>"
                     f"• Log-likelihood: {log_likelihood:.4f}<br>"
                     f"• AIC: {aic:.4f}"
                 ),
@@ -110,20 +120,27 @@ def build_exponential_analysis(df: pd.DataFrame):
     event_rate = (events.sum() / len(events) * 100) if len(events) else 0
 
     summary_df = pd.DataFrame([
-        {"Metrica": "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Tamanio muestral usado en el ajuste."},
-        {"Metrica": "Numero de eventos", "Valor": f"{int(events.sum())}", "Interpretacion": "Casos en los que ocurre el evento de interes."},
-        {"Metrica": "Tasa de eventos", "Valor": f"{event_rate:.1f}%", "Interpretacion": "Proporcion de abandonos sobre el total."},
-        {"Metrica": "Lambda (tasa)", "Valor": f"{lambda_value:.6f}", "Interpretacion": "Parametro de tasa del modelo exponencial."},
-        {"Metrica": "Log-likelihood", "Valor": f"{log_likelihood:.4f}", "Interpretacion": "Cuanto mayor, mejor ajuste relativo."},
-        {"Metrica": "AIC", "Valor": f"{aic:.4f}", "Interpretacion": "Menor valor indica mejor equilibrio entre ajuste y complejidad."},
-        {"Metrica": "Caso Weibull equivalente", "Valor": "k = 1", "Interpretacion": "El modelo exponencial es un caso particular del Weibull con forma constante."},
+        {"Metrica": "Number of observations" if is_en else "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Sample size used for model fitting." if is_en else "Tamanio muestral usado en el ajuste."},
+        {"Metrica": "Number of events" if is_en else "Numero de eventos", "Valor": f"{int(events.sum())}", "Interpretacion": "Cases where the event occurs." if is_en else "Casos en los que ocurre el evento de interes."},
+        {"Metrica": "Event rate" if is_en else "Tasa de eventos", "Valor": f"{event_rate:.1f}%", "Interpretacion": "Dropout proportion over the total." if is_en else "Proporcion de abandonos sobre el total."},
+        {"Metrica": "Lambda (rate)" if is_en else "Lambda (tasa)", "Valor": f"{lambda_value:.6f}", "Interpretacion": "Rate parameter of the Exponential model." if is_en else "Parametro de tasa del modelo exponencial."},
+        {"Metrica": "Log-likelihood", "Valor": f"{log_likelihood:.4f}", "Interpretacion": "Higher values indicate relatively better fit." if is_en else "Cuanto mayor, mejor ajuste relativo."},
+        {"Metrica": "AIC", "Valor": f"{aic:.4f}", "Interpretacion": "Lower values indicate better fit-complexity tradeoff." if is_en else "Menor valor indica mejor equilibrio entre ajuste y complejidad."},
+        {"Metrica": "Equivalent Weibull case" if is_en else "Caso Weibull equivalente", "Valor": "k = 1", "Interpretacion": "The Exponential model is a special case of Weibull with constant shape." if is_en else "El modelo exponencial es un caso particular del Weibull con forma constante."},
     ])
 
     interpretation = (
-        f"Lambda = {lambda_value:.6f}. "
-        f"Esto implica una tasa de abandono constante en el tiempo, por lo que el riesgo no cambia con el tiempo. "
-        f"El modelo Exponencial es un caso particular del Weibull cuando k = 1. "
-        f"La curva exponencial se compara con Kaplan-Meier empírico para ver el ajuste global."
+        (
+            f"Lambda = {lambda_value:.6f}. "
+            f"This implies a constant dropout rate over time, so risk does not change with time. "
+            f"The Exponential model is a special case of Weibull when k = 1. "
+            f"The Exponential curve is compared against empirical Kaplan-Meier to assess overall fit."
+        ) if is_en else (
+            f"Lambda = {lambda_value:.6f}. "
+            f"Esto implica una tasa de abandono constante en el tiempo, por lo que el riesgo no cambia con el tiempo. "
+            f"El modelo Exponencial es un caso particular del Weibull cuando k = 1. "
+            f"La curva exponencial se compara con Kaplan-Meier empírico para ver el ajuste global."
+        )
     )
 
     return {

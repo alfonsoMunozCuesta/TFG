@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 import json
 import os
 from datetime import datetime
-from pdf_exporter import export_survival_analysis_to_pdf
+from pdf_exporter import export_survival_analysis_to_pdf, export_weibull_exponential_combined_pdf
 from ollama_AI import generate_interpretation_for_pdf
 from translations import get_translation
 import pandas as pd
@@ -51,6 +51,28 @@ def _validate_ai_explanation(ai_requested, ai_text, analysis_label, language='es
         return f"⚠️ Antes de exportar el PDF de {analysis_label}, genera primero una explicación de IA."
 
     return None
+
+
+def _validate_ai_language(ai_requested, generated_language, current_language):
+    """Valida que la explicación IA se haya generado en el idioma activo."""
+    if not ai_requested:
+        return None
+
+    if not generated_language:
+        return None
+
+    if generated_language != current_language:
+        if current_language == 'en':
+            return "⚠️ The AI explanation was generated in another language. Please click Explain again before exporting."
+        return "⚠️ La explicación IA se generó en otro idioma. Pulsa de nuevo Explicar antes de exportar."
+
+    return None
+
+
+def _get_report_name_from_filename(filename):
+    """Obtiene un nombre de informe limpio a partir del nombre de archivo PDF."""
+    base_name = os.path.splitext(os.path.basename(filename or ""))[0].strip()
+    return base_name or "informe"
 
 
 def register_pdf_export_callbacks(app):
@@ -109,6 +131,7 @@ def register_pdf_export_callbacks(app):
             
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
             
             options = options or ['summary', 'graph']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Kaplan-Meier', language)
@@ -206,10 +229,11 @@ def register_pdf_export_callbacks(app):
             print(f"[KM PDF] Opciones marcadas: {options}")
             
             # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
-            report_title = f"INFORME KAPLAN-MEIER: {current_variable.upper() if current_variable else 'GENERAL'}" if language == 'es' else f"KAPLAN-MEIER REPORT: {current_variable.upper() if current_variable else 'GENERAL'}"
+            report_title = f"KAPLAN-MEIER REPORT: {current_variable.upper() if current_variable else 'GENERAL'}"
             export_survival_analysis_to_pdf(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
                 include_km='table' in options or 'graph' in options,  # Mostrar KM si marcó tabla o gráfica
                 km_figure=km_figure if 'graph' in options else None,
@@ -293,6 +317,7 @@ def register_pdf_export_callbacks(app):
             
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
             
             options = options or ['summary', 'graph']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Cox Regression', language)
@@ -410,12 +435,11 @@ def register_pdf_export_callbacks(app):
             # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
             report_title = (
                 f"COX REGRESSION REPORT: {', '.join(cox_covariables) if cox_covariables else 'GENERAL'}"
-                if language == 'en'
-                else f"INFORME REGRESIÓN DE COX: {', '.join(cox_covariables) if cox_covariables else 'GENERAL'}"
             )
             export_survival_analysis_to_pdf(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
                 include_km=False,
                 include_cox='table' in options or 'graph' in options,  # Mostrar Cox si marcó tabla O gráfica
@@ -499,6 +523,7 @@ def register_pdf_export_callbacks(app):
             
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
             
             options = options or ['summary', 'table']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Log-Rank', language)
@@ -578,12 +603,11 @@ def register_pdf_export_callbacks(app):
             # GENERAR PDF CON DATOS REALES - SOLO LO QUE SE MARCÓ
             report_title = (
                 f"LOG-RANK TEST REPORT: {', '.join(logrank_covariables) if logrank_covariables else 'GENERAL'}"
-                if language == 'en'
-                else f"INFORME LOG-RANK TEST: {', '.join(logrank_covariables) if logrank_covariables else 'GENERAL'}"
             )
             export_survival_analysis_to_pdf(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='summary' in options,  # Mostrar resumen SOLO si se marcó
                 include_km=False,
                 include_cox=False,
@@ -605,6 +629,250 @@ def register_pdf_export_callbacks(app):
             print(f"ERROR en download_logrank_pdf: {str(e)}")
             print(traceback.format_exc())
             return None, (f"❌ Error al generar el PDF de Log-Rank: {str(e)}" if language == 'es' else f"❌ Error generating the Log-Rank PDF: {str(e)}"), {
+                'display': 'block',
+                'marginTop': '15px',
+                'padding': '10px 12px',
+                'borderRadius': '6px',
+                'backgroundColor': '#fff1f0',
+                'color': '#c0392b',
+                'border': '1px solid #f5c6cb',
+                'fontSize': '14px',
+                'fontWeight': 'bold'
+            }
+
+
+    # ===== COMBINED WEIBULL + EXPONENTIAL PDF CALLBACKS =====
+
+    @app.callback(
+        [Output('weibexp-pdf-modal-overlay', 'style'),
+         Output('weibexp-pdf-modal-container', 'style')],
+        [Input('export-weibexp-btn', 'n_clicks'),
+         Input('weibexp-pdf-modal-close-btn', 'n_clicks'),
+         Input('weibexp-pdf-modal-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_weibexp_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre/cierra el modal de exportación combinada Weibull + Exponencial."""
+        if not callback_context.triggered:
+            return {'display': 'none'}, {'display': 'none'}
+
+        triggered_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+
+        if triggered_id == 'export-weibexp-btn' and export_clicks:
+            return _get_modal_styles(True)
+
+        return {'display': 'none'}, {'display': 'none'}
+
+
+    @app.callback(
+        [Output('weibexp-pdf-modal-download', 'data'),
+         Output('weibexp-pdf-modal-error', 'children'),
+         Output('weibexp-pdf-modal-error', 'style')],
+        Input('weibexp-pdf-modal-download-btn', 'n_clicks'),
+        [State('weibexp-pdf-modal-filename', 'value'),
+         State('weibexp-pdf-modal-techniques', 'value'),
+         State('weibexp-pdf-modal-content', 'value'),
+         State('weibull-ai-text-store', 'data'),
+         State('exponential-ai-text-store', 'data'),
+         State('weibull-ai-language-store', 'data'),
+         State('exponential-ai-language-store', 'data'),
+         State('df-store', 'data'),
+         State('language-store', 'data')],
+        prevent_initial_call=True
+    )
+    def download_weibexp_pdf(
+        n_clicks,
+        filename,
+        techniques,
+        options,
+        weibull_ai_text,
+        exponential_ai_text,
+        weibull_ai_language,
+        exponential_ai_language,
+        df_json,
+        language
+    ):
+        """Genera un PDF combinado de Weibull + Exponencial."""
+        try:
+            if not filename or filename.strip() == '':
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"weibull_exponential_combined_{timestamp}.pdf"
+            else:
+                if not filename.endswith('.pdf'):
+                    filename += '.pdf'
+
+            report_name = _get_report_name_from_filename(filename)
+            os.makedirs("downloads", exist_ok=True)
+            pdf_path = f"downloads/{filename}"
+
+            techniques = techniques or ['weibull', 'exponential']
+            options = options or ['summary', 'table', 'graph']
+
+            if 'ai_interpretation' in options:
+                if 'weibull' in techniques:
+                    ai_error = _validate_ai_explanation(True, weibull_ai_text, 'Weibull', language)
+                    if ai_error:
+                        return None, ai_error, {
+                            'display': 'block',
+                            'marginTop': '15px',
+                            'padding': '10px 12px',
+                            'borderRadius': '6px',
+                            'backgroundColor': '#fff1f0',
+                            'color': '#c0392b',
+                            'border': '1px solid #f5c6cb',
+                            'fontSize': '14px',
+                            'fontWeight': 'bold'
+                        }
+
+                    lang_error = _validate_ai_language(True, weibull_ai_language, language)
+                    if lang_error:
+                        return None, lang_error, {
+                            'display': 'block',
+                            'marginTop': '15px',
+                            'padding': '10px 12px',
+                            'borderRadius': '6px',
+                            'backgroundColor': '#fff1f0',
+                            'color': '#c0392b',
+                            'border': '1px solid #f5c6cb',
+                            'fontSize': '14px',
+                            'fontWeight': 'bold'
+                        }
+
+                if 'exponential' in techniques:
+                    ai_error = _validate_ai_explanation(True, exponential_ai_text, 'Exponencial' if language == 'es' else 'Exponential', language)
+                    if ai_error:
+                        return None, ai_error, {
+                            'display': 'block',
+                            'marginTop': '15px',
+                            'padding': '10px 12px',
+                            'borderRadius': '6px',
+                            'backgroundColor': '#fff1f0',
+                            'color': '#c0392b',
+                            'border': '1px solid #f5c6cb',
+                            'fontSize': '14px',
+                            'fontWeight': 'bold'
+                        }
+
+                    lang_error = _validate_ai_language(True, exponential_ai_language, language)
+                    if lang_error:
+                        return None, lang_error, {
+                            'display': 'block',
+                            'marginTop': '15px',
+                            'padding': '10px 12px',
+                            'borderRadius': '6px',
+                            'backgroundColor': '#fff1f0',
+                            'color': '#c0392b',
+                            'border': '1px solid #f5c6cb',
+                            'fontSize': '14px',
+                            'fontWeight': 'bold'
+                        }
+
+            if not techniques:
+                return None, (
+                    "⚠️ Selecciona al menos una técnica (Weibull o Exponencial)."
+                    if language == 'es' else
+                    "⚠️ Select at least one technique (Weibull or Exponential)."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if not df_json:
+                return None, (
+                    "❌ No hay datos cargados para exportar el informe combinado."
+                    if language == 'es' else
+                    "❌ No dataset loaded to export the combined report."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            df = pd.read_json(df_json, orient='split')
+            weibull_analysis = build_weibull_analysis(df, language=language) if 'weibull' in techniques else None
+            exponential_analysis = build_exponential_analysis(df, language=language) if 'exponential' in techniques else None
+
+            if ('weibull' in techniques and not weibull_analysis) and ('exponential' in techniques and not exponential_analysis):
+                return None, (
+                    "❌ No hay datos suficientes para construir el informe combinado."
+                    if language == 'es' else
+                    "❌ Not enough data to build the combined report."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            summary_stats = {
+                'n_patients': len(df),
+                'n_events': int(df['final_result'].sum()) if 'final_result' in df.columns else 0,
+                'follow_up_mean': float(df['date'].mean()) if 'date' in df.columns else 0,
+                'follow_up_median': float(df['date'].median()) if 'date' in df.columns else 0,
+            }
+
+            combined_ai_text = ""
+            if 'ai_interpretation' in options:
+                ai_sections = []
+                if weibull_analysis:
+                    weibull_ai = weibull_ai_text
+                    if weibull_ai:
+                        ai_sections.append("Weibull:\n" + clean_markdown_text(weibull_ai))
+
+                if exponential_analysis:
+                    exponential_ai = exponential_ai_text
+                    if exponential_ai:
+                        ai_sections.append(("Exponencial" if language == 'es' else "Exponential") + ":\n" + clean_markdown_text(exponential_ai))
+
+                combined_ai_text = "\n\n".join(ai_sections)
+
+            export_weibull_exponential_combined_pdf(
+                filename=pdf_path,
+                title="WEIBULL + EXPONENTIAL REPORT: COMBINED",
+                report_name=report_name,
+                include_summary='summary' in options,
+                include_table='table' in options,
+                include_graph='graph' in options,
+                include_ai_interpretation='ai_interpretation' in options,
+                include_weibull='weibull' in techniques and weibull_analysis is not None,
+                include_exponential='exponential' in techniques and exponential_analysis is not None,
+                weibull_table=weibull_analysis['summary_df'] if weibull_analysis is not None else None,
+                weibull_figure=weibull_analysis['figure'] if weibull_analysis is not None else None,
+                exponential_table=exponential_analysis['summary_df'] if exponential_analysis is not None else None,
+                exponential_figure=exponential_analysis['figure'] if exponential_analysis is not None else None,
+                ai_text=combined_ai_text,
+                summary_stats=summary_stats,
+                language=language
+            )
+
+            return dcc.send_file(pdf_path), "", {'display': 'none'}
+
+        except Exception as e:
+            print(f"ERROR en download_weibexp_pdf: {str(e)}")
+            print(traceback.format_exc())
+            return None, (
+                f"❌ Error al generar el PDF combinado: {str(e)}"
+                if language == 'es' else
+                f"❌ Error generating the combined PDF: {str(e)}"
+            ), {
                 'display': 'block',
                 'marginTop': '15px',
                 'padding': '10px 12px',
@@ -648,11 +916,12 @@ def register_pdf_export_callbacks(app):
         [State('weibull-pdf-modal-filename', 'value'),
          State('weibull-pdf-modal-checklist-content', 'value'),
          State('openai-answer-weibull', 'children'),
+         State('weibull-ai-language-store', 'data'),
          State('df-store', 'data'),
          State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def download_weibull_pdf(n_clicks, filename, options, ai_text_from_page, df_json, language):
+    def download_weibull_pdf(n_clicks, filename, options, ai_text_from_page, ai_text_language, df_json, language):
         """Genera PDF de Weibull con datos REALES del dataset limpio"""
         try:
             if not filename or filename.strip() == '':
@@ -664,11 +933,26 @@ def register_pdf_export_callbacks(app):
 
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
 
             options = options or ['summary', 'table']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Weibull', language)
             if ai_error:
                 return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            ai_lang_error = _validate_ai_language('ai_interpretation' in options, ai_text_language, language)
+            if ai_lang_error:
+                return None, ai_lang_error, {
                     'display': 'block',
                     'marginTop': '15px',
                     'padding': '10px 12px',
@@ -687,7 +971,7 @@ def register_pdf_export_callbacks(app):
                 except Exception:
                     df = None
 
-            analysis = build_weibull_analysis(df) if df is not None else None
+            analysis = build_weibull_analysis(df, language=language) if df is not None else None
             if not analysis:
                 return None, ("❌ No hay datos suficientes para generar el PDF de Weibull." if language == 'es' else "❌ Not enough data to generate the Weibull PDF."), {
                     'display': 'block',
@@ -713,10 +997,11 @@ def register_pdf_export_callbacks(app):
                 ai_text = ai_text_from_page or generate_interpretation_for_pdf('weibull', summary_stats, analysis['summary_df'], language=language)
                 ai_text = clean_markdown_text(ai_text)
 
-            report_title = "INFORME MÉTODO WEIBULL" if language == 'es' else "WEIBULL METHOD REPORT"
+            report_title = "WEIBULL METHOD REPORT: GENERAL"
             export_survival_analysis_to_pdf(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='summary' in options,
                 include_km=False,
                 include_cox=False,
@@ -778,11 +1063,12 @@ def register_pdf_export_callbacks(app):
         [State('exponential-pdf-modal-filename', 'value'),
          State('exponential-pdf-modal-checklist-content', 'value'),
          State('openai-answer-exponential', 'children'),
+         State('exponential-ai-language-store', 'data'),
          State('df-store', 'data'),
          State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def download_exponential_pdf(n_clicks, filename, options, ai_text_from_page, df_json, language):
+    def download_exponential_pdf(n_clicks, filename, options, ai_text_from_page, ai_text_language, df_json, language):
         try:
             if not filename or filename.strip() == '':
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -793,11 +1079,26 @@ def register_pdf_export_callbacks(app):
 
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
 
             options = options or ['summary', 'table']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Exponencial', language)
             if ai_error:
                 return None, ai_error, {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            ai_lang_error = _validate_ai_language('ai_interpretation' in options, ai_text_language, language)
+            if ai_lang_error:
+                return None, ai_lang_error, {
                     'display': 'block',
                     'marginTop': '15px',
                     'padding': '10px 12px',
@@ -816,7 +1117,7 @@ def register_pdf_export_callbacks(app):
                 except Exception:
                     df = None
 
-            analysis = build_exponential_analysis(df) if df is not None else None
+            analysis = build_exponential_analysis(df, language=language) if df is not None else None
             if not analysis:
                 return None, ("❌ No hay datos suficientes para generar el PDF de Exponencial." if language == 'es' else "❌ Not enough data to generate the Exponential PDF."), {
                     'display': 'block',
@@ -843,10 +1144,11 @@ def register_pdf_export_callbacks(app):
                 ai_text = ai_text_from_page or analysis['interpretation']
                 ai_text = clean_markdown_text(ai_text)
 
-            report_title = "INFORME MÉTODO EXPONENCIAL" if language == 'es' else "EXPONENTIAL METHOD REPORT"
+            report_title = "EXPONENTIAL METHOD REPORT: GENERAL"
             export_survival_analysis_to_pdf(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='summary' in options,
                 include_km=False,
                 include_cox=False,
@@ -945,6 +1247,7 @@ def register_pdf_export_callbacks(app):
 
             os.makedirs("downloads", exist_ok=True)
             pdf_path = f"downloads/{filename}"
+            report_name = _get_report_name_from_filename(filename)
 
             options = options or ['general_summary', 'model_summary']
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Random Survival Forest', language)
@@ -968,7 +1271,7 @@ def register_pdf_export_callbacks(app):
                 except Exception:
                     df = None
 
-            analysis = build_rsf_analysis(df) if df is not None else None
+            analysis = build_rsf_analysis(df, language=language) if df is not None else None
             if not analysis:
                 return None, ("❌ No hay datos suficientes para generar el PDF de RSF." if language == 'es' else "❌ Not enough data to generate the RSF PDF."), {
                     'display': 'block',
@@ -1009,17 +1312,18 @@ def register_pdf_export_callbacks(app):
                     'highest_education': profile_education if profile_education else 'highest_education_A Level or Equivalent',
                     'studied_credits': credits_map.get(profile_credits_level, 30),
                 }
-                rsf_profile_analysis = build_rsf_profile_analysis(df, profile)
+                rsf_profile_analysis = build_rsf_profile_analysis(df, profile, language=language)
 
             ai_text = ""
             if 'ai_interpretation' in options:
                 ai_text = ai_text_from_page or analysis['interpretation']
                 ai_text = clean_markdown_text(ai_text)
 
-            report_title = "INFORME RANDOM SURVIVAL FOREST" if language == 'es' else "RANDOM SURVIVAL FOREST REPORT"
+            report_title = "RANDOM SURVIVAL FOREST REPORT: MODEL"
             export_kwargs = dict(
                 filename=pdf_path,
                 title=report_title,
+                report_name=report_name,
                 include_summary='general_summary' in options,
                 include_km=False,
                 include_cox=False,

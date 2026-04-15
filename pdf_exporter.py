@@ -29,10 +29,12 @@ LOGO_RIGHT_PATH = BASE_DIR / "assets" / "logo_espc.png"
 class SurvivalAnalysisPDFExporter:
     """Clase para generar informes PDF de análisis de supervivencia"""
     
-    def __init__(self, filename, language='es', has_graph=False):
+    def __init__(self, filename, language='es', has_graph=False, report_name=None, header_datetime=None):
         self.filename = filename
         self.language = language
         self.has_graph = has_graph  # Para saber si necesitamos landscape
+        self.report_name = (report_name or Path(filename).stem).strip()
+        self.header_datetime = header_datetime or datetime.now()
         self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
         self.elements = []
@@ -182,6 +184,10 @@ class SurvivalAnalysisPDFExporter:
 
     def _is_english(self):
         return self.language == 'en'
+
+    def _format_header_datetime(self):
+        """Formatea fecha y hora para la cabecera superior."""
+        return self.header_datetime.strftime('%d/%m/%Y %H:%M')
     
     def _add_header(self, title, subtitle=""):
         """Agrega portada/header al documento"""
@@ -250,6 +256,8 @@ class SurvivalAnalysisPDFExporter:
     
     def _add_section_title(self, title):
         """Agrega título de sección"""
+        # Espacio fijo para separar visualmente el encabezado de página del título.
+        self.elements.append(Spacer(1, 0.14 * inch))
         self.elements.append(Paragraph(title, self.styles['SectionTitle']))
         underline = Table([[""]], colWidths=[7.6 * inch])
         underline.setStyle(TableStyle([
@@ -541,9 +549,9 @@ class SurvivalAnalysisPDFExporter:
         
         self.elements.append(Spacer(1, 0.3*inch))
 
-    def add_weibull_section(self, weibull_table=None):
+    def add_weibull_section(self, weibull_table=None, section_title=None):
         """Agrega sección de Weibull - 2. TABLA DE RESULTADOS"""
-        self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
+        self._add_section_title(section_title or ("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS"))
 
         intro_text = (
             "The Weibull model is a parametric survival model that estimates how the risk changes over time using a shape and a scale parameter. The table below summarizes the fitted model and its main statistics, and the graph compares the fitted curve against the empirical Kaplan-Meier survival curve."
@@ -602,9 +610,9 @@ class SurvivalAnalysisPDFExporter:
 
         self.elements.append(Spacer(1, 0.3 * inch))
 
-    def add_exponential_section(self, exponential_table=None):
+    def add_exponential_section(self, exponential_table=None, section_title=None):
         """Agrega sección de Exponencial - 2. TABLA DE RESULTADOS"""
-        self._add_section_title("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS")
+        self._add_section_title(section_title or ("2. RESULTS TABLE" if self._is_english() else "2. TABLA DE RESULTADOS"))
 
         intro_text = (
             "The Exponential model is a parametric survival model with constant hazard over time. It is a special case of Weibull when the shape parameter k = 1. The table below summarizes the fitted model and its main statistics, and the graph compares the fitted curve against the empirical Kaplan-Meier survival curve."
@@ -881,10 +889,12 @@ class SurvivalAnalysisPDFExporter:
                 except Exception:
                     pass
 
-            # Título
-            canvas_obj.setFont('Times-Bold', 10.5)
-            canvas_obj.setFillColor(colors.HexColor('#1f77b4'))
-            canvas_obj.drawCentredString(page_width / 2, page_height - 0.28 * inch, title)
+            # Texto entre logos solo en la primera página: "nombre: fecha hora"
+            if canvas_obj.getPageNumber() == 1:
+                canvas_obj.setFont('Times-Bold', 10.5)
+                canvas_obj.setFillColor(colors.HexColor('#1f77b4'))
+                header_text = f"{self.report_name}: {self._format_header_datetime()}"
+                canvas_obj.drawCentredString(page_width / 2, page_height - 0.28 * inch, header_text)
 
             # Pie
             canvas_obj.setStrokeColor(colors.HexColor('#d9e5f3'))
@@ -907,6 +917,8 @@ class SurvivalAnalysisPDFExporter:
 def export_survival_analysis_to_pdf(
     filename,
     title="INFORME DE ANÁLISIS DE SUPERVIVENCIA",
+    report_name=None,
+    header_datetime=None,
     include_summary=False,
     include_km=False,
     km_figure=None,
@@ -963,7 +975,13 @@ def export_survival_analysis_to_pdf(
         # Usar valor explícito (True = forzar landscape, False = forzar portrait)
         has_graph = include_graph
     
-    exporter = SurvivalAnalysisPDFExporter(filename, language, has_graph=has_graph)
+    exporter = SurvivalAnalysisPDFExporter(
+        filename,
+        language,
+        has_graph=has_graph,
+        report_name=report_name,
+        header_datetime=header_datetime
+    )
     if landscape_tables is None:
         landscape_tables = []
     
@@ -1094,4 +1112,130 @@ def export_survival_analysis_to_pdf(
     print(f"[PDF BUILDER] Elementos antes de generate(): {len(exporter.elements)}")
     
     # Generar PDF
+    exporter.generate(title)
+
+
+def export_weibull_exponential_combined_pdf(
+    filename,
+    title="WEIBULL + EXPONENTIAL REPORT: COMBINED",
+    report_name=None,
+    header_datetime=None,
+    include_summary=True,
+    include_table=True,
+    include_graph=True,
+    include_ai_interpretation=False,
+    include_weibull=True,
+    include_exponential=True,
+    weibull_table=None,
+    weibull_figure=None,
+    exponential_table=None,
+    exponential_figure=None,
+    ai_text="",
+    summary_stats=None,
+    language='es'
+):
+    """Genera un informe combinado con secciones de Weibull y Exponencial."""
+    has_graph = include_graph and (
+        (include_weibull and weibull_figure is not None) or
+        (include_exponential and exponential_figure is not None)
+    )
+
+    exporter = SurvivalAnalysisPDFExporter(
+        filename,
+        language,
+        has_graph=has_graph,
+        report_name=report_name,
+        header_datetime=header_datetime
+    )
+
+    exporter.elements.append(Spacer(1, 0.18 * inch))
+    exporter.elements.append(Paragraph(title, exporter.styles['CustomTitle']))
+    exporter.elements.append(Spacer(1, 0.16 * inch))
+
+    section_number = 1
+    first_section = True
+
+    def _start_new_section():
+        nonlocal first_section
+        if first_section:
+            first_section = False
+            return
+        exporter.elements.append(PageBreak())
+
+    if include_summary and summary_stats:
+        _start_new_section()
+        exporter.add_summary_section(
+            summary_stats.get('n_patients', 0),
+            summary_stats.get('n_events', 0),
+            summary_stats.get('follow_up_mean', 0),
+            summary_stats.get('follow_up_median', 0)
+        )
+
+        # Texto fijo para contextualizar la relación metodológica entre ambos modelos.
+        relation_text = (
+            "Methodological note: the Exponential model is a special case of the Weibull model when the shape parameter is k = 1. "
+            "Therefore, both techniques are directly comparable: if Weibull estimates k close to 1, Exponential can be considered an adequate simplification; "
+            "if k differs clearly from 1, Weibull usually offers a more flexible representation of the risk pattern over time."
+            if exporter._is_english() else
+            "Nota metodológica: el modelo Exponencial es un caso particular del modelo Weibull cuando el parámetro de forma es k = 1. "
+            "Por ello, ambas técnicas son directamente comparables: si Weibull estima un k cercano a 1, Exponencial puede considerarse una simplificación adecuada; "
+            "si k se aleja claramente de 1, Weibull suele ofrecer una representación más flexible del patrón de riesgo en el tiempo."
+        )
+        exporter.elements.append(Paragraph(relation_text, exporter.styles['DescriptionText']))
+        exporter.elements.append(Spacer(1, 0.12 * inch))
+
+        section_number += 1
+
+    if include_weibull:
+        if include_table:
+            _start_new_section()
+            exporter.add_weibull_section(
+                weibull_table,
+                section_title=(
+                    f"{section_number}. WEIBULL RESULTS" if exporter._is_english() else f"{section_number}. RESULTADOS WEIBULL"
+                )
+            )
+            section_number += 1
+
+        if include_graph and weibull_figure is not None:
+            _start_new_section()
+            exporter.add_graph_section(
+                f"{section_number}. WEIBULL GRAPH" if exporter._is_english() else f"{section_number}. GRÁFICA WEIBULL"
+            )
+            exporter.add_plotly_figure(
+                weibull_figure,
+                "Weibull fitted curve" if exporter._is_english() else "Curva ajustada Weibull"
+            )
+            section_number += 1
+
+    if include_exponential:
+        if include_table:
+            _start_new_section()
+            exporter.add_exponential_section(
+                exponential_table,
+                section_title=(
+                    f"{section_number}. EXPONENTIAL RESULTS" if exporter._is_english() else f"{section_number}. RESULTADOS EXPONENCIAL"
+                )
+            )
+            section_number += 1
+
+        if include_graph and exponential_figure is not None:
+            _start_new_section()
+            exporter.add_graph_section(
+                f"{section_number}. EXPONENTIAL GRAPH" if exporter._is_english() else f"{section_number}. GRÁFICA EXPONENCIAL"
+            )
+            exporter.add_plotly_figure(
+                exponential_figure,
+                "Exponential fitted curve" if exporter._is_english() else "Curva ajustada Exponencial"
+            )
+            section_number += 1
+
+    if include_ai_interpretation and ai_text:
+        _start_new_section()
+        exporter.elements.append(Spacer(1, 0.14 * inch))
+        exporter._add_section_title(
+            f"{section_number}. CONCLUSION" if exporter._is_english() else f"{section_number}. CONCLUSIÓN"
+        )
+        exporter._add_paragraph_block(ai_text, 'InterpretationText')
+
     exporter.generate(title)

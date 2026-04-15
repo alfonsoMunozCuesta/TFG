@@ -37,7 +37,7 @@ LABEL_MAPPING = {
 }
 
 
-def plot_logrank_curves(df, covariable):
+def plot_logrank_curves(df, covariable, language='es'):
     """
     Crea una gráfica de curvas de supervivencia (Kaplan-Meier) estratificadas por una covariable.
     
@@ -49,6 +49,7 @@ def plot_logrank_curves(df, covariable):
         dcc.Graph con la gráfica de Kaplan-Meier estratificada
     """
     
+    is_en = language == 'en'
     columns = COVARIABLE_MAPPING.get(covariable, [covariable])
     
     fig = go.Figure()
@@ -66,11 +67,11 @@ def plot_logrank_curves(df, covariable):
             value_to_group = {val: i for i, val in enumerate(unique_vals)}
             df_temp['group'] = df_temp['studied_credits'].map(value_to_group)
             groups = sorted(df_temp['group'].unique())
-            labels = [f"Quintil {i+1}\n({unique_vals[i]:.0f} créditos)" for i in groups]
+            labels = [f"Quintile {i+1}\n({unique_vals[i]:.0f} credits)" if is_en else f"Quintil {i+1}\n({unique_vals[i]:.0f} créditos)" for i in groups]
         else:
             df_temp['group'] = pd.qcut(df_temp['studied_credits'], q=5, labels=False, duplicates='drop')
             groups = sorted(df_temp['group'].unique())
-            labels = [f"Quintil {i+1}" for i in groups]
+            labels = [f"Quintile {i+1}" if is_en else f"Quintil {i+1}" for i in groups]
         
         for i, group_val in enumerate(groups):
             df_group = df_temp[df_temp['group'] == group_val]
@@ -83,7 +84,11 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     name=labels[i],
                     line=dict(color=colors[i % len(colors)], width=2),
-                    hovertemplate="<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    hovertemplate=(
+                        "<b>%{fullData.name}</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                        if is_en else
+                        "<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    )
                 ))
                 
                 # Añadir intervalos de confianza
@@ -95,7 +100,7 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{labels[i]} (IC superior)"
+                    name=f"{labels[i]} ({'Upper CI' if is_en else 'IC superior'})"
                 ))
                 fig.add_trace(go.Scatter(
                     x=kmf.timeline.tolist(),
@@ -104,7 +109,7 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{labels[i]} (IC inferior)",
+                    name=f"{labels[i]} ({'Lower CI' if is_en else 'IC inferior'})",
                     fillcolor=f"rgba({int(colors[i % len(colors)][1:3], 16)}, {int(colors[i % len(colors)][3:5], 16)}, {int(colors[i % len(colors)][5:7], 16)}, 0.2)"
                 ))
     
@@ -142,7 +147,11 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     name=f"{info['label']} (n={info['n']})",
                     line=dict(color=colors[i % len(colors)], width=2),
-                    hovertemplate="<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    hovertemplate=(
+                        "<b>%{fullData.name}</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                        if is_en else
+                        "<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    )
                 ))
                 
                 # Intervalos de confianza
@@ -154,7 +163,7 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{info['label']} (IC superior)"
+                    name=f"{info['label']} ({'Upper CI' if is_en else 'IC superior'})"
                 ))
                 fig.add_trace(go.Scatter(
                     x=kmf.timeline.tolist(),
@@ -163,7 +172,7 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{info['label']} (IC inferior)",
+                    name=f"{info['label']} ({'Lower CI' if is_en else 'IC inferior'})",
                     fillcolor=f"rgba({int(colors[i % len(colors)][1:3], 16)}, {int(colors[i % len(colors)][3:5], 16)}, {int(colors[i % len(colors)][5:7], 16)}, 0.2)"
                 ))
             else:
@@ -172,10 +181,10 @@ def plot_logrank_curves(df, covariable):
                     x=[],
                     y=[],
                     mode='lines+markers',
-                    name=f"{info['label']} (n=0 - Sin datos)",
+                    name=f"{info['label']} (n=0 - {'No data' if is_en else 'Sin datos'})",
                     line=dict(color='lightgray', width=2, dash='dash'),
                     marker=dict(symbol='x'),
-                    hovertemplate=f"<b>{info['label']}</b><br>Sin observaciones en este grupo<extra></extra>"
+                    hovertemplate=f"<b>{info['label']}</b><br>{'No observations in this group' if is_en else 'Sin observaciones en este grupo'}<extra></extra>"
                 ))
     
     # Si es variable binaria simple (gender_F, disability_N)
@@ -195,7 +204,11 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     name=labels[i],
                     line=dict(color=colors[i % len(colors)], width=2),
-                    hovertemplate="<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    hovertemplate=(
+                        "<b>%{fullData.name}</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                        if is_en else
+                        "<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                    )
                 ))
                 
                 # Intervalos de confianza
@@ -207,7 +220,7 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{labels[i]} (IC superior)"
+                    name=f"{labels[i]} ({'Upper CI' if is_en else 'IC superior'})"
                 ))
                 fig.add_trace(go.Scatter(
                     x=kmf.timeline.tolist(),
@@ -216,14 +229,18 @@ def plot_logrank_curves(df, covariable):
                     mode='lines',
                     line_color='rgba(0,0,0,0)',
                     showlegend=False,
-                    name=f"{labels[i]} (IC inferior)",
+                    name=f"{labels[i]} ({'Lower CI' if is_en else 'IC inferior'})",
                     fillcolor=f"rgba({int(colors[i % len(colors)][1:3], 16)}, {int(colors[i % len(colors)][3:5], 16)}, {int(colors[i % len(colors)][5:7], 16)}, 0.2)"
                 ))
     
     fig.update_layout(
-        title=f"Curvas de Supervivencia (Kaplan-Meier) - {LABEL_MAPPING.get(covariable, covariable)}",
-        xaxis_title="Tiempo",
-        yaxis_title="Probabilidad de Supervivencia",
+        title=(
+            f"Survival Curves (Kaplan-Meier) - {LABEL_MAPPING.get(covariable, covariable)}"
+            if is_en else
+            f"Curvas de Supervivencia (Kaplan-Meier) - {LABEL_MAPPING.get(covariable, covariable)}"
+        ),
+        xaxis_title="Time" if is_en else "Tiempo",
+        yaxis_title="Survival Probability" if is_en else "Probabilidad de Supervivencia",
         yaxis=dict(range=[0, 1]),
         hovermode='x unified',
         template='plotly_white'
@@ -232,7 +249,7 @@ def plot_logrank_curves(df, covariable):
     return dcc.Graph(figure=fig)
 
 
-def plot_cox_hazard_ratios(summary_df, covariable_name):
+def plot_cox_hazard_ratios(summary_df, covariable_name, language='es'):
     """
     Crea una gráfica de Forest Plot (Hazard Ratios con intervalos de confianza).
     
@@ -260,8 +277,10 @@ def plot_cox_hazard_ratios(summary_df, covariable_name):
     # Remover filas con NaN
     summary_df = summary_df.dropna(subset=['HR', 'HR_lower', 'HR_upper'])
     
+    is_en = language == 'en'
+
     if summary_df.empty:
-        return dcc.Graph(figure=go.Figure().add_annotation(text="No se pudieron calcular Hazard Ratios"))
+        return dcc.Graph(figure=go.Figure().add_annotation(text="Could not compute Hazard Ratios" if is_en else "No se pudieron calcular Hazard Ratios"))
     
     fig = go.Figure()
     
@@ -272,7 +291,7 @@ def plot_cox_hazard_ratios(summary_df, covariable_name):
     
     # Añadir línea de referencia vertical en HR=1 (sin efecto)
     fig.add_vline(x=1, line_dash="dash", line_color="black", 
-                  annotation_text="HR = 1 (Sin efecto)", annotation_position="top",
+                  annotation_text="HR = 1 (No effect)" if is_en else "HR = 1 (Sin efecto)", annotation_position="top",
                   annotation_textangle=0)
     
     # Añadir los puntos y barras de error
@@ -300,8 +319,8 @@ def plot_cox_hazard_ratios(summary_df, covariable_name):
     
     fig.update_layout(
         title=f"Forest Plot - Hazard Ratios (Cox Regression)",
-        xaxis_title="Hazard Ratio (escala logarítmica)",
-        yaxis_title="Variables",
+        xaxis_title="Hazard Ratio (log scale)" if is_en else "Hazard Ratio (escala logarítmica)",
+        yaxis_title="Variables" if is_en else "Variables",
         yaxis=dict(autorange="reversed", tickmode='linear', tick0=0),
         xaxis=dict(type="log"),
         height=max(400, len(summary_df) * 50),

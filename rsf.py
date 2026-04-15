@@ -199,7 +199,7 @@ def _build_profile_feature_frame(df: pd.DataFrame, profile: dict, feature_column
     return profile_df
 
 
-def build_rsf_analysis(df: pd.DataFrame):
+def build_rsf_analysis(df: pd.DataFrame, language: str = 'es'):
     """Fit a Random Survival Forest and build reusable outputs for the dashboard."""
     fitted = _fit_rsf_model(df)
     if not fitted:
@@ -260,9 +260,11 @@ def build_rsf_analysis(df: pd.DataFrame):
     top_feature_name = top_features[0]["name"] if top_features else "N/A"
     top_feature_value = top_features[0]["importance"] if top_features else 0.0
 
-    survival_labels = ["Bajo riesgo", "Riesgo medio", "Alto riesgo"]
+    is_en = language == 'en'
+
+    survival_labels = ["Low risk", "Medium risk", "High risk"] if is_en else ["Bajo riesgo", "Riesgo medio", "Alto riesgo"]
     if len(representative_indices) < 3:
-        survival_labels = [f"Grupo {index + 1}" for index in range(len(representative_indices))]
+        survival_labels = [f"Group {index + 1}" if is_en else f"Grupo {index + 1}" for index in range(len(representative_indices))]
 
     fig_survival = go.Figure()
     colors = ["#1abc9c", "#2980b9", "#e74c3c"]
@@ -288,7 +290,11 @@ def build_rsf_analysis(df: pd.DataFrame):
                 line=dict(color=colors[index % len(colors)], width=4),
                 line_shape="linear",
                 marker=dict(size=7, color=colors[index % len(colors)]),
-                hovertemplate="<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+                hovertemplate=(
+                    "<b>%{fullData.name}</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                    if is_en else
+                    "<b>%{fullData.name}</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+                ),
                 showlegend=True,
             )
         )
@@ -302,9 +308,9 @@ def build_rsf_analysis(df: pd.DataFrame):
         y_axis_min = 0.92
 
     fig_survival.update_layout(
-        title="Random Survival Forest: curvas de supervivencia estimadas",
-        xaxis_title="Tiempo",
-        yaxis_title="Probabilidad de supervivencia",
+        title="Random Survival Forest: estimated survival curves" if is_en else "Random Survival Forest: curvas de supervivencia estimadas",
+        xaxis_title="Time" if is_en else "Tiempo",
+        yaxis_title="Survival probability" if is_en else "Probabilidad de supervivencia",
         xaxis=dict(range=[0, x_axis_max], fixedrange=True),
         yaxis=dict(range=[y_axis_min, 1], fixedrange=True),
         height=720,
@@ -323,15 +329,19 @@ def build_rsf_analysis(df: pd.DataFrame):
                 y=importance_df["name"].iloc[::-1],
                 orientation="h",
                 marker=dict(color="#2980b9"),
-                hovertemplate="<b>%{y}</b><br>Importancia: %{x:.3f}<extra></extra>",
+                hovertemplate=(
+                    "<b>%{y}</b><br>Importance: %{x:.3f}<extra></extra>"
+                    if is_en else
+                    "<b>%{y}</b><br>Importancia: %{x:.3f}<extra></extra>"
+                ),
             )
         )
     else:
         importance_fig = go.Figure()
 
     importance_fig.update_layout(
-        title="Importancia de variables en RSF",
-        xaxis_title="Importancia normalizada",
+        title="Variable importance in RSF" if is_en else "Importancia de variables en RSF",
+        xaxis_title="Normalized importance" if is_en else "Importancia normalizada",
         yaxis_title="Variable",
         template="plotly_white",
         margin=dict(l=180, r=30, t=70, b=40),
@@ -340,48 +350,60 @@ def build_rsf_analysis(df: pd.DataFrame):
 
     summary_df = pd.DataFrame([
         {
-            "Metrica": "Observaciones",
+            "Metrica": "Observations" if is_en else "Observaciones",
             "Valor": f"{len(feature_df)}",
-            "Interpretacion": "Número de filas usadas para entrenar el bosque.",
+            "Interpretacion": "Rows used to train the forest." if is_en else "Número de filas usadas para entrenar el bosque.",
         },
         {
-            "Metrica": "Eventos",
+            "Metrica": "Events" if is_en else "Eventos",
             "Valor": f"{int(events.sum())}",
-            "Interpretacion": "Casos en los que se produjo el evento de interés.",
+            "Interpretacion": "Cases where the event occurred." if is_en else "Casos en los que se produjo el evento de interés.",
         },
         {
-            "Metrica": "Variables",
+            "Metrica": "Features" if is_en else "Variables",
             "Valor": f"{feature_df.shape[1]}",
-            "Interpretacion": "Número de predictores usados tras el preprocesado.",
+            "Interpretacion": "Predictors used after preprocessing." if is_en else "Número de predictores usados tras el preprocesado.",
         },
         {
-            "Metrica": "Concordancia train",
+            "Metrica": "Train concordance" if is_en else "Concordancia train",
             "Valor": f"{train_c_index:.3f}",
-            "Interpretacion": "Cuanto más cerca de 1, mejor ordena los riesgos.",
+            "Interpretacion": "The closer to 1, the better risk ranking." if is_en else "Cuanto más cerca de 1, mejor ordena los riesgos.",
         },
         {
-            "Metrica": "Concordancia OOB",
+            "Metrica": "OOB concordance" if is_en else "Concordancia OOB",
             "Valor": f"{oob_score:.3f}" if oob_score is not None else "N/A",
-            "Interpretacion": "Estimación fuera de bolsa del rendimiento general.",
+            "Interpretacion": "Out-of-bag estimate of overall performance." if is_en else "Estimación fuera de bolsa del rendimiento general.",
         },
         {
-            "Metrica": "Variable más influyente",
+            "Metrica": "Most influential variable" if is_en else "Variable más influyente",
             "Valor": top_feature_name,
-            "Interpretacion": f"Peso relativo aproximado: {top_feature_value:.3f}",
+            "Interpretacion": (f"Approximate relative weight: {top_feature_value:.3f}" if is_en else f"Peso relativo aproximado: {top_feature_value:.3f}"),
         },
     ])
 
     if oob_score is not None:
         interpretation = (
-            f"El Random Survival Forest ha combinado {feature_df.shape[1]} variables mediante árboles entrenados sobre muestras bootstrap. "
-            f"La concordancia en entrenamiento es {train_c_index:.3f} y la estimación OOB es {oob_score:.3f}. "
-            f"La variable más influyente es {top_feature_name}. Las curvas muestran cómo cambia la supervivencia para perfiles de bajo, medio y alto riesgo."
+            (
+                f"Random Survival Forest combines {feature_df.shape[1]} variables through trees trained on bootstrap samples. "
+                f"Training concordance is {train_c_index:.3f} and OOB estimate is {oob_score:.3f}. "
+                f"The most influential variable is {top_feature_name}. Curves show how survival changes across low-, medium- and high-risk profiles."
+            ) if is_en else (
+                f"El Random Survival Forest ha combinado {feature_df.shape[1]} variables mediante árboles entrenados sobre muestras bootstrap. "
+                f"La concordancia en entrenamiento es {train_c_index:.3f} y la estimación OOB es {oob_score:.3f}. "
+                f"La variable más influyente es {top_feature_name}. Las curvas muestran cómo cambia la supervivencia para perfiles de bajo, medio y alto riesgo."
+            )
         )
     else:
         interpretation = (
-            f"El Random Survival Forest ha combinado {feature_df.shape[1]} variables mediante árboles entrenados sobre muestras bootstrap. "
-            f"La concordancia en entrenamiento es {train_c_index:.3f}. La variable más influyente es {top_feature_name}. "
-            f"Las curvas muestran cómo cambia la supervivencia para perfiles de bajo, medio y alto riesgo."
+            (
+                f"Random Survival Forest combines {feature_df.shape[1]} variables through trees trained on bootstrap samples. "
+                f"Training concordance is {train_c_index:.3f}. The most influential variable is {top_feature_name}. "
+                f"Curves show how survival changes across low-, medium- and high-risk profiles."
+            ) if is_en else (
+                f"El Random Survival Forest ha combinado {feature_df.shape[1]} variables mediante árboles entrenados sobre muestras bootstrap. "
+                f"La concordancia en entrenamiento es {train_c_index:.3f}. La variable más influyente es {top_feature_name}. "
+                f"Las curvas muestran cómo cambia la supervivencia para perfiles de bajo, medio y alto riesgo."
+            )
         )
 
     return {
@@ -401,7 +423,7 @@ def build_rsf_analysis(df: pd.DataFrame):
     }
 
 
-def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict):
+def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict, language: str = 'es'):
     """Fit RSF and build a survival curve for a single simulated profile."""
 
     fitted = _fit_rsf_model(df)
@@ -424,18 +446,24 @@ def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict):
     fig_profile = go.Figure()
     curve_min = float(np.min(survival_curve)) if len(survival_curve) else 0.0
     curve_max = float(np.max(survival_curve)) if len(survival_curve) else 1.0
+    is_en = language == 'en'
+
     fig_profile.add_trace(
         go.Scatter(
             x=curve_times_plot,
             y=survival_curve_plot,
             mode="lines+markers",
-            name="Perfil simulado",
+            name="Simulated profile" if is_en else "Perfil simulado",
             line=dict(color="#8e44ad", width=5),
             marker=dict(color="#8e44ad", size=8),
             line_shape="linear",
             fill="tozeroy",
             fillcolor="rgba(142, 68, 173, 0.12)",
-            hovertemplate="<b>Perfil simulado</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>",
+            hovertemplate=(
+                "<b>Simulated profile</b><br>Time: %{x:.0f}<br>Survival: %{y:.3f}<extra></extra>"
+                if is_en else
+                "<b>Perfil simulado</b><br>Tiempo: %{x:.0f}<br>Supervivencia: %{y:.3f}<extra></extra>"
+            ),
         )
     )
     y_min_visible = max(0.70, min(0.95, curve_min - 0.06))
@@ -445,9 +473,9 @@ def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict):
         y_max_visible = 1.02
 
     fig_profile.update_layout(
-        title="RSF: curva para un perfil individual",
-        xaxis_title="Tiempo",
-        yaxis_title="Probabilidad de supervivencia",
+        title="RSF: curve for an individual profile" if is_en else "RSF: curva para un perfil individual",
+        xaxis_title="Time" if is_en else "Tiempo",
+        yaxis_title="Survival probability" if is_en else "Probabilidad de supervivencia",
         xaxis=dict(range=[0, float(np.max(curve_times)) if len(curve_times) else 1.0], fixedrange=True),
         yaxis=dict(range=[y_min_visible, y_max_visible], fixedrange=True),
         template="plotly_white",
@@ -458,28 +486,49 @@ def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict):
     fig_profile.add_hline(y=1.0, line_dash="dot", line_color="#95a5a6", opacity=0.55)
 
     profile_labels = {
-        "gender_F": PROFILE_CATEGORIES["gender_F"].get(int(profile.get("gender_F", 1)), "Femenino"),
-        "disability_N": PROFILE_CATEGORIES["disability_N"].get(int(profile.get("disability_N", 1)), "Con discapacidad"),
-        "age_band": PROFILE_CATEGORIES["age_band"].get(profile.get("age_band", "age_band_0-35"), "0-35 años"),
-        "highest_education": PROFILE_CATEGORIES["highest_education"].get(profile.get("highest_education", "highest_education_A Level or Equivalent"), "A Level o equivalente"),
+        "gender_F": ("Female" if int(profile.get("gender_F", 1)) == 1 else "Male") if is_en else PROFILE_CATEGORIES["gender_F"].get(int(profile.get("gender_F", 1)), "Femenino"),
+        "disability_N": ("With disability" if int(profile.get("disability_N", 1)) == 1 else "Without disability") if is_en else PROFILE_CATEGORIES["disability_N"].get(int(profile.get("disability_N", 1)), "Con discapacidad"),
+        "age_band": (
+            {
+                "age_band_0-35": "0-35 years",
+                "age_band_35-55": "35-55 years",
+                "age_band_55<=": "55+ years",
+            }.get(profile.get("age_band", "age_band_0-35"), "0-35 years")
+            if is_en else PROFILE_CATEGORIES["age_band"].get(profile.get("age_band", "age_band_0-35"), "0-35 años")
+        ),
+        "highest_education": (
+            {
+                "highest_education_A Level or Equivalent": "A Level or equivalent",
+                "highest_education_HE Qualification": "HE Qualification",
+                "highest_education_Lower Than A Level": "Lower than A Level",
+                "highest_education_Post Graduate Qualification": "Postgraduate",
+            }.get(profile.get("highest_education", "highest_education_A Level or Equivalent"), "A Level or equivalent")
+            if is_en else PROFILE_CATEGORIES["highest_education"].get(profile.get("highest_education", "highest_education_A Level or Equivalent"), "A Level o equivalente")
+        ),
         "studied_credits": f"{float(profile.get('studied_credits', PROFILE_CREDIT_LEVELS['few'])):.0f}",
     }
 
     profile_summary = pd.DataFrame([
-        {"Metrica": "Género", "Valor": profile_labels["gender_F"]},
-        {"Metrica": "Discapacidad", "Valor": profile_labels["disability_N"]},
-        {"Metrica": "Edad", "Valor": profile_labels["age_band"]},
-        {"Metrica": "Nivel educativo", "Valor": profile_labels["highest_education"]},
-        {"Metrica": "Créditos estudiados", "Valor": profile_labels["studied_credits"]},
-        {"Metrica": "Score de riesgo", "Valor": f"{profile_risk_score:.3f}"},
-        {"Metrica": "Concordancia train", "Valor": f"{train_c_index:.3f}"},
-        {"Metrica": "Concordancia OOB", "Valor": f"{oob_score:.3f}" if oob_score is not None else "N/A"},
+        {"Metrica": "Gender" if is_en else "Género", "Valor": profile_labels["gender_F"]},
+        {"Metrica": "Disability" if is_en else "Discapacidad", "Valor": profile_labels["disability_N"]},
+        {"Metrica": "Age" if is_en else "Edad", "Valor": profile_labels["age_band"]},
+        {"Metrica": "Education level" if is_en else "Nivel educativo", "Valor": profile_labels["highest_education"]},
+        {"Metrica": "Studied credits" if is_en else "Créditos estudiados", "Valor": profile_labels["studied_credits"]},
+        {"Metrica": "Risk score" if is_en else "Score de riesgo", "Valor": f"{profile_risk_score:.3f}"},
+        {"Metrica": "Train concordance" if is_en else "Concordancia train", "Valor": f"{train_c_index:.3f}"},
+        {"Metrica": "OOB concordance" if is_en else "Concordancia OOB", "Valor": f"{oob_score:.3f}" if oob_score is not None else "N/A"},
     ])
 
     interpretation = (
-        f"Este perfil individual se simula con RSF usando género {profile_labels['gender_F']}, "
-        f"{profile_labels['disability_N'].lower()}, edad {profile_labels['age_band']} y {profile_labels['studied_credits']} créditos. "
-        f"La curva muestra la supervivencia estimada para ese caso concreto, que es la forma más fiel de representar RSF."
+        (
+            f"This individual profile is simulated with RSF using {profile_labels['gender_F']} gender, "
+            f"{profile_labels['disability_N'].lower()}, age {profile_labels['age_band']} and {profile_labels['studied_credits']} credits. "
+            f"The curve shows estimated survival for this specific case, which is the most faithful way to represent RSF outputs."
+        ) if is_en else (
+            f"Este perfil individual se simula con RSF usando género {profile_labels['gender_F']}, "
+            f"{profile_labels['disability_N'].lower()}, edad {profile_labels['age_band']} y {profile_labels['studied_credits']} créditos. "
+            f"La curva muestra la supervivencia estimada para ese caso concreto, que es la forma más fiel de representar RSF."
+        )
     )
 
     return {
