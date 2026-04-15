@@ -298,12 +298,14 @@ def register_pdf_export_callbacks(app):
          State('cox-pdf-modal-checklist-content', 'value'),
          State('cox-current-variables', 'data'),
          State('cox-selected-covariables', 'data'),
+         State('cox-regression-output-store', 'data'),
          State('openai-answer-cox', 'value'),
          State('df-store', 'data'),
+         State('dataset-signature-store', 'data'),
          State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def download_cox_pdf(n_clicks, filename, options, cox_variables_text, cox_covariables, ai_text_from_page, df_json, language):
+    def download_cox_pdf(n_clicks, filename, options, cox_variables_text, cox_covariables, cox_store_data, ai_text_from_page, df_json, dataset_signature, language):
         """Genera PDF de Cox Regression con datos REALES del análisis actualizado"""
         try:
             # Generar nombre de archivo
@@ -320,6 +322,71 @@ def register_pdf_export_callbacks(app):
             report_name = _get_report_name_from_filename(filename)
             
             options = options or ['summary', 'graph']
+
+            if not df_json:
+                return None, (
+                    "⚠️ Primero carga y preprocesa un dataset antes de exportar." if language == 'es'
+                    else "⚠️ Load and preprocess a dataset before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if not cox_covariables:
+                return None, (
+                    "⚠️ Selecciona al menos una covariable y ejecuta Cox antes de exportar." if language == 'es'
+                    else "⚠️ Select at least one covariate and run Cox before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if not cox_store_data or not isinstance(cox_store_data, dict) or not cox_store_data.get('summary_json'):
+                return None, (
+                    "⚠️ Ejecuta primero la regresión de Cox para generar resultados exportables." if language == 'es'
+                    else "⚠️ Run Cox regression first to generate exportable results."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if cox_store_data.get('dataset_signature', '') != (dataset_signature or ''):
+                return None, (
+                    "⚠️ El dataset ha cambiado. Recalcula Cox antes de exportar." if language == 'es'
+                    else "⚠️ The dataset changed. Recalculate Cox before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Cox Regression', language)
             if ai_error:
                 return None, ai_error, {
@@ -504,12 +571,14 @@ def register_pdf_export_callbacks(app):
          State('logrank-pdf-modal-checklist-content', 'value'),
          State('logrank-current-variable', 'data'),
          State('logrank-selected-covariables', 'data'),
+         State('logrank-test-output-store', 'data'),
          State('openai-answer-logrank', 'value'),
          State('df-store', 'data'),
+         State('dataset-signature-store', 'data'),
          State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def download_logrank_pdf(n_clicks, filename, options, logrank_variable, logrank_covariables, ai_text_from_page, df_json, language):
+    def download_logrank_pdf(n_clicks, filename, options, logrank_variable, logrank_covariables, logrank_store_data, ai_text_from_page, df_json, dataset_signature, language):
         """Genera PDF de Log-Rank Test con datos REALES del análisis actualizado"""
         try:
             # Generar nombre de archivo
@@ -526,6 +595,71 @@ def register_pdf_export_callbacks(app):
             report_name = _get_report_name_from_filename(filename)
             
             options = options or ['summary', 'table']
+
+            if not df_json:
+                return None, (
+                    "⚠️ Primero carga y preprocesa un dataset antes de exportar." if language == 'es'
+                    else "⚠️ Load and preprocess a dataset before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if not logrank_covariables:
+                return None, (
+                    "⚠️ Selecciona covariables y ejecuta Log-Rank antes de exportar." if language == 'es'
+                    else "⚠️ Select covariates and run Log-Rank before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if not logrank_store_data or not isinstance(logrank_store_data, dict) or not logrank_store_data.get('results'):
+                return None, (
+                    "⚠️ Ejecuta primero el Test de Log-Rank para generar resultados exportables." if language == 'es'
+                    else "⚠️ Run the Log-Rank test first to generate exportable results."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
+            if logrank_store_data.get('dataset_signature', '') != (dataset_signature or ''):
+                return None, (
+                    "⚠️ El dataset ha cambiado. Recalcula Log-Rank antes de exportar." if language == 'es'
+                    else "⚠️ The dataset changed. Recalculate Log-Rank before exporting."
+                ), {
+                    'display': 'block',
+                    'marginTop': '15px',
+                    'padding': '10px 12px',
+                    'borderRadius': '6px',
+                    'backgroundColor': '#fff1f0',
+                    'color': '#c0392b',
+                    'border': '1px solid #f5c6cb',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                }
+
             ai_error = _validate_ai_explanation('ai_interpretation' in options, ai_text_from_page, 'Log-Rank', language)
             if ai_error:
                 return None, ai_error, {

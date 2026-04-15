@@ -523,14 +523,17 @@ def create_weibull_analysis_page(language='es'):
 
         html.Div([
             html.Button(get_translation(language, 'explicar_weibull'), id='btn-weibull',
+                       title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-weibull-btn',
+                       title=("Necesitas resultados Weibull válidos para exportar" if language == 'es' else "You need valid Weibull results before exporting"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(
                 "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
                 id='export-weibexp-btn',
+                title=("Requiere análisis Weibull y Exponencial calculados" if language == 'es' else "Requires computed Weibull and Exponential analyses"),
                 style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
                        'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}
             )
@@ -598,14 +601,17 @@ def create_exponential_analysis_page(language='es'):
 
           html.Div([
             html.Button(get_translation(language, 'explicar_exponential'), id='btn-exponential',
+                                         title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                      style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                          'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-exponential-btn',
+                                         title=("Necesitas resultados Exponencial válidos para exportar" if language == 'es' else "You need valid Exponential results before exporting"),
                      style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                                                  'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
                         html.Button(
                                 "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
                                 id='export-weibexp-btn',
+                                                                title=("Requiere análisis Weibull y Exponencial calculados" if language == 'es' else "Requires computed Weibull and Exponential analyses"),
                                 style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
                                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}
                         ),
@@ -774,9 +780,11 @@ def create_rsf_analysis_page(language='es'):
             html.Div(id='rsf-profile-output', style={'marginTop': '18px'}),
             html.Div([
                 html.Button(get_translation(language, 'explicar_rsf'), id='btn-rsf',
+                                                     title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                            style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                                  'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
                 html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
+                                                 title=("Necesitas ejecutar RSF y obtener resultados antes de exportar" if language == 'es' else "Run RSF and get results before exporting"),
                          style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
             ], style={'textAlign': 'center', 'marginTop': '18px', 'marginBottom': '16px'}),
@@ -972,9 +980,11 @@ def create_cox_regression_page(language='es'):
         # Botones de acción
         html.Div([
             html.Button(get_translation(language, 'explicar_cox'), id='btn-cox', 
+                     title=("Selecciona covariables y ejecuta Cox antes de explicar" if language == 'es' else "Select covariates and run Cox before generating an explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-cox-btn', 
+                     title=("Requiere resultados Cox vigentes (si cambias dataset, recalcula)" if language == 'es' else "Requires up-to-date Cox results (recalculate after dataset changes)"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
@@ -1056,9 +1066,11 @@ def create_kaplan_meier_page(language='es'):
         # ===== BOTONES DE ACCIÓN =====
         html.Div([
             html.Button(get_translation(language, 'explicar_kaplan'), id='explicar-btn-kaplan', 
+                     title=("Selecciona una covariable para generar una explicación estratificada" if language == 'es' else "Select a covariate to generate a stratified explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-km-btn', 
+                     title=("Para incluir gráfica por grupo, selecciona primero una covariable" if language == 'es' else "To include grouped plot, select a covariate first"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px'}),
@@ -1124,9 +1136,11 @@ def create_log_rank_page(language='es'):
         # Botones de acción
         html.Div([
             html.Button(get_translation(language, 'explicar_logrank'), id='explicar-btn-logrank', 
+                     title=("Selecciona covariables y ejecuta Log-Rank antes de explicar" if language == 'es' else "Select covariates and run Log-Rank before generating an explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-logrank-btn', 
+                     title=("Requiere resultados Log-Rank vigentes (si cambias dataset, recalcula)" if language == 'es' else "Requires up-to-date Log-Rank results (recalculate after dataset changes)"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),

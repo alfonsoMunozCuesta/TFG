@@ -98,6 +98,13 @@ def _looks_like_list_output(text):
     list_markers = ('1)', '2)', '3)', '1.', '2.', '3.')
     return any(marker in stripped for marker in list_markers)
 
+
+def _dataset_signature_from_json(df_json):
+    """Genera una firma estable para detectar cambios de dataset en el flujo."""
+    if not df_json:
+        return ""
+    return str(hash(df_json))
+
 # ==================== FUNCIÓN DE IA ====================
 def responder_pregunta_con_llama3(pregunta: str, language: str = 'es') -> str:
     """
@@ -375,6 +382,7 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),  
     dcc.Store(id='language-store', data='es'),  # Store para almacenar el idioma actual
     dcc.Store(id='df-store', data=None),  # Store para almacenar el dataframe procesado
+    dcc.Store(id='dataset-signature-store', data=''),  # Firma del dataset para invalidar análisis obsoletos
     dcc.Store(id='km-current-variable', data=''),  # Store para rastrear variable actual en Kaplan-Meier
     dcc.Store(id='cox-current-variables', data=''),  # Store para rastrear variables en Cox Regression
     dcc.Store(id='logrank-current-variable', data=''),  # Store para rastrear variable en Log-Rank
@@ -668,7 +676,8 @@ def verificar_archivo_correcto(contents, filename):
     [Output('upload-data', 'style'),
      Output('load-clean', 'style'), 
      Output('output-data-upload', 'children'),
-     Output('df-store', 'data')], 
+    Output('df-store', 'data'),
+    Output('dataset-signature-store', 'data')], 
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename'), 
      Input('load-clean', 'n_clicks')],
@@ -693,6 +702,7 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                         {'display': 'none'},
                         display_data(df_cached, get_translation(language, 'archivo_preprocesado')),
                         current_df_json,
+                        _dataset_signature_from_json(current_df_json),
                     )
                 except Exception:
                     # Si falla la reconstrucción, limpiar estado corrupto de forma segura
@@ -701,9 +711,10 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                         {'display': 'none'},
                         html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}),
                         None,
+                        '',
                     )
 
-            return {'display': 'block'}, {'display': 'none'}, html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}), None
+            return {'display': 'block'}, {'display': 'none'}, html.Div([get_translation(language, 'no_archivo_cargado')], style={'marginTop': '20px', 'marginBottom': '0px'}), None, ''
 
         if not verificar_archivo_correcto(contents, filename):
             return {'display': 'none'}, {'display': 'none'}, html.Div(
@@ -718,7 +729,7 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                     'textAlign': 'center',
                     'marginTop': '20px'
                 }
-            ), None
+            ), None, ''
 
         # Cargar el archivo CSV con manejo de errores
         try:
@@ -743,13 +754,14 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                     'borderRadius': '5px',
                     'marginTop': '20px'
                 }
-            ), None
+            ), None, ''
 
         if safe_clicks > 0:
             # Ejecutar el preprocesamiento con manejo de errores
             try:
                 df_procesado = preprocess_data(df)
-                return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado')), df_procesado.to_json(date_format='iso', orient='split')
+                processed_json = df_procesado.to_json(date_format='iso', orient='split')
+                return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado')), processed_json, _dataset_signature_from_json(processed_json)
             except (ValueError, TypeError) as e:
                 return {'display': 'none'}, {'display': 'none'}, html.Div(
                     [
@@ -776,7 +788,7 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                         'marginTop': '20px',
                         'backgroundColor': '#fff5f5'
                     }
-                ), None
+                ), None, ''
             except Exception as e:
                 return {'display': 'none'}, {'display': 'none'}, html.Div(
                     [
@@ -794,10 +806,10 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                         'marginTop': '20px',
                         'backgroundColor': '#fff5f5'
                     }
-                ), None
+                ), None, ''
 
         # Si no se ha presionado el botón de limpiar, mostrar el archivo bruto
-        return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto')), None
+        return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto')), None, ''
 
     except Exception as e:
         print(f"[UPDATE_OUTPUT] Error no controlado: {e}")
@@ -808,7 +820,8 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                 f"Error interno del servidor: {str(e)}" if language == 'es' else f"Internal server error: {str(e)}",
                 style={'color': '#b03a2e', 'fontWeight': 'bold', 'marginTop': '20px'}
             ),
-            current_df_json
+            current_df_json,
+            _dataset_signature_from_json(current_df_json)
         )
 
 
@@ -1202,10 +1215,11 @@ def update_cox_store(covariables):
     [Output('cox-regression-output-store', 'data'),
      Output('cox-current-variables', 'data')],
     [Input('cox-selected-covariables', 'data'),
-     Input('language-store', 'data')],
-    [State('df-store', 'data')]
+     Input('language-store', 'data'),
+     Input('df-store', 'data'),
+     Input('dataset-signature-store', 'data')]
 )
-def update_cox_model(covariables, language, df_json):
+def update_cox_model(covariables, language, df_json, dataset_signature):
     if covariables is None or len(covariables) == 0:
         return None, ''
     
@@ -1232,7 +1246,8 @@ def update_cox_model(covariables, language, df_json):
     store_data = {
         'summary_json': summary.to_json(orient='split') if not summary.empty else None,
         'cox_table_html': cox_table_html,
-        'covariables': covariables
+        'covariables': covariables,
+        'dataset_signature': dataset_signature or ''
     }
     
     # Guardar las variables seleccionadas como string para la explicación
@@ -1798,7 +1813,8 @@ def explicar_exponential(n_clicks, df_json, language):
         df_data = _read_split_json(df_json)
         analysis = build_exponential_analysis(df_data, language=language)
         if not analysis:
-            return get_translation(language, 'exponential_no_data')
+            no_data_msg = get_translation(language, 'exponential_no_data')
+            return no_data_msg, "", ""
 
         respuesta = generate_interpretation_for_pdf(
             'exponential',
@@ -1823,10 +1839,11 @@ def explicar_exponential(n_clicks, df_json, language):
     [Input('btn-cox', 'n_clicks')],
     [State('cox-regression-output-store', 'data'),
      State('cox-current-variables', 'data'),
-     State('language-store', 'data')],
+     State('language-store', 'data'),
+     State('dataset-signature-store', 'data')],
     prevent_initial_call=True
 )
-def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language):
+def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language, dataset_signature):
     """Callback para generar explicación de Cox Regression con datos reales"""
     try:
         if n_clicks is None or n_clicks <= 0:
@@ -1834,6 +1851,20 @@ def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language):
         
         if not variables_seleccionadas:
             return f"⚠️  {get_translation(language, 'error_select_covariate')}"
+
+        if not cox_store_data or not isinstance(cox_store_data, dict) or not cox_store_data.get('summary_json'):
+            return (
+                "⚠️  Primero ejecuta la regresión de Cox seleccionando covariables y esperando a que aparezca la tabla."
+                if language == 'es' else
+                "⚠️  Run Cox regression first: select covariates and wait until the summary table appears."
+            )
+
+        if cox_store_data.get('dataset_signature', '') != (dataset_signature or ''):
+            return (
+                "⚠️  El dataset ha cambiado. Recalcula la regresión de Cox antes de generar la explicación."
+                if language == 'es' else
+                "⚠️  The dataset changed. Recalculate Cox regression before generating the explanation."
+            )
         
         if language not in ['es', 'en']:
             language = 'es'
@@ -1887,11 +1918,12 @@ def update_logrank_store(covariables):
     [Output('logrank-test-output-store', 'data'),
      Output('logrank-current-variable', 'data')],
     [Input('logrank-selected-covariables', 'data'),
-     Input('language-store', 'data')],
-    [State('df-store', 'data')]
+     Input('language-store', 'data'),
+     Input('df-store', 'data'),
+     Input('dataset-signature-store', 'data')]
 )
 
-def update_logrank_test(covariables, language, df_json):
+def update_logrank_test(covariables, language, df_json, dataset_signature):
     # Verificar que al menos se haya seleccionado una covariable
     if not covariables:
         return None, ''
@@ -1945,7 +1977,8 @@ def update_logrank_test(covariables, language, df_json):
     store_data = {
         'df_json': df_json,
         'covariables': covariables,
-        'results': results_payload
+        'results': results_payload,
+        'dataset_signature': dataset_signature or ''
     }
 
     return store_data, variables_str
@@ -1955,9 +1988,10 @@ def update_logrank_test(covariables, language, df_json):
     [Input('explicar-btn-logrank', 'n_clicks')],
     [State('logrank-test-output-store', 'data'),
      State('logrank-current-variable', 'data'),
-     State('language-store', 'data')]  
+    State('language-store', 'data'),
+    State('dataset-signature-store', 'data')]  
 )
-def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, language):
+def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, language, dataset_signature):
     """Callback para generar explicación de Log-Rank Test con datos reales"""
     try:
         if n_clicks is None or n_clicks <= 0:
@@ -1965,6 +1999,13 @@ def explicar_logrank(n_clicks, logrank_content, variables_seleccionadas, languag
         
         if not logrank_content:
             return f"⚠️  {get_translation(language, 'error_select_logrank')}"
+
+        if isinstance(logrank_content, dict) and logrank_content.get('dataset_signature', '') != (dataset_signature or ''):
+            return (
+                "⚠️  El dataset ha cambiado. Recalcula el Test de Log-Rank antes de generar la explicación."
+                if language == 'es' else
+                "⚠️  The dataset changed. Recalculate the Log-Rank test before generating the explanation."
+            )
         
         if language not in ['es', 'en']:
             language = 'es'
