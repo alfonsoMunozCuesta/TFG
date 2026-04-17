@@ -9,7 +9,7 @@ echo ========================================
 echo.
 
 REM Cambiar a la carpeta del proyecto
-cd /d C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis
+cd /d C:\Users\LENOVO\Desktop\TFG\TFG
 
 REM Verificar que está en la carpeta correcta
 if not exist "cargaDataset.py" (
@@ -32,12 +32,12 @@ echo ========================================
 echo   INICIANDO SERVIDOR DASH
 echo ========================================
 echo.
-echo Accede a: http://localhost:8050
+echo Accede a: http://127.0.0.1:8050
 echo.
 echo Para detener: Presiona Ctrl+C
 echo.
 
-REM Ejecutar la aplicación Dash
-python cargaDataset.py
+REM Ejecutar la aplicación Dash (sin buffer para ver logs de arranque al instante)
+python -u cargaDataset.py
 
 pause

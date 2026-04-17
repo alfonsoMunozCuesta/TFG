@@ -1,3 +1,17 @@
+import os
+import platform as _platform
+from collections import namedtuple
+
+# Workaround para Python 3.13 en algunos Windows: platform.system() puede
+# bloquearse por una consulta WMI al importar Werkzeug/Dash.
+if os.name == 'nt':
+    _Uname = namedtuple('Uname', ['system', 'node', 'release', 'version', 'machine', 'processor'])
+    _fake_uname = _Uname('Windows', 'localhost', '10', '10.0', 'AMD64', 'AMD64')
+    _platform.uname = lambda: _fake_uname
+    _platform.system = lambda: _fake_uname.system
+    _platform.machine = lambda: _fake_uname.machine
+    _platform.processor = lambda: _fake_uname.processor
+
 import dash
 from dash import Dash, dcc, html, dash_table
 import pandas as pd
@@ -1374,6 +1388,27 @@ def render_weibull_output(language, df_json, pathname):
         style_data_conditional=[{'if': {'column_id': 'Metrica'}, 'fontWeight': 'bold'}]
     )
 
+    comparison_df = analysis.get('comparison_df')
+    comparison_table = dash_table.DataTable(
+        id='weibull-comparison-table',
+        columns=[
+            {"name": "Modelo" if language == 'es' else "Model", "id": "Modelo"},
+            {"name": "AIC", "id": "AIC"},
+            {"name": "Log-likelihood", "id": "LogLikelihood"},
+            {"name": "ΔAIC", "id": "DeltaAIC"},
+        ],
+        data=comparison_df.to_dict('records') if comparison_df is not None else [],
+        style_table={'overflowX': 'auto', 'marginTop': '10px'},
+        style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+        style_header={'fontWeight': 'bold', 'backgroundColor': '#eef4ff'},
+        style_data_conditional=[
+            {'if': {'column_id': 'Modelo'}, 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{DeltaAIC} = 0'}, 'backgroundColor': '#eafaf1', 'fontWeight': 'bold'}
+        ]
+    )
+
+    comparison_interpretation = analysis.get('model_comparison_interpretation', '')
+
     return html.Div([
         html.Div([
             html.H3(get_translation(language, 'weibull_summary_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
@@ -1390,6 +1425,23 @@ def render_weibull_output(language, df_json, pathname):
             dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True})
         ], style={
             'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+        html.Div([
+            html.H3(
+                "Comparación de ajuste entre modelos" if language == 'es' else "Model fit comparison",
+                style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}
+            ),
+            comparison_table,
+            html.P(
+                comparison_interpretation,
+                style={'marginTop': '12px', 'marginBottom': 0, 'fontSize': '0.98em', 'lineHeight': '1.6', 'color': '#2c3e50', 'fontWeight': '600'}
+            )
+        ], style={
+            'backgroundColor': '#ffffff',
             'padding': '20px',
             'borderRadius': '10px',
             'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
@@ -1439,6 +1491,27 @@ def render_exponential_output(language, df_json, pathname):
         style_data_conditional=[{'if': {'column_id': 'Metrica'}, 'fontWeight': 'bold'}]
     )
 
+    comparison_df = analysis.get('comparison_df')
+    comparison_table = dash_table.DataTable(
+        id='exponential-comparison-table',
+        columns=[
+            {"name": "Modelo" if language == 'es' else "Model", "id": "Modelo"},
+            {"name": "AIC", "id": "AIC"},
+            {"name": "Log-likelihood", "id": "LogLikelihood"},
+            {"name": "ΔAIC", "id": "DeltaAIC"},
+        ],
+        data=comparison_df.to_dict('records') if comparison_df is not None else [],
+        style_table={'overflowX': 'auto', 'marginTop': '10px'},
+        style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+        style_header={'fontWeight': 'bold', 'backgroundColor': '#eef4ff'},
+        style_data_conditional=[
+            {'if': {'column_id': 'Modelo'}, 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{DeltaAIC} = 0'}, 'backgroundColor': '#eafaf1', 'fontWeight': 'bold'}
+        ]
+    )
+
+    comparison_interpretation = analysis.get('model_comparison_interpretation', '')
+
     return html.Div([
         html.Div([
             html.H3(get_translation(language, 'exponential_summary_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
@@ -1455,6 +1528,23 @@ def render_exponential_output(language, df_json, pathname):
             dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True})
         ], style={
             'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'marginBottom': '30px'
+        }),
+        html.Div([
+            html.H3(
+                "Comparación de ajuste entre modelos" if language == 'es' else "Model fit comparison",
+                style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}
+            ),
+            comparison_table,
+            html.P(
+                comparison_interpretation,
+                style={'marginTop': '12px', 'marginBottom': 0, 'fontSize': '0.98em', 'lineHeight': '1.6', 'color': '#2c3e50', 'fontWeight': '600'}
+            )
+        ], style={
+            'backgroundColor': '#ffffff',
             'padding': '20px',
             'borderRadius': '10px',
             'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
@@ -2087,5 +2177,12 @@ def sync_logrank_output(data, language):
 
 
 if __name__ == '__main__':
+    print("[BOOT] Registrando callbacks de exportacion PDF...", flush=True)
     register_pdf_export_callbacks(app)  # PDF export HABILITADO
-    app.run_server(debug=True, port=8050)
+
+    host = '127.0.0.1'
+    port = 8050
+    debug_mode = True
+
+    print(f"[BOOT] Iniciando Dash en http://{host}:{port} (debug={debug_mode}, reloader=False)", flush=True)
+    app.run_server(host=host, port=port, debug=debug_mode, use_reloader=False)

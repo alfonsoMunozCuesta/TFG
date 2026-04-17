@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 from dash import Dash, dcc, html, dash_table
 from dash.dependencies import Input, Output  
 import plotly.express as px
@@ -9,12 +10,7 @@ import numpy as np
 from translations import get_translation
 from pdf_exporter import export_survival_analysis_to_pdf
 
-df = pd.read_csv(r'C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\dataset_limpio.csv', sep=';')
-df['abandono'] = df['final_result'].apply(lambda x: 1 if x == 'Withdrawn' else 0)
-
-df['gender'] = df['gender_F'].map({1: 'Femenino', 0: 'Masculino'})
-
-df['disability'] = df['disability_N'].map({1: 'Con Discapacidad', 0: 'Sin Discapacidad'})
+_LAYOUT_DF = None
 
 # Función para mapear age_band desde one-hot encoding
 def map_age_band(row):
@@ -40,14 +36,50 @@ def map_highest_education(row):
             return label
     return 'Desconocido'
 
-# Crear columnas derivadas para los nuevos atributos (solo si existen)
-if all(col in df.columns for col in ['age_band_0-35', 'age_band_35-55', 'age_band_55<=']):
-    df['age_band'] = df.apply(map_age_band, axis=1)
+def _get_layout_df():
+    """Carga dataset solo cuando hace falta para evitar trabajo pesado al importar el modulo."""
+    global _LAYOUT_DF
+    if _LAYOUT_DF is not None:
+        return _LAYOUT_DF
 
-if any(col in df.columns for col in ['highest_education_A Level or Equivalent', 'highest_education_HE Qualification',
-                                      'highest_education_Lower Than A Level', 'highest_education_No Formal quals',
-                                      'highest_education_Post Graduate Qualification']):
-    df['highest_education'] = df.apply(map_highest_education, axis=1)
+    base_dir = Path(__file__).resolve().parent
+    candidate_paths = [
+        base_dir / 'dataset_limpio.csv',
+        Path(r'C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\dataset_limpio.csv'),
+    ]
+
+    loaded_df = None
+    for csv_path in candidate_paths:
+        if csv_path.exists():
+            try:
+                loaded_df = pd.read_csv(csv_path, sep=';')
+                break
+            except Exception:
+                continue
+
+    if loaded_df is None:
+        _LAYOUT_DF = pd.DataFrame()
+        return _LAYOUT_DF
+
+    if 'final_result' in loaded_df.columns:
+        loaded_df['abandono'] = loaded_df['final_result'].apply(lambda x: 1 if x == 'Withdrawn' else 0)
+
+    if 'gender_F' in loaded_df.columns:
+        loaded_df['gender'] = loaded_df['gender_F'].map({1: 'Femenino', 0: 'Masculino'})
+
+    if 'disability_N' in loaded_df.columns:
+        loaded_df['disability'] = loaded_df['disability_N'].map({1: 'Con Discapacidad', 0: 'Sin Discapacidad'})
+
+    if all(col in loaded_df.columns for col in ['age_band_0-35', 'age_band_35-55', 'age_band_55<=']):
+        loaded_df['age_band'] = loaded_df.apply(map_age_band, axis=1)
+
+    if any(col in loaded_df.columns for col in ['highest_education_A Level or Equivalent', 'highest_education_HE Qualification',
+                                                 'highest_education_Lower Than A Level', 'highest_education_No Formal quals',
+                                                 'highest_education_Post Graduate Qualification']):
+        loaded_df['highest_education'] = loaded_df.apply(map_highest_education, axis=1)
+
+    _LAYOUT_DF = loaded_df
+    return _LAYOUT_DF
 
 
 # ===== COMPONENTE MODAL PARA EXPORTAR A PDF =====
@@ -484,9 +516,6 @@ def create_survival_analysis_page(language='es'):
         html.Div(id='survival_analysis_page', children=[]),
     ])
 
-# Páginas predefinidas (se actualizarán dinámicamente con callbacks)
-survival_analysis_page = create_survival_analysis_page()
-
 def create_weibull_analysis_page(language='es'):
     return html.Div([
         html.H1(
@@ -561,9 +590,6 @@ def create_weibull_analysis_page(language='es'):
         create_pdf_export_modal('weibull-pdf-modal', 'weibull', language),
         create_pdf_export_modal('weibexp-pdf-modal', 'weibull-exponential-combined', language)
     ])
-
-weibull_analysis_page = create_weibull_analysis_page()
-
 
 def create_exponential_analysis_page(language='es'):
     return html.Div([
@@ -640,8 +666,6 @@ def create_exponential_analysis_page(language='es'):
         create_pdf_export_modal('weibexp-pdf-modal', 'weibull-exponential-combined', language),
     ])
 
-
-exponential_analysis_page = create_exponential_analysis_page()
 
 def create_rsf_analysis_page(language='es'):
     if language == 'es':
@@ -823,23 +847,158 @@ def create_rsf_analysis_page(language='es'):
         dcc.Store(id='rsf-analysis-data')
     ])
 
-rsf_analysis_page = create_rsf_analysis_page()
-
 def create_ver_dataset_page(language='es'):
-    return html.Div([ 
+    layout_df = _get_layout_df()
+
+    variable_info_catalog = [
+        {
+            'Variable': 'id_student',
+            'Descripcion_es': 'Identificador único del estudiante.',
+            'Descripcion_en': 'Unique student identifier.',
+            'Valores': 'Entero (ID)'
+        },
+        {
+            'Variable': 'date',
+            'Descripcion_es': 'Tiempo de seguimiento usado en supervivencia (por ejemplo, días).',
+            'Descripcion_en': 'Follow-up time used in survival analysis (for example, days).',
+            'Valores': 'Numérico >= 0'
+        },
+        {
+            'Variable': 'final_result',
+            'Descripcion_es': 'Indicador de evento: 1 = abandono (evento), 0 = censurado/sin abandono.',
+            'Descripcion_en': 'Event indicator: 1 = withdrawal (event), 0 = censored/no withdrawal.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'gender_F',
+            'Descripcion_es': 'Género codificado: 1 = femenino, 0 = masculino.',
+            'Descripcion_en': 'Encoded gender: 1 = female, 0 = male.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'disability_N',
+            'Descripcion_es': 'Discapacidad codificada: 1 = con discapacidad, 0 = sin discapacidad.',
+            'Descripcion_en': 'Encoded disability: 1 = with disability, 0 = without disability.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'age_band_0-35',
+            'Descripcion_es': 'Indicador one-hot del grupo de edad 0-35.',
+            'Descripcion_en': 'One-hot flag for age group 0-35.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'age_band_35-55',
+            'Descripcion_es': 'Indicador one-hot del grupo de edad 35-55.',
+            'Descripcion_en': 'One-hot flag for age group 35-55.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'age_band_55<=',
+            'Descripcion_es': 'Indicador one-hot del grupo de edad 55+.',
+            'Descripcion_en': 'One-hot flag for age group 55+.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'highest_education_A Level or Equivalent',
+            'Descripcion_es': 'Indicador one-hot de nivel educativo A Level o equivalente.',
+            'Descripcion_en': 'One-hot flag for A Level or equivalent education level.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'highest_education_HE Qualification',
+            'Descripcion_es': 'Indicador one-hot de titulación HE Qualification.',
+            'Descripcion_en': 'One-hot flag for HE Qualification.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'highest_education_Lower Than A Level',
+            'Descripcion_es': 'Indicador one-hot de nivel educativo inferior a A Level.',
+            'Descripcion_en': 'One-hot flag for education lower than A Level.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'highest_education_No Formal quals',
+            'Descripcion_es': 'Indicador one-hot de ausencia de cualificaciones formales.',
+            'Descripcion_en': 'One-hot flag for no formal qualifications.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'highest_education_Post Graduate Qualification',
+            'Descripcion_es': 'Indicador one-hot de estudios de posgrado.',
+            'Descripcion_en': 'One-hot flag for postgraduate qualification.',
+            'Valores': '0 o 1'
+        },
+        {
+            'Variable': 'studied_credits',
+            'Descripcion_es': 'Créditos cursados por el estudiante (covariable numérica).',
+            'Descripcion_en': 'Credits studied by the student (numeric covariate).',
+            'Valores': 'Numérico'
+        },
+    ]
+
+    variable_info_rows = [
+        {
+            'Variable': item['Variable'],
+            'Significado': item['Descripcion_en'] if language == 'en' else item['Descripcion_es'],
+            'Valores': item['Valores']
+        }
+        for item in variable_info_catalog
+    ]
+
+    event_row = {
+        'Variable': 'Evento (final_result)' if language == 'es' else 'Event (final_result)',
+        'Significado': (
+            'Representa si ocurrió el evento en el análisis de supervivencia: 1 = abandono (evento), 0 = censura (no abandono durante el seguimiento).'
+            if language == 'es' else
+            'Represents whether the survival event occurred: 1 = withdrawal (event), 0 = censoring (no withdrawal during follow-up).'
+        ),
+        'Valores': '0 o 1'
+    }
+    variable_info_rows.insert(0, event_row)
+
+    return html.Div([
         html.H1(get_translation(language, 'dataset_limpio'), style={'textAlign': 'center', 'fontSize': '2.5em'}),
-        html.Div([ 
+        html.Div([
             dash_table.DataTable(
                 id='clean-dataset-table',
-                columns=[{"name": col, "id": col} for col in df.columns],  
-                data=df.to_dict('records'),  # convertir el DataFrame en un formato que Dash pueda usar
-                style_table={'overflowX': 'auto', 'maxHeight': '400px', 'overflowY': 'auto'},
+                columns=[{"name": col, "id": col} for col in layout_df.columns],  
+                data=layout_df.to_dict('records'),  # convertir el DataFrame en un formato que Dash pueda usar
+                style_table={
+                    'overflowX': 'auto',
+                    'overflowY': 'auto',
+                    'height': '74vh',
+                    'maxHeight': '74vh',
+                    'width': '100%'
+                },
                 style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '15px'},  # Asegurarse de que el texto esté alineado
             ),
-        ], style={'textAlign': 'center', 'marginTop': '30px'})
-    ])
+        ], style={'textAlign': 'center', 'marginTop': '20px', 'width': '100%'}),
 
-ver_dataset_page = create_ver_dataset_page()
+        html.Div([
+            html.Table([
+                html.Thead(
+                    html.Tr([
+                        html.Th('Variable', style={'border': '1px solid #d0d7de', 'padding': '10px', 'textAlign': 'left', 'backgroundColor': '#f4f7f6'}),
+                        html.Th('Valores' if language == 'es' else 'Values', style={'border': '1px solid #d0d7de', 'padding': '10px', 'textAlign': 'left', 'backgroundColor': '#f4f7f6'}),
+                        html.Th('Significado' if language == 'es' else 'Meaning', style={'border': '1px solid #d0d7de', 'padding': '10px', 'textAlign': 'left', 'backgroundColor': '#f4f7f6'}),
+                    ])
+                ),
+                html.Tbody([
+                    html.Tr([
+                        html.Td(row['Variable'], style={'border': '1px solid #d0d7de', 'padding': '9px', 'fontWeight': 'bold'}),
+                        html.Td(row['Valores'], style={'border': '1px solid #d0d7de', 'padding': '9px'}),
+                        html.Td(row['Significado'], style={'border': '1px solid #d0d7de', 'padding': '9px'}),
+                    ])
+                    for row in variable_info_rows
+                ])
+            ], style={'width': '100%', 'borderCollapse': 'collapse', 'backgroundColor': 'white'})
+        ], style={
+            'margin': '14px auto 24px auto',
+            'width': '96%',
+            'padding': '0'
+        })
+    ], style={'width': '99%', 'margin': '0 auto'})
 
 # Función para crear página de análisis de covariables con soporte multilingüe
 # Estilos CSS globales para mejorar interfaz - ahora aplicados inline
@@ -1017,10 +1176,18 @@ def create_cox_regression_page(language='es'):
         dcc.Store(id='cox-analysis-data')
     ])
 
-cox_regression_page = create_cox_regression_page()
-
 # Función para crear página de Kaplan-Meier con soporte multilingüe
 def create_kaplan_meier_page(language='es'):
+    layout_df = _get_layout_df()
+    km_global_component = (
+        plot_kaplan_meier(layout_df)
+        if not layout_df.empty and all(col in layout_df.columns for col in ['date', 'final_result'])
+        else html.Div(
+            "No hay datos suficientes para mostrar Kaplan-Meier" if language == 'es' else "Not enough data to display Kaplan-Meier",
+            style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '10px'}
+        )
+    )
+
     return html.Div([
     html.H1(get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'kaplan_meier')), 
                 style={'textAlign': 'center', 'fontSize': '35px', 'marginBottom': '30px', 'color': '#1a1a1a', 'fontWeight': 'bold'}),
@@ -1028,7 +1195,7 @@ def create_kaplan_meier_page(language='es'):
         # ===== GRÁFICA GLOBAL =====
         html.Div([
             html.H3(f"📊 {'Curva de Kaplan-Meier General' if language == 'es' else 'General Kaplan-Meier curve'}", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold'}),
-            html.Div(id='km-global-div', children=plot_kaplan_meier(df), 
+            html.Div(id='km-global-div', children=km_global_component,
                     style={'padding': '20px', 'backgroundColor': '#f8f9fa', 'borderRadius': '10px'})
         ], style={'marginBottom': '40px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.1)', 'padding': '20px', 'borderRadius': '10px'}),
         
@@ -1106,8 +1273,6 @@ def create_kaplan_meier_page(language='es'):
         create_pdf_export_modal('km-pdf-modal', 'kaplan-meier', language)
     ])
 
-kaplan_meier_page = create_kaplan_meier_page()
-
 #Función para crear página de análisis de log-rank con soporte multilingüe
 def create_log_rank_page(language='es'):
     return html.Div([
@@ -1172,8 +1337,6 @@ def create_log_rank_page(language='es'):
         # Store para mantener datos del análisis actual
         dcc.Store(id='logrank-analysis-data')
     ])
-
-log_rank_page = create_log_rank_page()
 
 def display_logrank_summary_table(result):
     df_show = result[['Covariable','Grupo A','Grupo B',

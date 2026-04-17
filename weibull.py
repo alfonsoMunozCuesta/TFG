@@ -118,7 +118,31 @@ def build_weibull_analysis(df, language='es'):
         "Disminuye con el tiempo" if shape < 0.95 else
         "Se mantiene aproximadamente constante"
     )
-    better_model = "Weibull" if float(wbf.AIC_) < float(expf.AIC_) else ("Exponential" if is_en else "Exponencial")
+    weibull_aic = float(wbf.AIC_)
+    exponential_aic = float(expf.AIC_)
+    weibull_log_likelihood = float(wbf.log_likelihood_)
+    exponential_log_likelihood = float(expf.log_likelihood_)
+    better_model = "Weibull" if weibull_aic <= exponential_aic else ("Exponential" if is_en else "Exponencial")
+    aic_difference = abs(weibull_aic - exponential_aic)
+
+    if aic_difference < 2:
+        evidence_note = (
+            "Difference in AIC is small; both models show similar support."
+            if is_en else
+            "La diferencia de AIC es pequeña; ambos modelos tienen soporte similar."
+        )
+    elif aic_difference < 6:
+        evidence_note = (
+            "Difference in AIC suggests moderate evidence in favor of the best model."
+            if is_en else
+            "La diferencia de AIC sugiere evidencia moderada a favor del mejor modelo."
+        )
+    else:
+        evidence_note = (
+            "Difference in AIC suggests strong evidence in favor of the best model."
+            if is_en else
+            "La diferencia de AIC sugiere evidencia fuerte a favor del mejor modelo."
+        )
 
     summary_df = pd.DataFrame([
         {"Metrica": "Number of observations" if is_en else "Numero de observaciones", "Valor": f"{len(events)}", "Interpretacion": "Sample size used for model fitting" if is_en else "Tamanio muestral usado en el ajuste"},
@@ -128,11 +152,32 @@ def build_weibull_analysis(df, language='es'):
         {"Metrica": "Scale (lambda)", "Valor": f"{scale:.4f}", "Interpretacion": "Time scale of the Weibull model" if is_en else "Escala temporal del modelo Weibull"},
         {"Metrica": "Exponential scale (lambda)" if is_en else "Scale exponencial (lambda)", "Valor": f"{exponential_scale:.4f}", "Interpretacion": "Time scale of the Exponential model" if is_en else "Escala temporal del modelo exponencial"},
         {"Metrica": "Median survival" if is_en else "Mediana de supervivencia", "Valor": f"{median_survival:.4f}", "Interpretacion": "Time when survival reaches 50%" if is_en else "Tiempo en el que la supervivencia cae al 50%"},
-        {"Metrica": "Log-likelihood", "Valor": f"{float(wbf.log_likelihood_):.4f}", "Interpretacion": "Higher values indicate relatively better fit" if is_en else "Cuanto mayor, mejor ajuste relativo"},
-        {"Metrica": "AIC", "Valor": f"{float(wbf.AIC_):.4f}", "Interpretacion": "Lower values indicate better fit-complexity tradeoff" if is_en else "Menor valor indica mejor equilibrio entre ajuste y complejidad"},
-        {"Metrica": "Exponential AIC" if is_en else "AIC Exponencial", "Valor": f"{float(expf.AIC_):.4f}", "Interpretacion": "Reference value to compare with Weibull" if is_en else "Sirve como referencia para comparar con Weibull"},
+        {"Metrica": "Log-likelihood", "Valor": f"{weibull_log_likelihood:.4f}", "Interpretacion": "Higher values indicate relatively better fit" if is_en else "Cuanto mayor, mejor ajuste relativo"},
+        {"Metrica": "AIC", "Valor": f"{weibull_aic:.4f}", "Interpretacion": "Lower values indicate better fit-complexity tradeoff" if is_en else "Menor valor indica mejor equilibrio entre ajuste y complejidad"},
+        {"Metrica": "Exponential AIC" if is_en else "AIC Exponencial", "Valor": f"{exponential_aic:.4f}", "Interpretacion": "Reference value to compare with Weibull" if is_en else "Sirve como referencia para comparar con Weibull"},
         {"Metrica": "Best AIC fit" if is_en else "Mejor ajuste AIC", "Valor": better_model, "Interpretacion": "The model with lower AIC is preferred" if is_en else "El modelo con menor AIC se considera preferible"},
     ])
+
+    comparison_df = pd.DataFrame([
+        {
+            "Modelo": "Weibull",
+            "AIC": round(weibull_aic, 4),
+            "LogLikelihood": round(weibull_log_likelihood, 4),
+            "DeltaAIC": round(weibull_aic - min(weibull_aic, exponential_aic), 4),
+        },
+        {
+            "Modelo": "Exponential" if is_en else "Exponencial",
+            "AIC": round(exponential_aic, 4),
+            "LogLikelihood": round(exponential_log_likelihood, 4),
+            "DeltaAIC": round(exponential_aic - min(weibull_aic, exponential_aic), 4),
+        },
+    ])
+
+    model_comparison_interpretation = (
+        f"Best fit by AIC: {better_model}. ΔAIC = {aic_difference:.3f}. {evidence_note}"
+        if is_en else
+        f"Mejor ajuste según AIC: {better_model}. ΔAIC = {aic_difference:.3f}. {evidence_note}"
+    )
 
     interpretation = (
         (
@@ -160,6 +205,9 @@ def build_weibull_analysis(df, language='es'):
         "shape": shape,
         "scale": scale,
         "median_survival": median_survival,
-        "log_likelihood": float(wbf.log_likelihood_),
-        "aic": float(wbf.AIC_),
+        "log_likelihood": weibull_log_likelihood,
+        "aic": weibull_aic,
+        "comparison_df": comparison_df,
+        "model_comparison_interpretation": model_comparison_interpretation,
+        "best_fit_model": better_model,
     }
