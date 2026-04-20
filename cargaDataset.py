@@ -27,6 +27,7 @@ from layout import (
     create_log_rank_page, create_ver_dataset_page, 
     create_weibull_analysis_page, create_exponential_analysis_page,
     create_rsf_analysis_page,
+    create_techniques_comparison_page,
     display_logrank_summary_table
 )
 from kaplan_meier import plot_kaplan_meier, plot_km_G, plot_km_disc
@@ -355,6 +356,13 @@ navbar = html.Div([
             dcc.Link(get_translation('es', 'navbar_view_dataset'), href='/ver-dataset', className='navbar-link', id='navbar-view-dataset'), 
             dcc.Link(get_translation('es', 'navbar_covariate_analysis'), href='/covariate-analysis', className='navbar-link', id='navbar-covariate-analysis'),
             dcc.Link(get_translation('es', 'navbar_survival_analysis'), href='/survival-analysis', className='navbar-link', id='navbar-survival-analysis'),
+            dcc.Link(
+                get_translation('es', 'navbar_techniques_comparison'),
+                href='/survival-analysis/comparacion-tecnicas',
+                className='navbar-link',
+                id='navbar-techniques-comparison',
+                style={'display': 'none'}
+            ),
         ], className='navbar-links', style={'flex': '1'}),
         # Selector de idioma con banderas + switch en la esquina derecha
         html.Div([
@@ -433,7 +441,8 @@ def update_language(toggle_value):
     [Output('inicio-btn', 'children'),
      Output('navbar-view-dataset', 'children'),
      Output('navbar-covariate-analysis', 'children'),
-     Output('navbar-survival-analysis', 'children')],
+     Output('navbar-survival-analysis', 'children'),
+     Output('navbar-techniques-comparison', 'children')],
     Input('language-store', 'data')
 )
 def update_navbar_labels(language):
@@ -442,7 +451,18 @@ def update_navbar_labels(language):
         get_translation(language, 'navbar_view_dataset'),
         get_translation(language, 'navbar_covariate_analysis'),
         get_translation(language, 'navbar_survival_analysis'),
+        get_translation(language, 'navbar_techniques_comparison'),
     )
+
+
+@app.callback(
+    Output('navbar-techniques-comparison', 'style'),
+    [Input('url', 'pathname')]
+)
+def toggle_techniques_comparison_nav(pathname):
+    if pathname and pathname.startswith('/survival-analysis'):
+        return {'display': 'inline-block'}
+    return {'display': 'none'}
 
 @app.callback(
     Output('confirm-dialog', 'displayed'),
@@ -505,7 +525,7 @@ def display_page(pathname, language, df_json):
     if pathname == '/':
         return create_home_page(language)
 
-    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull', '/survival-analysis/exponential', '/survival-analysis/rsf'] and not dataset_loaded:
+    if pathname in ['/ver-dataset', '/covariate-analysis', '/survival-analysis', '/survival-analysis/kaplan-meier', '/survival-analysis/cox-regression', '/survival-analysis/log-rank', '/survival-analysis/weibull', '/survival-analysis/exponential', '/survival-analysis/rsf', '/survival-analysis/comparacion-tecnicas'] and not dataset_loaded:
         return _create_dataset_locked_message(language)
 
     if pathname == '/covariate-analysis':
@@ -524,6 +544,8 @@ def display_page(pathname, language, df_json):
         return create_exponential_analysis_page(language)
     elif pathname == '/survival-analysis/rsf':
         return create_rsf_analysis_page(language)
+    elif pathname == '/survival-analysis/comparacion-tecnicas':
+        return create_techniques_comparison_page(language)
     elif pathname == '/ver-dataset':
         return create_ver_dataset_page(language)
     else:
@@ -685,6 +707,87 @@ def verificar_archivo_correcto(contents, filename):
     return True
 
 
+def validate_uploaded_csv(df, filename, language='es'):
+    """Valida estructura mínima del CSV antes de preprocesar."""
+    errors = []
+
+    if not filename or not str(filename).lower().endswith('.csv'):
+        errors.append(
+            "El archivo debe tener extensión .csv."
+            if language == 'es' else
+            "The file must have .csv extension."
+        )
+
+    if df is None or df.empty:
+        errors.append(
+            "El CSV está vacío o no contiene filas válidas."
+            if language == 'es' else
+            "The CSV is empty or has no valid rows."
+        )
+        return errors
+
+    if len(df.columns) <= 1:
+        errors.append(
+            "Formato CSV incorrecto: se detectó una sola columna. Revisa separador (; o ,) y codificación."
+            if language == 'es' else
+            "Invalid CSV format: only one column detected. Check delimiter (; or ,) and encoding."
+        )
+
+    required_columns = [
+        'id_student', 'date', 'final_result',
+        'gender_F', 'disability_N',
+        'age_band_0-35', 'age_band_35-55', 'age_band_55<=',
+        'highest_education_A Level or Equivalent',
+        'highest_education_HE Qualification',
+        'highest_education_Lower Than A Level',
+        'highest_education_No Formal quals',
+        'highest_education_Post Graduate Qualification',
+        'studied_credits'
+    ]
+
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        errors.append(
+            (
+                "Faltan columnas necesarias: " + ", ".join(missing_columns)
+            ) if language == 'es' else (
+                "Missing required columns: " + ", ".join(missing_columns)
+            )
+        )
+
+    critical_columns = ['id_student', 'date', 'final_result']
+    null_critical = [col for col in critical_columns if col in df.columns and df[col].isna().any()]
+    if null_critical:
+        errors.append(
+            (
+                "Hay valores nulos en columnas críticas: " + ", ".join(null_critical)
+            ) if language == 'es' else (
+                "There are null values in critical columns: " + ", ".join(null_critical)
+            )
+        )
+
+    if 'date' in df.columns:
+        date_numeric = pd.to_numeric(df['date'], errors='coerce')
+        if date_numeric.isna().any():
+            errors.append(
+                "Formato incorrecto en 'date': debe ser numérico (sin textos)."
+                if language == 'es' else
+                "Invalid format in 'date': it must be numeric (no text values)."
+            )
+
+    if 'final_result' in df.columns:
+        final_result_series = df['final_result'].astype(str).str.strip()
+        invalid_final_result = final_result_series.eq('') | final_result_series.str.lower().eq('nan')
+        if invalid_final_result.any():
+            errors.append(
+                "Formato incorrecto en 'final_result': contiene valores vacíos."
+                if language == 'es' else
+                "Invalid format in 'final_result': it contains empty values."
+            )
+
+    return errors
+
+
 # Función para actualizar la página y mostrar el archivo cargado
 @app.callback(
     [Output('upload-data', 'style'),
@@ -767,6 +870,28 @@ def update_output(contents, filename, n_clicks, language, current_df_json):
                     'border': '2px solid red',
                     'borderRadius': '5px',
                     'marginTop': '20px'
+                }
+            ), None, ''
+
+        validation_errors = validate_uploaded_csv(df, filename, language)
+        if validation_errors:
+            return {'display': 'none'}, {'display': 'none'}, html.Div(
+                [
+                    html.H3("❌ " + ("Validación del CSV fallida" if language == 'es' else "CSV validation failed")),
+                    html.P(
+                        "Revisa los siguientes errores antes de continuar:" if language == 'es'
+                        else "Review the following errors before continuing:"
+                    ),
+                    html.Ul([html.Li(err) for err in validation_errors])
+                ],
+                style={
+                    'color': 'red',
+                    'fontSize': '16px',
+                    'padding': '20px',
+                    'border': '2px solid red',
+                    'borderRadius': '5px',
+                    'marginTop': '20px',
+                    'backgroundColor': '#fff5f5'
                 }
             ), None, ''
 

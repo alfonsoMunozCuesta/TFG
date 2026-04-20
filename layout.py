@@ -516,6 +516,311 @@ def create_survival_analysis_page(language='es'):
         html.Div(id='survival_analysis_page', children=[]),
     ])
 
+
+def create_techniques_comparison_page(language='es'):
+    is_en = language == 'en'
+
+    comparison_rows = [
+        {
+            'tipo_modelo': 'No paramétrico' if not is_en else 'Non-parametric',
+            'tecnica': 'Kaplan-Meier',
+            'hipotesis': (
+                'Censura no informativa; estima supervivencia empírica sin forma funcional.'
+                if not is_en else
+                'Non-informative censoring; empirical survival estimate with no functional form.'
+            ),
+            'ventajas': (
+                'Muy interpretable; útil como línea base visual.'
+                if not is_en else
+                'Highly interpretable; useful as a visual baseline.'
+            ),
+            'limitaciones': (
+                'No ajusta covariables simultáneamente.'
+                if not is_en else
+                'Does not model multiple covariates simultaneously.'
+            ),
+            'cuando_usarlo': (
+                'Comparación descriptiva inicial entre grupos.'
+                if not is_en else
+                'Initial descriptive comparison across groups.'
+            ),
+        },
+        {
+            'tipo_modelo': 'Paramétrico' if not is_en else 'Parametric',
+            'tecnica': 'Exponencial' if not is_en else 'Exponential',
+            'hipotesis': (
+                'Riesgo constante en el tiempo (hazard constante).'
+                if not is_en else
+                'Constant hazard over time.'
+            ),
+            'ventajas': (
+                'Simple, estable y fácil de interpretar.'
+                if not is_en else
+                'Simple, stable, and easy to interpret.'
+            ),
+            'limitaciones': (
+                'Puede infraajustar si el riesgo cambia con el tiempo.'
+                if not is_en else
+                'Can underfit when hazard changes over time.'
+            ),
+            'cuando_usarlo': (
+                'Cuando se espera comportamiento aproximadamente constante del riesgo.'
+                if not is_en else
+                'When hazard is expected to be roughly constant.'
+            ),
+        },
+        {
+            'tipo_modelo': 'Paramétrico' if not is_en else 'Parametric',
+            'tecnica': 'Weibull',
+            'hipotesis': (
+                'Riesgo monótono (creciente o decreciente) según parámetro de forma.'
+                if not is_en else
+                'Monotonic hazard (increasing/decreasing) driven by shape parameter.'
+            ),
+            'ventajas': (
+                'Flexible y con parámetros interpretables.'
+                if not is_en else
+                'Flexible with interpretable parameters.'
+            ),
+            'limitaciones': (
+                'Si el riesgo no es monótono puede no capturar bien el patrón.'
+                if not is_en else
+                'May fail when hazard is not monotonic.'
+            ),
+            'cuando_usarlo': (
+                'Cuando se requiere modelo paramétrico más flexible que Exponencial.'
+                if not is_en else
+                'When a parametric model more flexible than Exponential is needed.'
+            ),
+        },
+        {
+            'tipo_modelo': 'Semiparamétrico' if not is_en else 'Semi-parametric',
+            'tecnica': 'Regresión de Cox' if not is_en else 'Cox Regression',
+            'hipotesis': (
+                'Proporcionalidad de riesgos entre grupos/covariables.'
+                if not is_en else
+                'Proportional hazards across groups/covariates.'
+            ),
+            'ventajas': (
+                'Ajusta múltiples covariables sin asumir forma base del hazard.'
+                if not is_en else
+                'Handles multiple covariates without specifying baseline hazard shape.'
+            ),
+            'limitaciones': (
+                'Sensibilidad a violaciones de proporcionalidad.'
+                if not is_en else
+                'Sensitive to proportional-hazards violations.'
+            ),
+            'cuando_usarlo': (
+                'Para cuantificar efecto de covariables (hazard ratios).'
+                if not is_en else
+                'To quantify covariate effects (hazard ratios).'
+            ),
+        },
+        {
+            'tipo_modelo': 'Test no paramétrico' if not is_en else 'Non-parametric test',
+            'tecnica': 'Log-Rank Test',
+            'hipotesis': (
+                'Compara igualdad global de curvas de supervivencia entre grupos.'
+                if not is_en else
+                'Tests global equality of survival curves between groups.'
+            ),
+            'ventajas': (
+                'Simple para contraste de hipótesis entre grupos.'
+                if not is_en else
+                'Simple hypothesis test for group differences.'
+            ),
+            'limitaciones': (
+                'No estima tamaño de efecto multivariable por sí solo.'
+                if not is_en else
+                'Does not provide multivariable effect estimates by itself.'
+            ),
+            'cuando_usarlo': (
+                'Para evaluar si las curvas difieren de forma estadísticamente significativa.'
+                if not is_en else
+                'To assess whether curves differ significantly.'
+            ),
+        },
+        {
+            'tipo_modelo': 'Ensamble ML' if not is_en else 'ML ensemble',
+            'tecnica': 'Random Survival Forest',
+            'hipotesis': (
+                'No requiere proporcionalidad ni forma paramétrica explícita.'
+                if not is_en else
+                'No proportionality or explicit parametric form required.'
+            ),
+            'ventajas': (
+                'Captura relaciones no lineales e interacciones complejas.'
+                if not is_en else
+                'Captures non-linear effects and complex interactions.'
+            ),
+            'limitaciones': (
+                'Menor interpretabilidad que Cox/KM.'
+                if not is_en else
+                'Lower interpretability than Cox/KM.'
+            ),
+            'cuando_usarlo': (
+                'Cuando prima capacidad predictiva y complejidad de patrones.'
+                if not is_en else
+                'When predictive power and pattern complexity are priorities.'
+            ),
+        },
+    ]
+
+    table_df = pd.DataFrame(comparison_rows)
+
+    metrics_rows = [
+        {'tecnica': 'Kaplan-Meier', 'Predictivo': 2, 'Interpretabilidad': 5, 'Flexibilidad': 2},
+        {'tecnica': ('Exponencial' if not is_en else 'Exponential'), 'Predictivo': 2, 'Interpretabilidad': 4, 'Flexibilidad': 2},
+        {'tecnica': 'Weibull', 'Predictivo': 3, 'Interpretabilidad': 4, 'Flexibilidad': 3},
+        {'tecnica': ('Regresión de Cox' if not is_en else 'Cox Regression'), 'Predictivo': 4, 'Interpretabilidad': 4, 'Flexibilidad': 3},
+        {'tecnica': 'Log-Rank Test', 'Predictivo': 1, 'Interpretabilidad': 4, 'Flexibilidad': 1},
+        {'tecnica': 'Random Survival Forest', 'Predictivo': 5, 'Interpretabilidad': 2, 'Flexibilidad': 5},
+    ]
+    metrics_df = pd.DataFrame(metrics_rows)
+    required_metric_cols = ['Predictivo', 'Interpretabilidad', 'Flexibilidad']
+    available_metric_cols = [col for col in required_metric_cols if col in metrics_df.columns]
+
+    # Garantiza que la gráfica use columnas válidas y valores numéricos en escala comparable.
+    if available_metric_cols:
+        for col in available_metric_cols:
+            metrics_df[col] = pd.to_numeric(metrics_df[col], errors='coerce').fillna(0).clip(lower=0, upper=5)
+
+    metrics_df['score_global'] = (
+        0.5 * metrics_df['Predictivo']
+        + 0.3 * metrics_df['Interpretabilidad']
+        + 0.2 * metrics_df['Flexibilidad']
+    )
+    metrics_df = metrics_df.sort_values('score_global', ascending=False)
+
+    metrics_long = metrics_df.melt(
+        id_vars='tecnica',
+        value_vars=available_metric_cols,
+        var_name='Metrica' if not is_en else 'Metric',
+        value_name='Puntuacion' if not is_en else 'Score'
+    )
+
+    metric_translation = {
+        'Predictivo': ('Capacidad predictiva' if not is_en else 'Predictive power'),
+        'Interpretabilidad': ('Interpretabilidad' if not is_en else 'Interpretability'),
+        'Flexibilidad': ('Flexibilidad' if not is_en else 'Flexibility'),
+    }
+    metric_col_name = 'Metrica' if not is_en else 'Metric'
+    score_col_name = 'Puntuacion' if not is_en else 'Score'
+    metrics_long[metric_col_name] = metrics_long[metric_col_name].map(metric_translation)
+
+    fig = px.bar(
+        metrics_long,
+        x='tecnica',
+        y=score_col_name,
+        color=metric_col_name,
+        barmode='group',
+        title=(
+            'Comparativa orientativa por técnica (escala normalizada 0-5)'
+            if not is_en else
+            'Indicative technique comparison (normalized 0-5 scale)'
+        ),
+        labels={
+            'tecnica': ('Técnica' if not is_en else 'Technique'),
+            'Puntuacion': ('Puntuación (0-5)' if not is_en else 'Score (0-5)'),
+            'Score': 'Score (0-5)',
+        },
+        color_discrete_sequence=['#1f77b4', '#2ca02c', '#ff7f0e']
+    )
+    fig.update_layout(
+        template='plotly_white',
+        xaxis_tickangle=-20,
+        margin=dict(l=30, r=20, t=65, b=40),
+        legend_title_text=('Métrica evaluada' if not is_en else 'Evaluated metric')
+    )
+    fig.update_yaxes(range=[0, 5], dtick=1)
+
+    best_predictive = metrics_df.loc[metrics_df['Predictivo'].idxmax(), 'tecnica']
+    most_interpretable = metrics_df.loc[metrics_df['Interpretabilidad'].idxmax(), 'tecnica']
+    most_flexible = metrics_df.loc[metrics_df['Flexibilidad'].idxmax(), 'tecnica']
+    explanation_text = (
+        f"En esta comparación orientativa, {best_predictive} destaca cuando el objetivo principal es maximizar rendimiento predictivo, "
+        f"mientras que {most_interpretable} resulta más adecuado en contextos donde la trazabilidad del resultado y la explicación clínica o académica son prioritarias. "
+        f"Por su parte, {most_flexible} es especialmente útil cuando se espera heterogeneidad entre perfiles y relaciones no lineales entre covariables y tiempo al evento. "
+        "A nivel metodológico, una estrategia sólida suele comenzar con Kaplan-Meier y Log-Rank para describir diferencias entre grupos y comprobar si existen señales de separación en las curvas. "
+        "Después, la Regresión de Cox permite cuantificar el efecto de múltiples covariables bajo la hipótesis de riesgos proporcionales. "
+        "Si esa hipótesis no es suficientemente estable o se busca un ajuste paramétrico con supuestos explícitos, Exponencial y Weibull aportan modelos más estructurados, siendo Weibull generalmente más versátil al permitir cambios monótonos del riesgo en el tiempo. "
+        "Finalmente, Random Survival Forest es una alternativa potente cuando prima la capacidad predictiva en escenarios complejos, aunque conviene acompañarlo de análisis de importancia de variables y de una lectura crítica de su menor interpretabilidad."
+        if not is_en else
+        f"In this indicative comparison, {best_predictive} stands out when the main goal is predictive performance, "
+        f"whereas {most_interpretable} is preferable when result transparency and explainability are priorities. "
+        f"Additionally, {most_flexible} is particularly useful when heterogeneous profiles and non-linear relationships between covariates and time-to-event are expected. "
+        "Methodologically, a robust workflow often starts with Kaplan-Meier and Log-Rank to describe between-group differences and verify whether curves show meaningful separation. "
+        "Next, Cox Regression is typically used to quantify multivariable effects under the proportional-hazards assumption. "
+        "If that assumption is not sufficiently stable, or if a parametric formulation is preferred, Exponential and Weibull provide more structured alternatives, with Weibull usually being more versatile due to monotonic hazard variation. "
+        "Finally, Random Survival Forest is a strong option for complex predictive settings, ideally complemented by variable-importance analysis and careful interpretation given its lower transparency."
+    )
+
+    return html.Div([
+        html.H1(
+            'Comparación de técnicas de supervivencia' if not is_en else 'Comparison of survival techniques',
+            style={'textAlign': 'center', 'fontSize': '35px', 'marginBottom': '20px', 'color': '#1a1a1a', 'fontWeight': 'bold'}
+        ),
+        html.Div([
+            html.P(
+                'Esta página resume los principales métodos de supervivencia para facilitar la elección metodológica según objetivo analítico, supuestos y nivel de interpretabilidad.'
+                if not is_en else
+                'This page summarizes key survival methods to help select the right approach according to analytical goals, assumptions, and interpretability.',
+                style={'margin': 0, 'fontSize': '1.02em', 'lineHeight': '1.6', 'color': '#34495e'}
+            ),
+        ], style={
+            'backgroundColor': '#f8fbff',
+            'padding': '22px',
+            'borderRadius': '10px',
+            'border': '1px solid #dfe9f3',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
+            'margin': '0 20px 25px 20px'
+        }),
+        html.Div([
+            dash_table.DataTable(
+                id='techniques-comparison-table',
+                columns=[
+                    {'name': ('Técnica' if not is_en else 'Technique'), 'id': 'tecnica'},
+                    {'name': ('Tipo de modelo' if not is_en else 'Model type'), 'id': 'tipo_modelo'},
+                    {'name': ('Hipótesis' if not is_en else 'Hypothesis'), 'id': 'hipotesis'},
+                    {'name': ('Ventajas' if not is_en else 'Advantages'), 'id': 'ventajas'},
+                    {'name': ('Limitaciones' if not is_en else 'Limitations'), 'id': 'limitaciones'},
+                    {'name': ('Cuándo usarlo' if not is_en else 'When to use'), 'id': 'cuando_usarlo'},
+                ],
+                data=table_df.to_dict('records'),
+                style_table={'overflowX': 'auto', 'marginTop': '8px'},
+                style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '16px', 'padding': '10px'},
+                style_header={'fontWeight': 'bold', 'backgroundColor': '#f4f7f6'},
+                style_data_conditional=[{'if': {'column_id': 'tecnica'}, 'fontWeight': 'bold'}]
+            ),
+        ], style={
+            'backgroundColor': 'white',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'margin': '0 20px 25px 20px'
+        }),
+        html.Div([
+            dcc.Graph(figure=fig, config={'responsive': True, 'displayModeBar': True})
+        ], style={
+            'backgroundColor': '#f8f9fa',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+            'margin': '0 20px 25px 20px'
+        }),
+        html.Div([
+            html.P(explanation_text, style={'marginBottom': 0, 'lineHeight': '1.7', 'color': '#2c3e50'})
+        ], style={
+            'backgroundColor': '#eef7ff',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'border': '1px solid #d4e8fb',
+            'boxShadow': '0 2px 8px rgba(0,0,0,0.05)',
+            'margin': '0 20px 30px 20px'
+        })
+    ])
+
 def create_weibull_analysis_page(language='es'):
     return html.Div([
         html.H1(
