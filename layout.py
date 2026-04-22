@@ -464,19 +464,19 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
 def create_survival_analysis_page(language='es'):
     techniques = [
         {
-            'image': '/assets/weibull.svg',
+            'image': '/assets/weibull.png?v=2',
             'image_style': {'width': '78%', 'display': 'block', 'margin': '0 auto', 'marginTop': '30px', 'marginBottom': '20px'},
             'label_key': 'weibull_analysis',
             'href': '/survival-analysis/weibull'
         },
         {
-            'image': '/assets/rsf.svg',
+            'image': '/assets/rsf.png?v=2',
             'image_style': {'width': '78%', 'display': 'block', 'margin': '0 auto', 'marginTop': '30px', 'marginBottom': '20px'},
             'label_key': 'random_survival_forest',
             'href': '/survival-analysis/rsf'
         },
         {
-            'image': '/assets/exponential.svg',
+            'image': '/assets/exponential.png?v=2',
             'image_style': {'width': '78%', 'display': 'block', 'margin': '0 auto', 'marginTop': '30px', 'marginBottom': '20px'},
             'label_key': 'exponential_analysis',
             'href': '/survival-analysis/exponential'
