@@ -1,0 +1,40 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Wikimedia
+  Commons}(2026{\natexlab{a}})]{wikimedia_exponential_survival}
+{Wikimedia Commons}.
+\newblock Exponential survival functions, 2026{\natexlab{a}}.
+\newblock URL
+  \url{https://commons.wikimedia.org/wiki/File:Exponential_survival_functions.svg}.
+\newblock Último acceso: 29-04-2026.
+
+\bibitem[{Wikimedia Commons}(2026{\natexlab{b}})]{wikimedia_weibull_pdf}
+{Wikimedia Commons}.
+\newblock Weibull pdf, 2026{\natexlab{b}}.
+\newblock URL \url{https://commons.wikimedia.org/wiki/File:Weibull_PDF.svg}.
+\newblock Último acceso: 29-04-2026.
+
+\bibitem[{scikit-survival}(2026)]{scikit_survival_rsf}
+{scikit-survival}.
+\newblock Random survival forests, 2026.
+\newblock URL
+  \url{https://scikit-survival.readthedocs.io/en/v0.14.0/user_guide/random-survival-forest.html}.
+\newblock Último acceso: 29-04-2026.
+
+\bibitem[Muñoz~Cuesta(2026)]{github_tfg_alfonso}
+Alfonso Muñoz~Cuesta.
+\newblock Repositorio del trabajo fin de grado, 2026.
+\newblock URL \url{https://github.com/alfonsoMunozCuesta/TFG.git}.
+\newblock Último acceso: 29-04-2026.
+
+\bibitem[Pressman and Maxim(2015)]{pressman2015}
+Roger~S. Pressman and Bruce~R. Maxim.
+\newblock \emph{Ingeniería del Software: Un enfoque práctico}.
+\newblock McGraw-Hill, 8 edition, 2015.
+
+\end{thebibliography}

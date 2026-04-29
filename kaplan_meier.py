@@ -1,7 +1,6 @@
 from dash import dcc
 import plotly.graph_objs as go
 from lifelines import KaplanMeierFitter
-from config import df_limpio
 import pandas as pd
 
 # Mapeo de parámetros a columnas reales

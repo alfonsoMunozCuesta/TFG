@@ -1,0 +1,65 @@
+\chapter{Recursos}
+\label{ch:recursos}
+
+\section{Recursos humanos}
+\paragraph*{}El desarrollo de este Trabajo Fin de Grado ha sido realizado por Alfonso Muñoz Cuesta, estudiante del Grado de Ingeniería Informática. Su papel dentro del proyecto abarca el análisis, diseño, implementación, pruebas y documentación de la aplicación. En la práctica, esto implica no solo programar nuevas funcionalidades, sino también entender con detalle el sistema previo, detectar sus limitaciones y decidir qué mejoras aportan realmente valor.
+
+\paragraph*{}Entre las tareas principales desarrolladas por el estudiante se encuentran las siguientes:
+
+\begin{itemize}
+    \item Revisión del sistema desarrollado en el Trabajo Fin de Grado previo, con el fin de comprender su estructura, su funcionamiento interno y sus posibilidades de ampliación.
+    
+    \item Análisis de los requisitos necesarios para mejorar la aplicación y adaptar sus funcionalidades al nuevo alcance del proyecto.
+    
+    \item Diseño y programación de nuevas funcionalidades del dashboard interactivo, incluyendo la integración de modelos adicionales de análisis de supervivencia.
+    
+    \item Preparación y tratamiento de los datos utilizados por el sistema, prestando especial atención a las variables necesarias para los modelos estadísticos.
+    
+    \item Realización de pruebas para comprobar el correcto funcionamiento de la aplicación, la estabilidad del sistema y la coherencia de los resultados obtenidos.
+    
+    \item Mejora de la interfaz y de los elementos de visualización, con el objetivo de que la información generada sea más fácil de interpretar por parte del usuario.
+    
+    \item Redacción de la documentación asociada al proyecto, incluyendo la memoria, los manuales y los informes finales.
+\end{itemize}
+
+\paragraph*{}El proyecto ha contado además con la supervisión del Dr. Juan Alfonso Lara Torralbo, profesor del Departamento de Ciencia de la Computación e Inteligencia Artificial de la Universidad de Córdoba. Su labor ha sido especialmente importante para orientar el trabajo, revisar los avances y mantener el proyecto dentro de un enfoque académico y técnicamente coherente. Entre sus funciones principales destacan:
+
+\begin{itemize}
+    \item Ayuda en la definición de los objetivos y del alcance del proyecto.
+    \item Revisión periódica de los avances en el diseño y desarrollo de la herramienta.
+    \item Propuesta de mejoras basadas en su experiencia académica y técnica.
+    \item Resolución de dudas relacionadas con la implementación de funcionalidades y con las decisiones metodológicas del trabajo.
+\end{itemize}
+
+\section{Recursos hardware}
+\paragraph*{}El proyecto se ha desarrollado en un ordenador personal con capacidad suficiente para ejecutar la aplicación web, procesar los conjuntos de datos y realizar los análisis estadísticos necesarios. Aunque no se trata de una infraestructura especialmente compleja, sí es importante contar con un equipo estable, ya que durante el desarrollo se ejecutan servicios locales, procesos de análisis, generación de gráficos y exportación de informes.
+
+\paragraph*{}Las características principales del equipo utilizado son las siguientes:
+
+\begin{itemize}
+    \item Equipo: Lenovo 82KU.
+    \item Procesador: AMD Ryzen 7 5700U with Radeon Graphics.
+    \item Memoria RAM: 8 GB.
+    \item Sistema operativo: Windows 11 Home de 64 bits.
+    \item Tarjeta gráfica: AMD Radeon Graphics integrada.
+\end{itemize}
+
+\section{Recursos software}
+\paragraph*{}Para el desarrollo de la aplicación se han empleado distintos recursos software que forman la base tecnológica del sistema. El núcleo del proyecto está desarrollado en Python, mientras que la interfaz web y la interacción con el usuario se han implementado mediante Dash. Esta combinación permite construir un dashboard interactivo sin separar en exceso la parte de análisis de datos y la parte visual, algo especialmente útil en un proyecto de carácter académico y experimental.
+
+\paragraph*{}Para la construcción de gráficos dinámicos y representaciones analíticas se utiliza Plotly. El procesamiento, limpieza y transformación de datos se realiza principalmente mediante Pandas y NumPy, dos bibliotecas fundamentales dentro del ecosistema de análisis de datos en Python. Además, para la parte estadística se emplean librerías especializadas como Lifelines, utilizada en modelos como Kaplan-Meier, Cox, Weibull y Exponencial, junto con Scikit-survival para la implementación de Random Survival Forest.
+
+\paragraph*{}En la parte de presentación, la aplicación incorpora una hoja de estilos CSS personalizada, que permite ajustar el aspecto visual del dashboard y mejorar la experiencia de uso. Además, se utilizan ReportLab y Kaleido para la exportación de informes y gráficos en formato PDF, una funcionalidad importante porque facilita conservar y compartir los resultados obtenidos.
+
+\paragraph*{}Como funcionalidad complementaria, el sistema incluye un módulo de interpretación asistida por inteligencia artificial ejecutado en entorno local. Para ello se utiliza un servidor compatible con una API de estilo OpenAI, mediante \textit{llama-server}, junto con un modelo ligero de lenguaje configurado para generar explicaciones sobre los resultados estadísticos. En concreto, la configuración actual del proyecto utiliza el modelo \textit{qwen2.5-1.5b-instruct}. Esta parte aporta una capa adicional de interpretación, de forma que los resultados no queden únicamente como tablas o gráficas, sino que puedan acompañarse de explicaciones más comprensibles.
+
+\paragraph*{}También se han empleado herramientas de apoyo al desarrollo, como Visual Studio Code para la edición del código, Git para el control de versiones y scripts de arranque en Windows para facilitar la ejecución tanto de la aplicación como del servidor local de inteligencia artificial.
+
+\section{Recursos de datos}
+\paragraph*{}Los datos utilizados proceden del conjunto de información heredado del Trabajo Fin de Grado previo, relacionado con el abandono académico universitario. Este conjunto de datos permite trabajar con información de estudiantes y con variables relevantes para el análisis de supervivencia, como el identificador del estudiante, el tiempo observado, el resultado final y distintos atributos académicos o personales.
+
+\paragraph*{}Dentro del proyecto se emplean archivos de datos preparados para la carga y el análisis, como \textit{dataset\_limpio.csv} y \textit{data/temp\_data.csv}. Estos archivos permiten probar el flujo completo de la aplicación: carga, validación, preprocesamiento, análisis estadístico, visualización de resultados e interpretación posterior.
+
+\paragraph*{}Un aspecto especialmente importante es la presencia de datos censurados. En este contexto, estos datos representan estudiantes para los que no se ha observado el abandono durante el periodo analizado. La verdad es que este punto es clave, porque el análisis de supervivencia no solo estudia a quienes abandonan, sino también a quienes permanecen en el sistema durante el tiempo de observación. Gracias a ello, el modelo puede aprovechar mejor la información disponible y ofrecer una visión más ajustada del fenómeno.
+
+\paragraph*{}Por último, la documentación del proyecto se desarrolla mediante \LaTeX, utilizando la plantilla oficial proporcionada para la memoria. El código fuente de la aplicación, donde se incluyen los archivos utilizados para la carga, procesamiento, análisis de datos y generación de informes, está disponible en el repositorio de GitHub del proyecto \cite{github_tfg_alfonso}.

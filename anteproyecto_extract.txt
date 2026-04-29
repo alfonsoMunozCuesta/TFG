@@ -1,0 +1,342 @@
+PAGES 12
+
+--- PAGE 1 ---
+Ampliacio´n y mejora de un
+Dashboard Interactivo para el
+Ana´lisis de Supervivencia
+aplicado al Abandono Escolar
+Universitario
+Universidad de Co´rdoba - Escuela Polit´ecnica Superior de
+Co´rdoba
+Grado de Ingenier´ıa Informa´tica
+Alfonso Mun˜oz Cuesta - i22mucua@uco.es - 31006824H
+Director: Dr. Juan Alfonso Lara Torralbo
+
+--- PAGE 2 ---
+´
+Indice
+1 Tipo de TFG 2
+2 Introducci´on 2
+3 Objetivos 3
+4 Antecedentes 4
+5 Partes del TFG 5
+6 Fases de desarrollo previstas y cronograma 7
+7 Recursos a emplear previstos 9
+8 Bibliograf´ıa 10
+1
+
+--- PAGE 3 ---
+1 Tipo de TFG
+Segu´n la presente gu´ıa mi TFG se correspondera´ al apartado b) An´alisis y resolu-
+ci´on de casos pr´acticos reales en el ´ambito de la ingenier´ıa
+En cuanto a las l´ıneas planteadas mi TFG pertenecer´a al grupo: 02. Ana´lisis, disen˜o y
+desarrollo de aplicaciones web:
+Ampliacio´n y mejora de una aplicaci´on web funcional, abarcando todas las fases del
+ciclo de vida del desarrollo de software: desde el ana´lisis de requerimientos y el disen˜o
+de la arquitectura, hasta la implementacio´n del frontend y backend, y su posterior
+despliegue. A trav´es de este trabajo, el estudiante podr´a desarrollar y consolidar com-
+petencias fundamentales en ingenier´ıa del software, aplicando conocimientos te´oricos a
+un entorno pr´actico. Entre dichas competencias se incluyen el dominio de tecnolog´ıas
+modernas de programacio´n web, el disen˜o y construccio´n de interfaces de usuario in-
+tuitivas, la gesti´on eficiente de bases de datos y la aplicacio´n de principios de seguridad
+informa´tica. Asimismo, se empleara´n metodolog´ıas a´giles de gesti´on de proyectos, que
+fomentan la planificaci´on iterativa y la colaboracio´n continua. De igual modo, el pro-
+yecto incorpora el uso de buenas pra´cticas en pruebas, verificacio´n y optimizacio´n del
+co´digo, con el fin de asegurar que la aplicacio´n resultante sea eficiente, funcional y es-
+calable. En esta l´ınea se enmarcan todos aquellos desarrollos orientados a aplicaciones
+que operan en entornos conectados y en l´ınea.
+2 Introduccio´n
+El abandono escolar universitario continu´a siendo uno de los desaf´ıos ma´s relevantes
+para las instituciones de educacio´n superior, al afectar directamente la eficiencia del
+sistemaeducativoyelaprovechamientodelosrecursos.Entrabajosanterioresseabordo´
+esta problem´atica mediante el desarrollo de un dashboard interactivo para el ana´lisis
+de supervivencia (Survival Analysis), orientado a estudiar el tiempo hasta el abandono
+acad´emicoapartirdedatosrealesdeestudiantesuniversitarios.Dichosistemapermiti´o
+realizarvisualizacionesdina´micaseidentificarfactoresderiesgoasociadosalabandono,
+sentando las bases para una herramienta de apoyo a la toma de decisiones en el a´mbito
+educativo.
+El Survival Analysis es una t´ecnica estad´ıstica que permite analizar el tiempo hasta
+que ocurre un evento, como en este caso el abandono acad´emico. Su valor radica en que
+puede considerar tanto a los estudiantes que ya han abandonado como a aquellos que
+au´n permanecen en sus estudios, ofreciendo una visio´n ma´s completa del feno´meno y
+2
+
+--- PAGE 4 ---
+facilitando la identificacio´n de los factores que influyen en la permanencia universitaria.
+En el presente proyecto se propone una ampliaci´on y mejora del trabajo anterior,
+centrada en la optimizaci´on del ana´lisis, la incorporacio´n de nuevas funcionalidades
+interactivasyelenriquecimientodelosmodelosestad´ısticosutilizados.Sebuscaavanzar
+desdeunenfoquemeramentedescriptivohaciaunsistemapredictivoeinteligente,capaz
+de detectar patrones de comportamiento y anticipar posibles casos de abandono con
+mayor precisio´n.
+La ampliacio´n tambi´en contempla mejoras en la arquitectura del software, incorpo-
+rando tecnolog´ıas que permitan una mayor escalabilidad, rendimiento y usabilidad de
+la aplicacio´n. Adem´as, se prev´e integrar fuentes de datos adicionales y desarrollar un
+mo´dulo avanzado de visualizaci´on, que facilite la exploraci´on intuitiva de los resultados
+por parte de investigadores y responsables acad´emicos.
+En conjunto, este trabajo pretende evolucionar el dashboard original hacia una pla-
+taforma anal´ıtica integral, que no solo visualice informacio´n sino que tambi´en genere
+conocimiento u´til para la prevencio´n del abandono escolar universitario. Con ello, se
+busca contribuir al desarrollo de herramientas basadas en datos que mejoren la reten-
+cio´n y el ´exito acad´emico dentro del entorno universitario.
+3 Objetivos
+El objetivo principal en este proyecto ser´a la ampliacio´n y mejora de una aplicacio´n
+interactiva para el an´alisis de supervivencia, orientada al abandono escolar en el a´mbito
+universitario. Para ello se va a investigar, disen˜ar e implementarla interpretaci´on de los
+factores que influyen en este feno´meno. Mediante Dash y Python se proporcionar´a una
+plataforma que permita realizar ana´lisis interactivos, visualizar resultados y aplicar
+t´ecnicas estad´ısticas avanzadas, todo ello a partir de datos educativos de un dataset
+proveniente del TFG del cual parto.
+En este proyecto no solo se busca mejorar la comprensio´n de los patrones de abandono
+escolar, sino que tambi´en mejorar una herramienta que permita a los responsables
+tomar decisiones m´as informadas para mejorar las estrategias de retenci´on estudiantil.
+Para abordar estos puntos claves, se definen una serie de prop´ositos espec´ıficos que
+estructuran y gu´ıan el desarrollo del proyecto:
+• Implementar y probar una inteligencia artificial m´as r´apida que permita generar
+y mostrar los resultados de forma ma´s eficiente.
+3
+
+--- PAGE 5 ---
+• Incorporar soporte multilingu¨e, permitiendo que la aplicaci´on pueda ser utilizada
+en distintos idiomas.
+• An˜adir nuevos atributos y variables no binarias, ampliando las posibilidades de
+ana´lisis y mejorando la calidad de los modelos.
+• Incluir gr´aficos comparativos basados en los modelos Log-Rank y Cox Proportio-
+nal Hazards para una interpretacio´n visual ma´s completa.
+• Explorar e integrar nuevas t´ecnicas de ana´lisis de supervivencia (del tipo Wei-
+bull,RandomSurvivalForest,osimilares),aumentandolaprecisi´onyversatilidad
+del sistema, comparando diferentes enfoques y sus factores asociados.
+• Permitir la exportaci´on automa´tica de informes e ima´genes, facilitando la gene-
+racio´n de resultados y su uso en contextos de investigacio´n o gestio´n acad´emica.
+4 Antecedentes
+El Survival Analysis o an´alisis de supervivencia es una t´ecnica estad´ıstica em-
+pleada para estudiar el tiempo que transcurre hasta que ocurre un determinado evento.
+Su principal caracter´ıstica es la capacidad de manejar datos censurados, es decir, aque-
+lloscasosenlosqueeleventoau´nnosehaproducidoduranteelperiododeobservacio´n.
+En la medicina, por ejemplo, se utiliza para analizar el tiempo de supervivencia de pa-
+cientes o la duracio´n de un tratamiento. En el a´mbito de la ingenier´ıa, para modelar la
+vida u´til de m´aquinas o componentes.
+Enelcontextoeducativo,estametodolog´ıaadquiereunvalorsignificativoalaplicarse
+al estudio del abandono escolar universitario, considerando como evento el momento en
+que un estudiante interrumpe sus estudios. A trav´es de modelos como Kaplan-Meier o
+Cox Proportional Hazards, el ana´lisis de supervivencia permite estimar la probabilidad
+dequeunestudiantepermanezcamatriculadoalolargodeltiempo,as´ıcomoidentificar
+los factores de riesgo que influyen en la decisio´n de abandonar. Este enfoque ofrece una
+visio´n m´as precisa y predictiva del feno´meno, al integrar variables como el rendimiento
+acad´emico, la edad, el g´enero, la situaci´on socioecon´omica o la discapacidad.
+El Trabajo Fin de Grado de Luc´ıa Cabezuelo P´erez (2025), titulado “An´alisis, Di-
+sen˜o e Implementacio´n de un Dashboard Interactivo para el Ana´lisis de Supervivencia
+aplicado al Abandono Escolar Universitario”, desarroll´o una aplicacio´n web en Python
+y Dash que permite analizar datos reales de estudiantes universitarios mediante t´ecni-
+cas de Survival Analysis. Su sistema integr´o los modelos de Kaplan-Meier, regresio´n de
+4
+
+--- PAGE 6 ---
+Cox y pruebas de Log-Rank, mostrando los resultados de forma visual e interactiva.
+Adema´s, incorporo´ un m´odulo de Inteligencia Artificial basado en Llama 3 (Ollama),
+destinado a ofrecer explicaciones autom´aticas sobre los resultados estad´ısticos, facili-
+tando su interpretaci´on por parte de los usuarios.
+Este trabajo sirvio´ como punto de partida para crear una herramienta de an´alisis
+visual y estad´ıstico orientada a la prediccio´n del abandono universitario. Sin embargo,
+la ampliacio´n propuesta en el presente anteproyecto busca optimizar y extender las
+funcionalidades del sistema, mejorando la arquitectura de la aplicacio´n, la precisi´on
+de los modelos, la capacidad predictiva y la integracio´n de nuevos datasets. De este
+modo, se pretende evolucionar el proyecto hacia una plataforma avanzada de an´alisis y
+prediccio´n, que combine rigor estad´ıstico con inteligencia artificial aplicada al contexto
+educativo.
+5 Partes del TFG
+1. Introducci´on
+En este primer apartado se contextualizar´a el problema del abandono escolar uni-
+versitario y su impacto en las instituciones de educacio´n superior. Se explicara´
+la motivaci´on del proyecto y su relaci´on con un TFG previo, del cual parte esta
+propuesta, orientada a su ampliaci´on y mejora. Adema´s, se presentara´n los obje-
+tivos generales y espec´ıficos, as´ı como una descripcio´n general de la metodolog´ıa,
+herramientas y tecnolog´ıas empleadas, como Dash y Python.
+2. Marco teo´rico
+En este apartado se revisara´n los fundamentos del an´alisis de supervivencia (Sur-
+vivalAnalysis)ysuaplicacio´nenela´mbitoeducativo.Seexplicara´nlosconceptos
+principales,lasfuncionesdesupervivenciayriesgo,ylosmodelosestad´ısticosma´s
+relevantes, como Kaplan-Meier y Cox Proportional Hazards y las nuevas t´ecnicas.
+Tambi´en se abordara´n trabajos previos relacionados con el abandono acad´emi-
+co, destacando co´mo las t´ecnicas de ana´lisis de supervivencia pueden ampliarse
+mediante el uso de nuevos enfoques y atributos en este proyecto.
+3. Metodolog´ıa
+Este apartado detallara´ los datos utilizados y su procedencia, incluyendo el data-
+setheredadodelTFGoriginal,queser´aampliadoconnuevasvariablesyatributos
+no binarios. Se explicar´a el proceso de preprocesamiento, limpieza y codificaci´on
+de los datos, as´ı como la aplicaci´on de nuevas t´ecnicas de an´alisis de superviven-
+5
+
+--- PAGE 7 ---
+cia.
+Adema´s, se describir´a la integraci´on de una inteligencia artificial ma´s ra´pida para
+mejorarlaeficienciadelsistema,elredisen˜odelaarquitecturadelaaplicacio´nyla
+incorporacio´n de nuevas funcionalidades interactivas, como el soporte multilingu¨e
+y la exportacio´n de resultados.
+4. Resultados y mejoras implementadas
+En este apartado se mostrara´n los resultados obtenidos tras la ampliaci´on y me-
+jora del sistema original. Se incluira´n los nuevos an´alisis generados, las visua-
+lizaciones obtenidas con los modelos Log-Rank y Cox y las nuevas t´ecnicas, y
+los informes e ima´genes exportados por la aplicacio´n. Asimismo, se evaluar´a el
+impacto de las nuevas t´ecnicas implementadas en la precisio´n del ana´lisis y en la
+experiencia de usuario.
+5. Desarrollo de la aplicaci´on ampliada
+Este apartado describira´ el proceso de desarrollo t´ecnico de la nueva versio´n de la
+aplicacio´n. Se detallara´n las herramientas empleadas, la estructura del co´digo, la
+implementacio´n de las nuevas funcionalidades y el redisen˜o de la interfaz. Se in-
+cluira´n ejemplos visuales del sistema actualizado y se documentar´a la integraci´on
+de cada mejora en el flujo de trabajo de la aplicaci´on.
+6. Discusio´n
+Se analizar´an los resultados obtenidos y las mejoras alcanzadas respecto al obje-
+tivo de ampliaci´on del sistema. Se reflexionar´a sobre las ventajas que aporta la
+nueva versio´n en t´erminos de funcionalidad, rendimiento y utilidad pra´ctica, as´ı
+como sobre las posibles limitaciones y futuras l´ıneas de mejora.
+7. Conclusiones
+En este apartado se resumira´n los principales logros del proyecto, destacando la
+contribucio´n realizada al ampliar y mejorar la aplicacio´n original. Se enfatizara´
+la relevancia de las nuevas funcionalidades y su potencial para ayudar a las ins-
+tituciones educativas a comprender y prevenir el abandono escolar universitario.
+8. Referencias bibliogr´aficas
+Seincluir´antodaslasfuentesconsultadasduranteeldesarrollodelproyecto,tanto
+teo´ricas como t´ecnicas, as´ı como el TFG original del cual parte este proyecto.
+9. Anexos
+En los anexos se incluira´n fragmentos de c´odigo relevantes, capturas de pantalla
+de la aplicacio´n ampliada, resultados adicionales y cualquier material comple-
+6
+
+--- PAGE 8 ---
+mentario que apoye la comprensio´n del proyecto.
+6 Fases de desarrollo previstas y cronograma
+El desarrollo del proyecto se organizar´a en diferentes fases que permitir´an abordar de
+manera estructurada la ampliaci´on y mejora de la aplicacio´n existente. Cada una de
+ellas se centrar´a en tareas espec´ıficas que garanticen la correcta planificaci´on, imple-
+mentacio´n y validaci´on de las mejoras propuestas.
+1. Preparaci´on del entorno y revisio´n del sistema existente
+En esta fase inicial se realizara´ una revisi´on completa del TFG original y de la
+aplicacio´n desarrollada previamente, con el fin de comprender su funcionamiento
+interno, dependencias, estructura del co´digo y arquitectura de datos. Tambi´en
+se configurara´ el entorno de trabajo, incluyendo las herramientas de desarrollo
+necesarias, las bibliotecas de Python, el entorno de Dash y la base de datos.
+Esta fase permitira´ establecer la base t´ecnica para comenzar la ampliacio´n del
+sistema, garantizando compatibilidad y estabilidad antes de introducir nuevas
+mejoras.
+2. An´alisis inicial y planificaci´on
+En esta fase se identificara´n las limitaciones del sistema original y las a´reas que
+requieren mejora. Se definira´n los nuevos requisitos funcionales y no funcionales,
+as´ı como los objetivos t´ecnicos y metodol´ogicos del proyecto. Adema´s, se elabo-
+rara´unplandetrabajodetalladoqueestablezcarecursos,tiemposyherramientas
+a emplear durante el desarrollo.
+3. Disen˜o de mejoras y ampliaciones
+Apartirdelana´lisisprevio,seplanificara´lanuevaarquitecturadelaaplicacio´n.Se
+disen˜ar´an las mejoras principales, como la incorporaci´on de soporte multilingu¨e,
+la implementaci´on de gr´aficos adicionales (Log-Rank y Cox) y el redisen˜o de
+la interfaz. Tambi´en se definira´n los nuevos atributos y variables no binarias
+del dataset, junto con la integraci´on de una inteligencia artificial ma´s ra´pida y
+eficiente.
+4. Desarrollo e implementaci´on
+Durante esta fase se llevara´ a cabo la programacio´n de las mejoras disen˜adas. Se
+ampliara´ la base de datos, se implementar´an los nuevos m´odulos y se integrara´n
+las funcionalidades interactivas y los modelos de ana´lisis de supervivencia adicio-
+7
+
+--- PAGE 9 ---
+nales. Asimismo, se actualizara´ la interfaz de usuario en Dash y se optimizar´a el
+co´digo para mejorar el rendimiento general del sistema.
+5. Pruebas y validaci´on
+En esta fase se realizar´an pruebas exhaustivas para garantizar la estabilidad y
+fiabilidad del sistema mejorado. Se evaluar´a el correcto funcionamiento de las
+nuevas funcionalidades, la precisi´on de los modelos estad´ısticos, la exportacio´n
+de informes e im´agenes y la velocidad de respuesta de la inteligencia artificial. Se
+empleara´n datos reales y simulados para comprobar la calidad de los resultados.
+6. Documentaci´on t´ecnica y manuales
+Seelaborara´ladocumentacio´ncompletadelproyecto,incluyendoelmanualt´ecni-
+co, el manual de usuario y una gu´ıa de instalaci´on y despliegue. En ellos se
+detallara´ la estructura de la aplicacio´n, el funcionamiento de las nuevas funciona-
+lidades y las instrucciones para su utilizacio´n. Adem´as, se documentara´ el co´digo
+fuente de forma clara y estructurada.
+7. Evaluaci´on final y conclusiones
+En la u´ltima fase se analizara´ el cumplimiento de los objetivos planteados y se
+evaluar´a el impacto de las mejoras implementadas sobre la aplicacio´n original. Se
+expondra´n las conclusiones generales del trabajo y se propondr´an posibles l´ıneas
+de desarrollo futuro orientadas a continuar ampliando la herramienta.
+8
+
+--- PAGE 10 ---
+Cronograma de trabajo:
+A continuacio´n se presenta una estimacio´n de la distribucio´n temporal del proyecto,
+con una duracio´n total aproximada de 300 horas:
+FASE TIEMPO (HORAS)
+Preparacio´n 30
+An´alisis y disen˜o 60
+Desarrollo e implementacio´n 120
+Pruebas y validacio´n 50
+Documentacio´n y manuales 25
+Evaluacio´n final y conclusiones 15
+TOTAL ESTIMADO 300 HORAS
+7 Recursos a emplear previstos
+En cuanto a los recursos que se van a emplear, se distinguen los siguientes apartados:
+• Hardware: se utilizar´a un ordenador personal con capacidad suficiente para
+ejecutar los ana´lisis estad´ısticos y procesar los datos recogidos. Contara´ con un
+niveldememoriaadecuadoparanocomprometerlaeficienciadelprocesodurante
+el manejo de grandes volu´menes de informacio´n.
+• Software: se empleara´n bibliotecas de Python para el ana´lisis de supervivencia,
+las cuales sera´n esenciales para implementar los modelos y realizar el preproce-
+samiento de los datos.
+– El entorno de desarrollo ser´a un ambiente interactivo, como Jupyter Note-
+book.
+– La visualizacio´n de los datos se realizar´a mediante Dash, donde se imple-
+mentara´ la interfaz de usuario y las visualizaciones gr´aficas.
+• Conjuntos de datos (datasets): se obtendr´an principalmente de la plataforma
+Moodle, incluyendo informaci´on sobre los estudiantes, sus evaluaciones, asisten-
+cia, entre otros aspectos. Los datos seleccionados dependera´n de las variables
+utilizadas para construir los modelos de ana´lisis.
+– Los datos censurados ser´an un elemento clave, ya que representan a los
+estudiantes que no han abandonado sus estudios dentro del periodo de ob-
+9
+
+--- PAGE 11 ---
+servacio´n.
+• Recursos humanos: se contara´ con la colaboracio´n del director del trabajo,
+Dr. Juan Alfonso Lara Torralbo, quien aportara´ su conocimiento y experiencia
+en el desarrollo del proyecto. Su orientacio´n y supervisio´n ser´a fundamental para
+alcanzar los objetivos planteados.
+8 Bibliograf´ıa
+Referencias
+[1] National Center for Biotechnology Information. (2020). Survival Analysis.
+En NCBI Bookshelf. Disponible en: https://www.ncbi.nlm.nih.gov/books/NBK56
+0604/ (Fecha de consulta: 4 de noviembre de 2025).
+[2] DATAtab. (n.d.). Survival Analysis Example. Disponible en: https://datatab.ne
+t/statistics-calculator/survival-analysis (Fecha de consulta: 4 de noviembre de
+2025).
+[3] DATAtab. (n.d.). Survival Analysis Tutorial. Disponible en: https://datatab.net/
+tutorial/survival-analysis (Fecha de consulta: 4 de noviembre de 2025).
+[4] Python Software Foundation. (2024). Python Language Reference (versi´on
+3.10). Disponible en: https://www.python.org/.
+[5] Olayo, E. A., Guti´errez, S. A. y Espinoza, A. G.(2023).Factores que influyen
+en el abandono escolar: un estudio cualitativo. Revista de Investigacio´n Educativa,
+41(2), 15–34. Disponible en: https://revistas.um.es/rie/article/view/546521.
+[6] C´ardenas, G. O.(2019).Categor´ıas para el an´alisis del abandono y la permanencia
+escolar en la educaci´on superior. Revista Cumbres, 5(1), 21–40. Disponible en:
+https://dialnet.unirioja.es/descarga/articulo/7210412.pdf (Fecha de consulta:
+5 de noviembre de 2025).
+[7] Ibrahim, M., Muthalib, M., Rahman, M. (2024). Random survi-
+val forest for survival analysis: A modern approach to censored data. Disco-
+ver Artificial Intelligence, 4(1), Article 31. Springer Nature. Disponible en:
+https://link.springer.com/article/10.1007/s42001-024-00309-z
+10
+
+--- PAGE 12 ---
+[8] Said, A., Rauf, M. (2024). Survival Analysis of Students Dropout in Higher Edu-
+cation Using Weibull Distribution. Disponible en: PDF en l´ınea (Fecha de consulta:
+2 de noviembre de 2025).
+[9] Valle, G. B., Raiano, J. M., Garc´ıa, S. E., Suligoy, M. A. y G´omez,
+´
+G. (2014). Exito y fracaso acad´emico desde la perspectiva de los estudiantes uni-
+versitarios. Revista Comunicacio´n, An˜o VI, Nu´mero 9, 139–164. Disponible en:
+https://dialnet.unirioja.es/descarga/articulo/5067154.pdf.
+[10] Cabezuelo P´erez, L. (2025). An´alisis, Disen˜o e Implementaci´on de un Dash-
+board Interactivo para el An´alisis de Supervivencia aplicado al Abandono Escolar
+Universitario. Trabajo Fin de Grado, Universidad de Co´rdoba, Escuela Polit´ecnica
+Superior de Co´rdoba. Disponible en: TFG.pdf (Fecha de consulta: 2 de noviembre
+de 2025).
+11

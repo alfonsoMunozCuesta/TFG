@@ -561,12 +561,17 @@ def register_analysis_callbacks(app):
     
         if 'final_result' in df.columns:
             final_result_series = df['final_result'].astype(str).str.strip()
-            invalid_final_result = final_result_series.eq('') | final_result_series.str.lower().eq('nan')
-            if invalid_final_result.any():
+            final_result_lower = final_result_series.str.lower()
+            invalid_final_result = final_result_series.eq('') | final_result_lower.eq('nan')
+            allowed_final_results = {'withdrawn', 'pass', 'fail', 'distinction', '0', '1'}
+            invalid_values = sorted(set(final_result_lower[~final_result_lower.isin(allowed_final_results)]))
+            if invalid_final_result.any() or invalid_values:
                 errors.append(
-                    "Formato incorrecto en 'final_result': contiene valores vacíos."
+                    (
+                        "Formato incorrecto en 'final_result': usa Withdrawn, Pass, Fail, Distinction, 0 o 1."
+                    )
                     if language == 'es' else
-                    "Invalid format in 'final_result': it contains empty values."
+                    "Invalid format in 'final_result': use Withdrawn, Pass, Fail, Distinction, 0 or 1."
                 )
     
         return errors
@@ -775,10 +780,12 @@ def register_analysis_callbacks(app):
             if not ctx.triggered:
                 return None, ''
             
-            # Si no hay datos cargados, usar df_limpio
+            # Si no hay datos cargados, usar el dataset limpio local solo como fallback.
             if df_json is None:
-                from config import df_limpio as df_fallback
-                df = df_fallback.copy()
+                load_dataframes()
+                if df_limpio is None:
+                    raise PreventUpdate
+                df = df_limpio.copy()
             else:
                 # Reconstruir el dataframe desde el JSON
                 df = _read_split_json(df_json)

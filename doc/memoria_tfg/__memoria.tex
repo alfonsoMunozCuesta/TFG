@@ -1,0 +1,283 @@
+
+
+\documentclass[a4paper, 12pt,oneside]{book}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[left=35mm, right=25mm, top=25mm, height=206mm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage[square,numbers]{natbib}
+\usepackage[skip=12pt,font=small]{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{afterpage}
+\usepackage{titlesec}
+\usepackage{color, colortbl}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{eurosym}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{url}
+\usepackage{appendix}
+\usepackage{pdfpages}
+\usepackage{pdflscape}
+\usepackage[hidelinks]{hyperref}
+\usepackage[newfloat]{minted}
+\usepackage[nottoc]{tocbibind}
+\usepackage{glossaries}
+\usepackage{tikz}
+\usetikzlibrary{
+  shapes.geometric,
+  arrows,
+  shapes.multipart,
+  arrows.meta,
+  calc,
+  positioning,
+  shapes,
+  backgrounds,
+  fit,
+  shadows,
+  decorations.markings
+}
+\usepackage{pgf-umlsd}
+\usepackage{tcolorbox}
+\usepackage{verbatimbox}
+\usepackage{csvsimple}
+\definecolor{bottomcol}{RGB}{222,222,222}
+
+\usepackage{datetime}
+\newdateformat{monthyeardate}{\monthname, \THEYEAR}
+
+% Entorno para código
+\newenvironment{code}{\captionsetup{type=listing}}{}    
+
+% Cambiamos el caption de los listing a español
+\renewcommand{\listingname}{Código}    
+
+ % Cambiamos el idioma del índice de códigos
+\renewcommand*{\listlistingname}{Índice de Códigos}    
+
+\newfloat{diagrama}{htbp}{loc}
+\floatname{diagrama}{Diagrama}
+\newcommand{\listofdiagrams}{\listof{diagrama}{Índice de Diagramas de Flujo}}
+%\floatstyle{plaintop}
+\restylefloat{table}
+
+\graphicspath{ {Imagenes/} }
+
+
+\input{Configuracion/confg_colores}
+\input{Configuracion/confg_codigo}
+\input{Configuracion/confg_diagrama_flujo}
+
+\newcommand{\insertBlankPages}{
+  \hypersetup{pageanchor=false}
+  \newpage
+  \thispagestyle{empty}
+  \mbox{}
+  \newpage
+  \hypersetup{pageanchor=true}
+}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries}{\thechapter}{2pc}{}
+\titlespacing*{\chapter}{0pt}{*3}{*1.5}
+
+% Redefinir el comportamiento de \chapter
+\let\oldchapter\chapter
+\renewcommand{\chapter}{%
+  \oldchapter}
+
+\sloppy
+\setlength{\emergencystretch}{3em}
+\hyphenpenalty=10000
+\tolerance=1000
+
+%----------------------------------------------------------------------------------------
+%	ENCABEZADOS Y PIE DE PAGINA
+%----------------------------------------------------------------------------------------
+
+\pagestyle{fancy}
+	\fancypagestyle{cuerpo}{
+      \fancyfoot{}
+      \fancyfoot[L]{Trabajo Fin de Grado} %Autor
+      \fancyfoot[C]{}
+      \fancyfoot[R]{- \thepage \ -}
+      \fancyhead{}
+      \fancyhead[L]{\leftmark} %Nombre del documento
+      \fancyhead[R]{\includegraphics[height=1.8cm]{Imagenes/logo_uco.png}} %Logo Universidad
+      \renewcommand{\headrulewidth}{0.4pt}
+      \renewcommand{\footrulewidth}{0.4pt}
+      \setlength{\headheight}{65pt}
+    }
+    \fancypagestyle{indice}{
+      \fancyfoot{}
+      \fancyfoot[L]{\AutorTFG} %Autor
+      \fancyfoot[R]{- \thepage \ -} %Asignatura
+      \fancyhead{}
+      \fancyhead[L]{Trabajo Fin de Grado} %Nombre del documento
+      \fancyhead[R]{\includegraphics[height=1.8cm]{Imagenes/logo_uco.png}} %Logo
+      \renewcommand{\headrulewidth}{0.4pt}
+      \renewcommand{\footrulewidth}{0.4pt}
+      \setlength{\headheight}{65pt}
+      }
+      
+    \fancypagestyle{plain}{% % <-- this is new
+     \fancyfoot{}
+      \fancyfoot[L]{Trabajo Fin de Grado} %Autor
+      \fancyfoot[C]{} %ecc
+      \fancyfoot[R]{- \thepage \ -}
+      \fancyhead{}
+      \fancyhead[L]{\leftmark} %Nombre del documento
+      \fancyhead[R]{\includegraphics[height=1.8cm]{Imagenes/logo_uco.png}} %Logo Universidad
+      \renewcommand{\headrulewidth}{0.4pt}
+      \renewcommand{\footrulewidth}{0.4pt}
+      \setlength{\headheight}{65pt}
+    }
+  
+\setcounter{secnumdepth}{4}
+
+
+\usepackage{chngcntr}
+%\counterwithout{table}{section}
+%\counterwithout{figure}{section}
+\counterwithout{table}{chapter}
+\counterwithout{figure}{chapter}
+
+\pagenumbering{gobble}
+
+
+
+
+%%%%%%%%%
+% ANEXO %
+%%%%%%%%%
+
+% Para que ponga ANEXO en vez de APENDICE
+ \addto\captionsspanish{\renewcommand{\appendixname}{Anexo}} %para que ponga anexo y no apéndice.
+
+
+\raggedbottom  % Quita huecos grandes en blanco
+\begin{document}
+
+%%%%%%%%%%%
+% PORTADA %
+%%%%%%%%%%%
+\input{Portada/cover}
+\input{Portada/decaracióndeoriginalidad}
+\input{Portada/español}
+\input{Portada/ingles}
+
+\insertBlankPages
+
+
+%%%%%%%%%%%%%%%
+% DEDICATORIA %
+%%%%%%%%%%%%%%%
+\pagenumbering{Roman} % para comenzar la numeracion de paginas en numeros romanos
+\pagestyle{indice}
+\thispagestyle{indice}
+\begin{flushright}
+\textit{Dedicado a \\
+mi familia}
+\end{flushright}
+\insertBlankPages
+%%%%%%%%%%%%%%%%%%%
+% AGRADECIMIENTOS %
+%%%%%%%%%%%%%%%%%%%
+\input{_agradecimientos}
+\vfill\break
+\insertBlankPages
+%%%%%%%%%%%%%%%%%%
+% INDICE GENERAL %
+%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\insertBlankPages
+\listoffigures
+\insertBlankPages
+\listoftables
+
+\insertBlankPages
+
+%---------------------%
+%	CUERPO DE TEXTO   %
+%---------------------%
+
+\pagestyle{cuerpo}
+\thispagestyle{cuerpo}
+
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         ESTRUCTURA CONTENIDO                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%------------------%
+%	CAPÍTULOS      %
+%------------------%
+\input{Unidades/01-Introducción/info}
+\input{Unidades/03-Objetivos/info}
+\input{Unidades/04-Antecedentes/info}
+\input{Unidades/02-Planificación-temporal/info}
+\input{Unidades/05-Marco-teorico/info}
+\input{Unidades/07-Recursos/info}
+\input{Unidades/08-Especificación-requisitos/info}
+\input{Unidades/09-Análisis/info}
+\input{Unidades/10-Diseño/info}
+\input{Unidades/11-Implementación/info}
+\input{Unidades/12-Pruebas/info}
+\input{Unidades/13 - Conclusiones y mejoras/info}
+
+
+
+
+
+
+
+
+%------------------%
+%	BIBLIOGRAFIA   %
+%------------------%
+
+%Estilo de la bibliografia
+\bibliographystyle{unsrtnat} 
+%\bibliographystyle{elsarticle-num}
+\bibliography{referencias.bib}
+\newpage
+
+\appendix
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+\vspace*{7cm}
+{\LARGE \textbf{ANEXO A}\par}
+\vspace{0.5cm}
+{\Large \textbf{MANUAL DE USUARIO}\par}
+\end{center}
+\clearpage
+
+\newpage
+\chapter{Anexo del Manual de Usuario}
+\input{Unidades/Apéndice/manual_de_usuario}
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+\vspace*{7cm}
+{\LARGE \textbf{ANEXO B}\par}
+\vspace{0.5cm}
+{\Large \textbf{MANUAL DE CÓDIGO FUENTE}\par}
+\end{center}
+\clearpage
+\newpage
+\chapter{Anexo del Manual de código fuente}
+\input{Unidades/Apéndice/manual_de_codigo}
+
+
+\end{document}

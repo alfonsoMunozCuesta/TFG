@@ -1,0 +1,87 @@
+\chapter{Marco teórico}
+\label{ch:marco_teorico}
+
+\paragraph*{}En este capítulo se presentan los conceptos teóricos sobre los que se apoya el proyecto. Al tratarse de una ampliación de un dashboard ya existente, no se parte desde cero, sino desde una base previa centrada en el análisis de supervivencia aplicado al abandono académico universitario. Por ello, el marco teórico se organiza comenzando por los fundamentos generales de esta técnica, continúa con los modelos clásicos ya presentes en el sistema original y, finalmente, introduce las técnicas incorporadas en esta nueva versión.
+
+\section{Fundamentos del análisis de supervivencia}
+\paragraph*{}El análisis de supervivencia es un conjunto de técnicas estadísticas orientadas al estudio del tiempo que transcurre hasta que ocurre un determinado evento. Aunque el término ``supervivencia'' procede principalmente del ámbito médico, donde se utiliza para analizar el tiempo hasta el fallecimiento, la recuperación o la recaída de un paciente, su aplicación no se limita a ese contexto. También se emplea en ingeniería para estudiar la vida útil de componentes, en economía para analizar la duración de determinados procesos y, más recientemente, en educación para estudiar fenómenos como el abandono académico.
+
+\paragraph*{}En el contexto de este Trabajo Fin de Grado, el evento de interés es el abandono universitario. La idea principal no consiste únicamente en saber si un estudiante abandona o no, sino en analizar cuándo se produce ese abandono y qué factores pueden estar relacionados con él. Este matiz es importante, porque permite observar el fenómeno como un proceso temporal y no como un resultado aislado. Dicho de forma sencilla, no es lo mismo detectar que un estudiante abandona al inicio de sus estudios que observar que lo hace tras un periodo prolongado de permanencia.
+
+\paragraph*{}Uno de los conceptos clave en este tipo de análisis es la función de supervivencia. Esta función representa la probabilidad de que un individuo, en este caso un estudiante, continúe en el sistema más allá de un instante determinado. Aplicado al abandono académico, permite estimar la probabilidad de permanencia del alumnado a lo largo del tiempo. A partir de esta información se pueden identificar momentos de mayor riesgo y estudiar si ciertos grupos presentan comportamientos diferentes.
+
+\paragraph*{}Otro concepto fundamental es el de censura. En muchos estudios no se observa el evento para todos los individuos durante el periodo analizado. Por ejemplo, puede ocurrir que un estudiante siga matriculado al finalizar el periodo de observación. En ese caso, no se puede afirmar que nunca vaya a abandonar, pero sí se sabe que no lo ha hecho hasta ese momento. El análisis de supervivencia permite aprovechar este tipo de información, algo especialmente valioso en el ámbito educativo, donde las trayectorias académicas no siempre finalizan dentro del intervalo de estudio disponible.
+
+\paragraph*{}Además, el análisis de supervivencia permite incorporar variables explicativas, también denominadas covariables, que ayudan a estudiar qué factores pueden influir en el tiempo hasta el evento. En el caso del abandono universitario, estas variables pueden estar relacionadas con aspectos académicos, personales o administrativos, como el rendimiento, la edad, el género, la discapacidad, el nivel educativo previo o los créditos cursados. Gracias a ello, el análisis no se limita a describir una curva general de permanencia, sino que puede aportar una visión más rica y útil del comportamiento de distintos perfiles de estudiantes.
+
+\section{Técnicas clásicas de análisis de supervivencia}
+\paragraph*{}El sistema desarrollado en el Trabajo Fin de Grado previo ya incorporaba varias técnicas clásicas de análisis de supervivencia. Estas técnicas constituyen la base sobre la que se apoya la ampliación actual, ya que permiten estimar la permanencia del alumnado, comparar grupos y estudiar el efecto de diferentes covariables. Aunque cada método tiene un propósito distinto, todos ellos ayudan a entender mejor el abandono académico desde una perspectiva temporal.
+
+\subsection{Kaplan-Meier}
+\paragraph*{}El estimador de Kaplan-Meier es una de las técnicas más utilizadas dentro del análisis de supervivencia. Su objetivo principal es estimar la función de supervivencia a partir de los datos observados, teniendo en cuenta tanto los casos en los que ocurre el evento como aquellos que están censurados. En el contexto de este proyecto, permite representar de forma gráfica la probabilidad de que los estudiantes permanezcan en el sistema universitario a medida que avanza el tiempo.
+
+\paragraph*{}Una de sus ventajas es que ofrece una interpretación visual bastante directa. La curva de supervivencia permite observar en qué momentos se producen descensos más marcados, lo que puede indicar periodos de mayor riesgo de abandono. Además, puede aplicarse a distintos grupos de estudiantes, por ejemplo según género, tramo de edad o nivel educativo previo, facilitando una primera comparación entre perfiles.
+
+\paragraph*{}No obstante, Kaplan-Meier tiene también ciertas limitaciones. Principalmente, describe la supervivencia de forma general o por grupos, pero no permite modelar de manera conjunta el efecto de varias covariables. Por ello, suele utilizarse como una herramienta inicial de exploración y visualización, complementándose con otros métodos más adecuados para analizar factores explicativos.
+
+\subsection{Regresión de Cox}
+\paragraph*{}El modelo de riesgos proporcionales de Cox permite estudiar la relación entre el tiempo hasta el evento y un conjunto de covariables. A diferencia de Kaplan-Meier, que se centra en estimar curvas de supervivencia, la regresión de Cox permite analizar cómo ciertas variables influyen en el riesgo de que ocurra el evento. En este proyecto, dicho evento se corresponde con el abandono académico.
+
+\paragraph*{}Este modelo resulta especialmente útil porque permite interpretar el efecto de cada variable mediante razones de riesgo. De forma simplificada, una variable puede asociarse con un aumento o una disminución del riesgo de abandono. Por ejemplo, determinadas características académicas podrían estar relacionadas con una mayor probabilidad de abandonar antes, mientras que otras podrían estar asociadas con una mayor permanencia.
+
+\paragraph*{}La regresión de Cox es una técnica muy valiosa cuando se desea estudiar el papel de varios factores al mismo tiempo. Sin embargo, parte de una hipótesis importante: los riesgos entre grupos deben ser proporcionales a lo largo del tiempo. Esto significa que el efecto relativo de las covariables se mantiene aproximadamente constante durante el periodo analizado. Si esta condición no se cumple, la interpretación del modelo puede verse afectada.
+
+\subsection{Test de Log-Rank}
+\paragraph*{}El Test de Log-Rank se utiliza para comparar curvas de supervivencia entre dos o más grupos. Su finalidad es determinar si existen diferencias estadísticamente significativas entre las curvas observadas. En el contexto del abandono universitario, puede emplearse para analizar si distintos grupos de estudiantes presentan comportamientos de permanencia diferentes a lo largo del tiempo.
+
+\paragraph*{}Por ejemplo, esta prueba puede ayudar a comparar la supervivencia académica entre estudiantes de diferentes tramos de edad, niveles educativos previos o categorías de una variable determinada. Si el resultado muestra diferencias significativas, se obtiene una señal de que la variable analizada podría estar relacionada con el abandono. No explica por sí sola la causa, pero sí ayuda a detectar diferencias relevantes que merecen ser estudiadas con más detalle.
+
+\paragraph*{}En el dashboard, el Test de Log-Rank complementa a Kaplan-Meier y a la regresión de Cox. Mientras Kaplan-Meier facilita la visualización de las curvas y Cox permite analizar covariables, el Test de Log-Rank aporta una prueba estadística para comparar grupos. Esta combinación ofrece una base sólida para el análisis inicial del abandono académico.
+
+\section{Técnicas incorporadas en la ampliación}
+\paragraph*{}La ampliación desarrollada en este Trabajo Fin de Grado incorpora nuevas técnicas de análisis de supervivencia con el fin de enriquecer la capacidad analítica del sistema. La idea no es sustituir los métodos clásicos, sino complementarlos. Cada modelo aporta una forma distinta de mirar los datos, y esa variedad permite comparar enfoques, detectar patrones y ofrecer una interpretación más completa del fenómeno estudiado.
+
+\subsection{Modelo exponencial}
+\paragraph*{}El modelo exponencial es un modelo paramétrico de análisis de supervivencia. A diferencia de métodos como Kaplan-Meier, que no imponen una forma concreta a la función de supervivencia, los modelos paramétricos asumen una determinada distribución para describir el tiempo hasta el evento. En el caso del modelo exponencial, se supone que el riesgo de que ocurra el evento permanece constante a lo largo del tiempo.
+
+\paragraph*{}Esta característica lo convierte en un modelo sencillo y fácil de interpretar. Si el riesgo de abandono se considera estable durante el periodo analizado, el modelo exponencial puede ofrecer una aproximación útil. Sin embargo, esa misma simplicidad puede convertirse en una limitación cuando el riesgo cambia con el tiempo, algo que puede ocurrir en contextos educativos. Por ejemplo, puede haber periodos iniciales con mayor incertidumbre o momentos concretos del curso en los que el abandono sea más probable.
+
+\paragraph*{}Dentro del proyecto, el modelo exponencial permite incorporar una primera aproximación paramétrica al análisis y sirve como punto de comparación frente a modelos más flexibles. Además, facilita la generación de métricas y resultados que pueden contrastarse con otras técnicas implementadas en el dashboard.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{Imagenes/modelo_exponencial_supervivencia.png}
+    \caption{Ejemplo de funciones de supervivencia exponenciales con distintos valores del parámetro $\lambda$.}
+    \label{fig:modelo_exponencial_supervivencia}
+\end{figure}
+\paragraph*{\footnotesize Fuente: Wikimedia Commons \cite{wikimedia_exponential_survival}.}
+
+\subsection{Modelo de Weibull}
+\paragraph*{}El modelo de Weibull es también un modelo paramétrico, pero ofrece mayor flexibilidad que el modelo exponencial. Su principal ventaja es que permite representar situaciones en las que el riesgo no permanece constante, sino que puede aumentar o disminuir a lo largo del tiempo. Esta característica resulta especialmente interesante en el análisis del abandono académico, donde el riesgo puede variar según la etapa en la que se encuentre el estudiante.
+
+\paragraph*{}Por ejemplo, es posible que algunos estudiantes presenten mayor riesgo de abandono durante los primeros periodos de observación, mientras que otros lo hagan más adelante. El modelo de Weibull permite capturar este tipo de comportamientos de una forma más flexible. Por ello, su incorporación al dashboard amplía las posibilidades de análisis y permite comparar si una aproximación paramétrica más compleja se ajusta mejor a los datos que el modelo exponencial.
+
+\paragraph*{}Además, la comparación entre los modelos Exponencial y Weibull puede aportar información útil sobre la naturaleza del riesgo observado. Si Weibull ofrece un mejor ajuste, podría indicar que el riesgo de abandono no se mantiene constante, sino que evoluciona con el tiempo. Esta interpretación resulta valiosa para comprender mejor el fenómeno y para plantear estrategias de intervención más ajustadas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.40\textwidth]{Imagenes/modelo_weibull_pdf.png}
+    \caption{Ejemplo de distribuciones de Weibull con diferentes valores del parámetro de forma.}
+    \label{fig:modelo_weibull_pdf}
+\end{figure}
+\paragraph*{\footnotesize Fuente: Wikimedia Commons \cite{wikimedia_weibull_pdf}.}
+
+\subsection{Random Survival Forest}
+\paragraph*{}Random Survival Forest es una técnica basada en aprendizaje automático adaptada al análisis de supervivencia. Parte de la idea de los bosques aleatorios, pero incorpora la capacidad de trabajar con tiempos hasta evento y datos censurados. A diferencia de los modelos clásicos o paramétricos, este enfoque no exige asumir una forma concreta para la función de supervivencia ni una relación lineal entre las variables.
+
+\paragraph*{}Una de sus principales ventajas es su capacidad para capturar relaciones complejas entre covariables. En un contexto como el abandono universitario, donde pueden intervenir muchos factores de forma simultánea, esta flexibilidad resulta especialmente útil. El modelo puede aprender patrones no evidentes y ofrecer estimaciones de supervivencia para distintos perfiles de estudiantes.
+
+\paragraph*{}Además, Random Survival Forest permite obtener información sobre la importancia de las variables, lo que ayuda a identificar qué factores tienen mayor peso en la predicción del abandono. Esta característica conecta directamente con uno de los objetivos del proyecto: mejorar la capacidad de interpretación y análisis de los factores asociados al abandono académico. Aun así, al tratarse de un modelo más complejo, sus resultados deben interpretarse con cuidado y, siempre que sea posible, compararse con los obtenidos mediante técnicas más clásicas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{Imagenes/random_survival_forest_predicciones.png}
+    \caption{Ejemplo de curvas de supervivencia predichas mediante Random Survival Forest.}
+    \label{fig:random_survival_forest_predicciones}
+\end{figure}
+\paragraph*{\footnotesize Fuente: documentación de scikit-survival \cite{scikit_survival_rsf}.}

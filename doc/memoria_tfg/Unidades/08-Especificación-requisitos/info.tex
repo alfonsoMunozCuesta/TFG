@@ -1,0 +1,79 @@
+\chapter{Especificación de requisitos}
+\label{ch:especificación de requisitos}
+
+\paragraph*{}En este capítulo se llevará a cabo un análisis más detallado y técnico de los requisitos que componen el sistema.
+Partiendo de los requisitos ya definidos en el TFG anterior, este trabajo mantiene las funcionalidades generales básicas del sistema, como la carga, limpieza y visualización de datos, así como la interacción con el asistente de inteligencia artificial. No obstante, los requisitos específicos asociados a los modelos clásicos ya implementados en el sistema base no se redefinen de forma individual, puesto que forman parte de la solución previa. A partir de dicha base bien fundamentada, este TFG incorpora nuevos requisitos orientados a la ampliación funcional y a la mejora de la capacidad analítica del dashboard.
+\section{Requisitos funcionales}
+\begin{itemize}
+    \item \textbf{RF1.} El sistema debe permitir la interacción del usuario con el asistente de inteligencia artificial integrado.
+    
+    \item \textbf{RF2.} El sistema debe incorporar soporte multilingüe en la interfaz, permitiendo al menos el uso en castellano e inglés.
+    
+    \item \textbf{RF3.} El sistema debe permitir trabajar con nuevas variables del conjunto de datos, además de las ya contempladas en el sistema anterior.
+    
+    \item \textbf{RF4.} El sistema debe admitir el análisis de variables no binarias dentro del flujo de estudio.
+    
+    \item \textbf{RF5.} El sistema debe ampliar las visualizaciones disponibles para mejorar la interpretación de los resultados en los métodos de regresión de Cox y Test de Log-Rank.
+    
+    \item \textbf{RF6.} El sistema debe incorporar nuevas técnicas de análisis de supervivencia que amplíen la capacidad analítica del dashboard, cada una con sus respectivas interpretaciones.
+    
+    \item \textbf{RF7.} El sistema debe incorporar el modelo exponencial como nueva técnica de análisis de supervivencia.
+    
+    \item \textbf{RF8.} El sistema debe incorporar el modelo de Weibull como nueva técnica de análisis de supervivencia.
+    
+    \item \textbf{RF9.} El sistema debe incorporar Random Survival Forest como nueva técnica de análisis de supervivencia.
+    
+    \item \textbf{RF10.} El sistema debe permitir la comparación de resultados entre las distintas técnicas de análisis implementadas.
+    
+    \item \textbf{RF11.} El sistema debe incorporar una nueva solución de inteligencia artificial más rápida que la utilizada en el TFG anterior, manteniendo la generación de interpretaciones sobre los resultados estadísticos.
+    
+    \item \textbf{RF12.} El sistema debe mejorar la calidad de las explicaciones generadas por la inteligencia artificial a partir de los resultados estadísticos obtenidos.
+    
+    \item \textbf{RF13.} El sistema debe permitir la exportación de resultados, gráficas, tablas e informes en formato PDF para su uso en documentación o análisis posteriores.
+\end{itemize}
+
+
+
+\section{Requisitos no funcionales}
+\begin{itemize}
+    \item \textbf{RNF1.} El sistema debe ofrecer tiempos de respuesta adecuados durante la carga, limpieza y visualización de los datos.
+    
+    \item \textbf{RNF2.} El sistema debe ejecutar los análisis en un tiempo razonable, incluso tras la incorporación de nuevas técnicas de análisis de supervivencia.
+    
+    \item \textbf{RNF3.} El sistema debe reducir el tiempo de respuesta del módulo de inteligencia artificial con respecto a la solución utilizada en el TFG anterior, teniendo en cuenta métricas como el tiempo de respuesta, el tiempo de generación y el consumo de recursos.
+    
+    \item \textbf{RNF4.} El sistema debe garantizar la confidencialidad de los datos académicos utilizados en el análisis.
+    
+    \item \textbf{RNF5.} El sistema debe validar los archivos cargados para evitar la incorporación de contenido malicioso o no válido.
+    
+    \item \textbf{RNF6.} El sistema debe ofrecer una interfaz clara, comprensible y fácil de utilizar para facilitar la navegación y la comprensión de la información mostrada.
+    
+    \item \textbf{RNF7.} El sistema debe mostrar correctamente las visualizaciones y resultados en los navegadores de uso habitual.
+    
+    \item \textbf{RNF8.} El sistema debe mantener la estabilidad de las funcionalidades ya implementadas en la versión previa.
+    
+    \item \textbf{RNF9.} El sistema debe asegurar la coherencia entre los resultados estadísticos obtenidos, las gráficas generadas y las explicaciones producidas por la inteligencia artificial.
+    
+    \item \textbf{RNF10.} El sistema debe facilitar futuras ampliaciones funcionales sin necesidad de modificar por completo la estructura principal de la aplicación.
+    
+    \item \textbf{RNF11.} El sistema debe permitir un despliegue reproducible en entorno local con las dependencias necesarias correctamente definidas.
+\end{itemize}
+
+\section{Requisitos de información}
+\begin{itemize}
+    \item \textbf{RI1.} El sistema debe gestionar un conjunto de datos estructurado que contenga información académica de los estudiantes, incluyendo variables relevantes para el análisis de supervivencia.
+    
+    \item \textbf{RI2.} El sistema debe permitir la incorporación de nuevas variables al conjunto de datos, incluyendo variables no binarias.
+    
+    \item \textbf{RI3.} El sistema debe almacenar y procesar correctamente las variables necesarias para la aplicación de modelos de análisis de supervivencia.
+    
+    \item \textbf{RI3.1.} El sistema debe identificar correctamente las variables mínimas necesarias para el análisis, incluyendo un identificador del estudiante, una variable temporal y una variable que represente el evento o resultado observado.
+    
+    \item \textbf{RI3.2.} El sistema debe representar correctamente la información asociada a datos censurados, diferenciando los casos en los que el abandono se ha producido de aquellos en los que no se ha observado durante el periodo de estudio.
+    
+    \item \textbf{RI4.} El sistema debe generar y mantener los resultados derivados de los distintos modelos aplicados, incluyendo métricas, estimaciones y representaciones gráficas.
+    
+    \item \textbf{RI5.} El sistema debe proporcionar información interpretativa sobre los resultados obtenidos, facilitando su comprensión mediante el módulo de inteligencia artificial.
+    
+    \item \textbf{RI6.} El sistema debe permitir la exportación de la información generada, incluyendo resultados, tablas y gráficos, en formatos reutilizables.
+\end{itemize}

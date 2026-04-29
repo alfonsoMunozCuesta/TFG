@@ -132,10 +132,12 @@ def run_cox_regression(df_limpio, covariables):
             print(f"[DEBUG Cox] Error inicial: {str(e)}")
             print(f"[DEBUG Cox] Intentando con regularización...")
             
+            fitted_with_fallback = False
             try:
                 # Intentar con regularización (penalización)
                 cph = CoxPHFitter(penalizer=0.1)
                 cph.fit(df_cox, duration_col='date', event_col='final_result', show_progress=False)
+                fitted_with_fallback = True
                 print("[DEBUG Cox] ✓ Modelo ajustado con regularización")
             except Exception as e2:
                 print(f"[DEBUG Cox] Error con regularización: {str(e2)}")
@@ -150,7 +152,7 @@ def run_cox_regression(df_limpio, covariables):
             ]
             
             exito = False
-            for var_problematica in variables_problematicas:
+            for var_problematica in ([] if fitted_with_fallback else variables_problematicas):
                 if var_problematica in cov_cols_ajustadas:
                     cov_cols_temp = [c for c in cov_cols_ajustadas if c != var_problematica]
                     if not cov_cols_temp:
@@ -169,7 +171,7 @@ def run_cox_regression(df_limpio, covariables):
                     except:
                         continue
             
-            if not exito:
+            if not fitted_with_fallback and not exito:
                 print("[ERROR Cox] No se pudo ajustar el modelo con ninguna combinación de variables")
                 # Retornar error pero con información
                 error_summary = pd.DataFrame({

@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 from lifelines import KaplanMeierFitter
 from dash import dcc, html
-from config import df_limpio
 
 # Mapeo de parámetros a columnas reales
 COVARIABLE_MAPPING = {

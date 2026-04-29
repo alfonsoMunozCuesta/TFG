@@ -1,0 +1,470 @@
+\chapter{Diseño del sistema}
+\label{ch:diseno}
+
+\paragraph*{}
+La etapa de diseño es una fase clave dentro del desarrollo de la aplicación, ya que permite transformar los requisitos definidos anteriormente en una solución técnica concreta \cite{pressman2015}. En este punto el proyecto deja de ser solo una lista de necesidades y empieza a tomar forma: se decide cómo se organiza el sistema, cómo se comunican sus partes y de qué manera el usuario va a interactuar con los resultados.
+
+\paragraph*{}
+En este Trabajo Fin de Grado, además, el diseño tiene una particularidad importante. La aplicación no se construye desde cero, sino que parte de un dashboard previo que ya ofrecía funcionalidades de carga de datos, preprocesamiento y análisis de supervivencia. Por tanto, la solución diseñada se plantea como una ampliación ordenada del sistema existente. La idea no es romper la base anterior, sino aprovecharla y hacerla crecer con nuevos modelos, nuevas visualizaciones, soporte multilingüe, exportación de informes e interpretación asistida por inteligencia artificial.
+
+\section{Arquitectura del sistema}
+
+\paragraph*{}
+La arquitectura del sistema se organiza siguiendo una estructura modular. Esta decisión resulta bastante natural para una aplicación desarrollada en Python y Dash, ya que permite separar la interfaz, la lógica de análisis, la generación de informes y los servicios auxiliares. Gracias a esta división, cada parte del sistema tiene una responsabilidad concreta y es más sencillo mantener el proyecto, localizar errores o incorporar nuevas técnicas de análisis en el futuro.
+
+\paragraph*{}
+Desde un punto de vista general, el sistema puede entenderse como una aplicación web local compuesta por varias capas. En primer lugar, se encuentra la capa de presentación, construida con Dash, HTML y componentes interactivos. Esta capa es la que ve el usuario: menús, formularios, botones, tablas, gráficas y modales de exportación. En segundo lugar, aparece la capa de control, formada principalmente por los callbacks de Dash, que conectan las acciones del usuario con la lógica interna de la aplicación. Por último, se encuentra la capa de procesamiento, donde se ejecutan los modelos estadísticos, las transformaciones de datos, la generación de visualizaciones, la creación de PDFs y las peticiones al módulo de inteligencia artificial.
+
+\paragraph*{}
+El archivo \texttt{cargaDataset.py} actúa como punto de entrada de la aplicación. En él se inicializa el dashboard, se configuran las rutas principales y se gestiona la navegación entre páginas. El archivo \texttt{layout.py} concentra la definición visual de las distintas pantallas, mientras que \texttt{analysis\_callbacks.py} contiene gran parte de la lógica de interacción entre la interfaz y los análisis. Esta separación ayuda a que el diseño sea más comprensible: por un lado está lo que se muestra, y por otro lo que ocurre cuando el usuario interactúa con la aplicación.
+
+\paragraph*{}
+Como apoyo a esta estructura, el módulo \texttt{config.py} centraliza rutas y constantes de configuración, pero evita cargar los conjuntos de datos en el momento de importar el módulo. En su lugar, la carga se realiza bajo demanda cuando alguna parte de la aplicación necesita acceder a los ficheros CSV. Esta decisión reduce acoplamientos innecesarios entre módulos y evita que la aplicación falle al arrancar únicamente porque un archivo de datos todavía no esté disponible. Además, el modo de depuración del servidor Dash se plantea como una opción configurable mediante variable de entorno, de forma que el arranque normal del sistema no dependa de un modo de desarrollo activado de forma permanente.
+
+\paragraph*{}
+La parte analítica se reparte en módulos específicos según la técnica utilizada. Los modelos ya presentes en el sistema base, como Kaplan-Meier, regresión de Cox y Test de Log-Rank, se complementan con los nuevos módulos \texttt{exponential.py}, \texttt{weibull.py} y \texttt{rsf.py}. De esta forma, cada técnica mantiene su propia lógica de cálculo y puede evolucionar sin afectar directamente al resto del sistema. En el caso concreto de la regresión de Cox, el diseño contempla mecanismos de recuperación ante problemas de convergencia, utilizando regularización antes de recurrir a simplificar el conjunto de covariables. Además, el módulo \texttt{survival\_plots.py} recoge visualizaciones asociadas a los análisis, y los módulos \texttt{pdf\_exporter.py} y \texttt{pdf\_callbacks.py} se encargan de la exportación de resultados.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{0.35\textwidth}|p{0.55\textwidth}|}
+\hline
+\textbf{Módulo} & \textbf{Responsabilidad principal} \\ \hline
+\texttt{cargaDataset.py} & Inicialización de la aplicación, rutas, navegación y arranque del dashboard. \\ \hline
+\texttt{layout.py} & Construcción de las páginas, componentes visuales, formularios y modales. \\ \hline
+\texttt{analysis\_callbacks.py} & Gestión de callbacks, interacción del usuario, carga, validación y ejecución de análisis. \\ \hline
+\texttt{config.py} & Centralización de rutas y constantes, con carga de datos bajo demanda para reducir dependencias al inicio. \\ \hline
+\texttt{preprocesamiento.py} & Limpieza y preparación del conjunto de datos antes de aplicar los modelos. \\ \hline
+\texttt{kaplan\_meier.py}, \texttt{cox\_regression.py} y \texttt{log\_rank\_test.py} & Técnicas de análisis de supervivencia procedentes del sistema base. \\ \hline
+\texttt{exponential.py}, \texttt{weibull.py} y \texttt{rsf.py} & Nuevas técnicas incorporadas en esta ampliación del dashboard. \\ \hline
+\texttt{ollama\_AI.py} & Generación de explicaciones interpretativas mediante inteligencia artificial local. \\ \hline
+\texttt{pdf\_exporter.py} y \texttt{pdf\_callbacks.py} & Construcción y descarga de informes PDF con resultados, gráficas e interpretaciones. \\ \hline
+\texttt{translations.py} & Gestión de textos en castellano e inglés para el soporte multilingüe. \\ \hline
+\end{tabular}
+\caption{Distribución modular del sistema}
+\label{tab:modulos_sistema}
+\end{table}
+
+\section{Diseño de la interfaz}
+
+\paragraph*{}
+El diseño de la interfaz mantiene la idea principal del dashboard original: ofrecer al usuario un entorno visual desde el que pueda cargar datos, ejecutar análisis y consultar resultados sin tener que trabajar directamente con código. La verdad es que este punto es importante, porque el sistema está pensado para facilitar el análisis de supervivencia en un contexto académico, donde no siempre se parte de un perfil técnico avanzado.
+
+\paragraph*{}
+La navegación se estructura mediante diferentes páginas o secciones. Cada una agrupa funcionalidades relacionadas: carga y visualización del dataset, análisis de covariables, técnicas de supervivencia, comparación de modelos y exportación de resultados. Esta organización evita mezclar demasiada información en una sola pantalla y permite que el usuario avance poco a poco, como si siguiera un pequeño recorrido: primero carga los datos, después los prepara, luego ejecuta modelos y finalmente interpreta o exporta los resultados.
+
+\paragraph*{}
+En las páginas de análisis se ha seguido un patrón común. Primero se presenta la técnica seleccionada, después se muestran los controles necesarios y, finalmente, se generan tablas, métricas, gráficas e interpretaciones. Este patrón se repite en modelos como Exponencial, Weibull y Random Survival Forest, lo que aporta coherencia al uso de la aplicación. Cuando el usuario aprende cómo funciona una sección, puede moverse por las demás con menos esfuerzo.
+
+\paragraph*{}
+También se ha cuidado el diseño de los modales de exportación. Estos permiten seleccionar qué contenido se desea incluir en el informe, como tablas, gráficos o explicaciones generadas por IA. De esta forma, la exportación no se limita a descargar una captura rígida de la pantalla, sino que ofrece cierto control sobre el resultado final. Además, la interfaz incorpora soporte multilingüe, permitiendo alternar entre castellano e inglés y adaptando los textos visibles de la aplicación al idioma seleccionado.
+
+\subsection{Interfaz de usuario (UI)}
+
+\paragraph*{}
+A continuación se muestran las principales pantallas de la interfaz desarrollada. Estas capturas permiten ver el recorrido básico que sigue el usuario dentro del dashboard: desde la entrada inicial al sistema, pasando por la carga y limpieza del archivo de datos, hasta llegar a las secciones de análisis de covariables y análisis de supervivencia.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/home.png}
+    \caption{Pantalla principal del dashboard}
+    \label{fig:interfaz_home}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/archivo_bruto.png}
+    \caption{Visualización del archivo bruto cargado en el sistema}
+    \label{fig:interfaz_archivo_bruto}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/archivo_limpio.png}
+    \caption{Visualización del archivo limpio tras el preprocesamiento}
+    \label{fig:interfaz_archivo_limpio}
+\end{figure}
+
+\subsubsection*{\underline{Ver dataset}}
+
+\paragraph*{}
+La sección de visualización del dataset permite revisar los datos cargados antes y después del proceso de limpieza. Esta parte resulta útil para que el usuario pueda comprobar, de un vistazo, qué información se está utilizando realmente en los análisis posteriores.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/ver1.png}
+    \caption{Vista inicial de la sección Ver dataset}
+    \label{fig:interfaz_ver_dataset_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/ver2.png}
+    \caption{Detalle de la visualización del dataset dentro del dashboard}
+    \label{fig:interfaz_ver_dataset_2}
+\end{figure}
+
+\subsubsection*{\underline{Análisis de covariables}}
+
+\paragraph*{}
+El análisis de covariables permite explorar la relación entre las variables disponibles y el evento de interés. Esta pantalla sirve como apoyo previo al análisis de supervivencia, ya que ayuda a detectar qué variables pueden aportar información relevante antes de aplicar los modelos estadísticos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/analisis_covariables.png}
+    \caption{Sección de análisis de covariables}
+    \label{fig:interfaz_analisis_covariables}
+\end{figure}
+
+\subsubsection*{\underline{Análisis de supervivencia}}
+
+\paragraph*{}
+La sección de análisis de supervivencia actúa como punto de entrada a las distintas técnicas disponibles en el sistema. Desde esta pantalla el usuario puede acceder a los métodos clásicos y a las nuevas técnicas incorporadas, manteniendo una navegación centralizada y fácil de seguir.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/analisis_superv.png}
+    \caption{Sección de análisis de supervivencia}
+    \label{fig:interfaz_analisis_supervivencia}
+\end{figure}
+
+\subsubsection*{\underline{Kaplan-Meier}}
+
+\paragraph*{}
+Dentro del análisis de supervivencia, la sección de Kaplan-Meier permite consultar la curva de supervivencia general, aplicar filtros sobre los datos y exportar los resultados obtenidos. Es una de las vistas más importantes del sistema, ya que ofrece una primera lectura visual de la evolución de la supervivencia en el conjunto de datos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/kp_general.png}
+    \caption{Vista general del análisis Kaplan-Meier}
+    \label{fig:interfaz_kp_general}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/curva_kp.png}
+    \caption{Curva de supervivencia generada mediante Kaplan-Meier}
+    \label{fig:interfaz_curva_kp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/filtros_kp.png}
+    \caption{Filtros disponibles en el análisis Kaplan-Meier}
+    \label{fig:interfaz_filtros_kp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/exportarPDFKp.png}
+    \caption{Exportación a PDF de los resultados de Kaplan-Meier}
+    \label{fig:interfaz_exportar_pdf_kp}
+\end{figure}
+
+\subsubsection*{\underline{Regresión de Cox}}
+
+\paragraph*{}
+La vista de regresión de Cox permite analizar la influencia de distintas covariables sobre el tiempo hasta el evento. Además de mostrar los resultados del modelo, la interfaz incorpora filtros, gráficas asociadas y la opción de exportar la información generada.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/regresionCox.png}
+    \caption{Vista principal de la regresión de Cox}
+    \label{fig:interfaz_regresion_cox}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/filtrosCox.png}
+    \caption{Filtros utilizados en la regresión de Cox}
+    \label{fig:interfaz_filtros_cox}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/graficaCox.png}
+    \caption{Gráfica generada a partir del modelo de regresión de Cox}
+    \label{fig:interfaz_grafica_cox}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Imagenes/botonPDFCox.png}
+    \caption{Botón de exportación a PDF utilizado en Cox y también en el Test de Log-Rank}
+    \label{fig:interfaz_boton_pdf_cox_logrank}
+\end{figure}
+
+\subsubsection*{\underline{Test de Log-Rank}}
+
+\paragraph*{}
+El Test de Log-Rank se utiliza para comparar curvas de supervivencia entre grupos. En la aplicación comparte parte de la estructura visual con la regresión de Cox, especialmente en los filtros, pero orienta la salida a la comparación estadística entre categorías.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/logRank.png}
+    \caption{Vista principal del Test de Log-Rank}
+    \label{fig:interfaz_logrank}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/filtrosCox.png}
+    \caption{Filtros compartidos por Cox y el Test de Log-Rank}
+    \label{fig:interfaz_filtros_logrank}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/ejemploLogRank.png}
+    \caption{Ejemplo de resultado generado mediante el Test de Log-Rank}
+    \label{fig:interfaz_ejemplo_logrank}
+\end{figure}
+
+\subsubsection*{\underline{Weibull}}
+
+\paragraph*{}
+La técnica de Weibull amplía el análisis de supervivencia con un modelo paramétrico capaz de representar distintos comportamientos del riesgo a lo largo del tiempo. En la interfaz se muestran los resultados principales del ajuste, las visualizaciones asociadas y la opción de exportación conjunta.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/weibull1.png}
+    \caption{Vista inicial del análisis mediante el modelo de Weibull}
+    \label{fig:interfaz_weibull_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/weibull2.png}
+    \caption{Resultados y visualizaciones del modelo de Weibull}
+    \label{fig:interfaz_weibull_2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/exportarCombinado.png}
+    \caption{Botón de exportación combinada utilizado en Weibull y Exponencial, ya que ambos modelos exportan el mismo tipo de resultados}
+    \label{fig:interfaz_exportar_combinado_weibull_exponencial}
+\end{figure}
+
+\subsubsection*{\underline{Exponencial}}
+
+\paragraph*{}
+El modelo exponencial ofrece una aproximación paramétrica más sencilla, basada en una tasa de riesgo constante. Por eso, dentro de la aplicación resulta útil como técnica de referencia, especialmente para comparar su comportamiento frente a modelos más flexibles como Weibull o Random Survival Forest.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/exponencial1.png}
+    \caption{Vista inicial del análisis mediante el modelo exponencial}
+    \label{fig:interfaz_exponencial_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/exponencial2.png}
+    \caption{Resultados y visualizaciones del modelo exponencial}
+    \label{fig:interfaz_exponencial_2}
+\end{figure}
+
+\subsubsection*{\underline{Random Survival Forest}}
+
+\paragraph*{}
+Random Survival Forest incorpora una técnica basada en aprendizaje automático para estudiar relaciones más complejas entre las variables del dataset y el tiempo hasta el evento. La interfaz recoge tanto la ejecución del modelo como los resultados gráficos y métricos necesarios para interpretar su comportamiento.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/rsf1.png}
+    \caption{Vista inicial del análisis mediante Random Survival Forest}
+    \label{fig:interfaz_rsf_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/rsf2.png}
+    \caption{Resultados generales generados por Random Survival Forest}
+    \label{fig:interfaz_rsf_2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/rsf3.png}
+    \caption{Visualización complementaria del análisis Random Survival Forest}
+    \label{fig:interfaz_rsf_3}
+\end{figure}
+
+\subsubsection*{\underline{Comparación de técnicas}}
+
+\paragraph*{}
+La página de comparación de técnicas aparece al acceder a la sección de análisis de supervivencia. A diferencia de las vistas anteriores, no se trata de un modelo ejecutable, sino de una página estática pensada para orientar al usuario. En ella se resume, de forma sencilla, qué hace cada método, qué tipo de información aporta y en qué situaciones puede resultar más útil. La idea es que el usuario no tenga que elegir una técnica a ciegas, sino que cuente con una pequeña guía dentro de la propia aplicación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/comparar1.png}
+    \caption{Página de comparación de técnicas de supervivencia}
+    \label{fig:interfaz_comparar_tecnicas_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/comparar2.png}
+    \caption{Detalle explicativo de la comparación de técnicas}
+    \label{fig:interfaz_comparar_tecnicas_2}
+\end{figure}
+
+\subsubsection*{\underline{Botones}}
+
+\paragraph*{}
+La interfaz incluye distintos botones de acción que guían al usuario durante el uso de la aplicación. Algunos permiten cambiar entre vistas del dataset, otros activan funcionalidades de apoyo como la interpretación mediante inteligencia artificial, y otros se encargan de la exportación de resultados. Aunque son elementos pequeños dentro de la pantalla, la verdad es que tienen bastante peso en la experiencia de uso, porque marcan los pasos principales del flujo de trabajo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonInicio.png}
+    \caption{Botón para consultar el dataset bruto}
+    \label{fig:interfaz_boton_inicio}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonYaLimpio.png}
+    \caption{Botón para consultar el dataset limpio}
+    \label{fig:interfaz_boton_dataset_limpio}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonIA.png}
+    \caption{Botón para solicitar una interpretación mediante inteligencia artificial}
+    \label{fig:interfaz_boton_ia}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonExportar.png}
+    \caption{Botón de exportación de resultados}
+    \label{fig:interfaz_boton_exportar}
+\end{figure}
+
+\paragraph*{}
+Al pulsar el botón de exportación se abre una ventana modal en la que el usuario puede seleccionar la opción de generar informe. Una vez confirmada la acción, el sistema prepara el documento y se descarga el PDF correspondiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonDentroexportar.png}
+    \caption{Botón de confirmación para generar y descargar el informe PDF}
+    \label{fig:interfaz_boton_dentro_exportar}
+\end{figure}
+
+\paragraph*{}
+En los modelos Weibull y Exponencial se incluye además un botón de exportación combinada, ya que ambos representan una relación de caso general y caso particular dentro de los modelos paramétricos. Por su parte, Random Survival Forest incorpora un botón específico para simular perfiles, lo que permite explorar el comportamiento del modelo ante distintas combinaciones de variables.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonCombinado.png}
+    \caption{Botón de exportación combinada para Weibull y Exponencial}
+    \label{fig:interfaz_boton_combinado}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonSimularPerfil.png}
+    \caption{Botón de simulación de perfiles en Random Survival Forest}
+    \label{fig:interfaz_boton_simular_perfil}
+\end{figure}
+
+\section{Diagrama de clases y componentes}
+
+\paragraph*{}
+Al tratarse de una aplicación desarrollada principalmente con Dash, funciones de Python y callbacks, el sistema no sigue una estructura clásica basada únicamente en clases. Por ese motivo, en este apartado se plantea una vista mixta de clases y componentes, donde se representan tanto la clase principal de exportación como los módulos funcionales que sostienen el comportamiento del dashboard. Esta visión resulta más fiel al proyecto que forzar un diagrama de clases tradicional con entidades que realmente no existen en el código.
+
+\paragraph*{}
+El componente central es la aplicación Dash, inicializada desde \texttt{cargaDataset.py}. A partir de ella se conectan los layouts definidos en \texttt{layout.py} y los callbacks registrados en \texttt{analysis\_callbacks.py} y \texttt{pdf\_callbacks.py}. Los callbacks actúan como punto de unión entre la interacción del usuario y los módulos funcionales. Por ejemplo, cuando el usuario selecciona el modelo de Weibull, el callback correspondiente recoge el dataset preparado, invoca la función de análisis y devuelve a la interfaz los resultados que deben mostrarse.
+
+\paragraph*{}
+En cuanto a clases propiamente dichas, destaca \texttt{SurvivalAnalysisPDFExporter}, definida en \texttt{pdf\_exporter.py}. Esta clase concentra la responsabilidad de construir los informes PDF, añadiendo secciones, tablas, gráficas e interpretaciones. Su existencia tiene sentido porque la generación de documentos requiere mantener una estructura interna y reutilizar operaciones comunes en distintos tipos de informe.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{0.38\textwidth}|p{0.52\textwidth}|}
+\hline
+\textbf{Elemento de diseño} & \textbf{Descripción} \\ \hline
+\texttt{Dash App} & Núcleo de la aplicación web. Gestiona la ejecución del servidor local y la navegación entre páginas. \\ \hline
+\texttt{Layouts} & Componentes visuales creados en \texttt{layout.py}. Definen qué ve el usuario en cada pantalla. \\ \hline
+\texttt{Callbacks de análisis} & Funciones que responden a eventos de la interfaz y conectan la entrada del usuario con los modelos estadísticos. \\ \hline
+\texttt{Módulos de modelos} & Funciones específicas para Kaplan-Meier, Cox, Test de Log-Rank, Exponencial, Weibull y Random Survival Forest. \\ \hline
+\texttt{Módulo IA} & Componente encargado de enviar información del análisis al modelo local y recuperar una explicación textual. \\ \hline
+\texttt{SurvivalAnalysisPDF}\\ \texttt{Exporter} & Clase responsable de generar informes PDF reutilizando tablas, gráficos e interpretaciones. \\ \hline
+\texttt{Traducciones} & Diccionario de textos que permite adaptar la interfaz al idioma seleccionado. \\ \hline
+\end{tabular}
+\caption{Vista de diseño basada en clases y componentes del sistema}
+\label{tab:componentes_diseno}
+\end{table}
+
+\section{Diagramas de secuencia}
+
+\paragraph*{}
+Los diagramas de secuencia muestran cómo colaboran los principales componentes del sistema cuando el usuario ejecuta cada una de las funcionalidades definidas en los casos de uso. A diferencia de los diagramas de actividad, que se centran en el flujo de acciones, estos diagramas ayudan a entender qué partes internas intervienen en cada proceso: la interfaz, los callbacks, el dataset, los modelos de análisis, la generación de visualizaciones, la inteligencia artificial o la exportación de informes.
+\paragraph*{}
+En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facilitar la lectura de las interacciones. Por este motivo, algunos participantes aparecen con nombres funcionales, como ``Interfaz Dash'', ``Callbacks de análisis'' o ``Estado del dataset'', en lugar de emplear exactamente los nombres técnicos utilizados en la vista de clases y componentes. Estos participantes no deben interpretarse siempre como clases Python estrictas, sino como componentes o responsabilidades del sistema. No obstante, se corresponden con los elementos descritos anteriormente: la interfaz se relaciona con \texttt{DashApp} y \texttt{layout.py}, los callbacks con \texttt{AnalysisCallbacks}, el estado del dataset con el componente \texttt{Dataset}, y los módulos de análisis con sus correspondientes modelos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu1.png}
+    \caption{Diagrama de secuencia del CU-1: EjecutarModeloExponencial}
+    \label{fig:sec_cu1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu2.png}
+    \caption{Diagrama de secuencia del CU-2: EjecutarModeloWeibull}
+    \label{fig:sec_cu2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu3.png}
+    \caption{Diagrama de secuencia del CU-3: EjecutarRandomSurvivalForest}
+    \label{fig:sec_cu3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu4.png}
+    \caption{Diagrama de secuencia del CU-4: ConsultarComparacionDeTecnicas}
+    \label{fig:sec_cu4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu5.png}
+    \caption{Diagrama de secuencia del CU-5: ExportarInformesYResultados}
+    \label{fig:sec_cu5}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu6.png}
+    \caption{Diagrama de secuencia del CU-6: CambiarIdiomaInterfaz}
+    \label{fig:sec_cu6}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu7.png}
+    \caption{Diagrama de secuencia del CU-7: AnalizarVariablesNoBinarias}
+    \label{fig:sec_cu7}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu8.png}
+    \caption{Diagrama de secuencia del CU-8: MejorarInterpretacionIA}
+    \label{fig:sec_cu8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/sec_cu9.png}
+    \caption{Diagrama de secuencia del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+    \label{fig:sec_cu9}
+\end{figure}

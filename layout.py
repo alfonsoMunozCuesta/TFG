@@ -45,7 +45,6 @@ def _get_layout_df():
     base_dir = Path(__file__).resolve().parent
     candidate_paths = [
         base_dir / 'dataset_limpio.csv',
-        Path(r'C:\Users\LENOVO\Desktop\CODE_LUCI\Survival-Analysis\dataset_limpio.csv'),
     ]
 
     loaded_df = None

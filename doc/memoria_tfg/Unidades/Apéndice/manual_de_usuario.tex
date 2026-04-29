@@ -1,0 +1,29 @@
+% =========================================================
+% ANEXO A - MANUAL DE USUARIO (contenido)
+% Este archivo se incluye desde el main, donde YA se hace:
+% \appendix
+% \chapter{Anexo del Manual de Usuario}
+% \input{.../manual_de_usuario}
+% =========================================================
+
+% =========================================================
+% PARCHE ToC: evita "A.1Introducción" (sin espacio)
+% Causa: numwidth del ToC demasiado pequeño con numeración tipo A.1
+% Solución: aumentar el ancho reservado a la numeración en secciones
+% =========================================================
+\makeatletter
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{4.0em}}
+\renewcommand*\l@subsection{\@dottedtocline{2}{3.8em}{4.6em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{7.0em}{5.2em}}
+\makeatother
+
+% =========================
+% INTRODUCCIÓN
+% =========================
+
+% ------------------------------------------------------------
+% PRESENTACIÓN DEL MANUAL (ADMINISTRADOR Y TRABAJADOR)
+% ------------------------------------------------------------
+
+\paragraph*{}Esta aplicación ha sido desarrollada con el objetivo de digitalizar y centralizar los procesos esenciales de gestión de personal y planificación de eventos dentro de una organización. La plataforma permite registrar eventos, solicitar disponibilidad, asignar trabajadores, mantener un canal de comunicación interno y gestionar el seguimiento de pagos, ofreciendo un entorno único y accesible que reduce la dependencia de herramientas externas.
+
