@@ -1,0 +1,90 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{\'{I}ndice de figuras}{IX}{chapter*.3}%
+\contentsline {chapter}{\'{I}ndice de tablas}{XIII}{chapter*.4}%
+\contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Objetivos}{3}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Antecedentes}{5}{chapter.3}%
+\contentsline {chapter}{\numberline {4}Planificación temporal}{7}{chapter.4}%
+\contentsline {chapter}{\numberline {5}Marco teórico}{10}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Fundamentos del análisis de supervivencia}{10}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Técnicas clásicas de análisis de supervivencia}{11}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Kaplan-Meier}{11}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Regresión de Cox}{12}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Test de Log-Rank}{12}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}Técnicas incorporadas en la ampliación}{13}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Modelo exponencial}{13}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Modelo de Weibull}{14}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Random Survival Forest}{15}{subsection.5.3.3}%
+\contentsline {chapter}{\numberline {6}Recursos}{17}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Recursos humanos}{17}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Recursos hardware}{18}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Recursos software}{19}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Recursos de datos}{20}{section.6.4}%
+\contentsline {chapter}{\numberline {7}Especificación de requisitos}{21}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Requisitos funcionales}{21}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Requisitos no funcionales}{22}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Requisitos de información}{23}{section.7.3}%
+\contentsline {chapter}{\numberline {8}Análisis del problema}{24}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Identificación de actores}{24}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Identificación de casos de uso}{25}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Diagrama de casos de uso}{27}{section.8.3}%
+\contentsline {section}{\numberline {8.4}Especificación de los casos de uso}{28}{section.8.4}%
+\contentsline {subsection}{\numberline {8.4.1}CU-1: EjecutarModeloExponencial}{28}{subsection.8.4.1}%
+\contentsline {subsection}{\numberline {8.4.2}CU-2: EjecutarModeloWeibull}{30}{subsection.8.4.2}%
+\contentsline {subsection}{\numberline {8.4.3}CU-3: EjecutarRandomSurvivalForest}{32}{subsection.8.4.3}%
+\contentsline {subsection}{\numberline {8.4.4}CU-4: ConsultarComparacionDeTecnicas}{34}{subsection.8.4.4}%
+\contentsline {subsection}{\numberline {8.4.5}CU-5: ExportarInformesYResultados}{37}{subsection.8.4.5}%
+\contentsline {subsection}{\numberline {8.4.6}CU-6: CambiarIdiomaInterfaz}{39}{subsection.8.4.6}%
+\contentsline {subsection}{\numberline {8.4.7}CU-7: AnalizarVariablesNoBinarias}{40}{subsection.8.4.7}%
+\contentsline {subsection}{\numberline {8.4.8}CU-8: MejorarInterpretacionIA}{42}{subsection.8.4.8}%
+\contentsline {subsection}{\numberline {8.4.9}CU-9: AmpliarVisualizacionesCoxTestLogRank}{43}{subsection.8.4.9}%
+\contentsline {section}{\numberline {8.5}Matriz de trazabilidad}{44}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Diagramas de actividad}{45}{section.8.6}%
+\contentsline {subsection}{\numberline {8.6.1}CU-1: EjecutarModeloExponencial}{45}{subsection.8.6.1}%
+\contentsline {subsection}{\numberline {8.6.2}CU-2: EjecutarModeloWeibull}{46}{subsection.8.6.2}%
+\contentsline {subsection}{\numberline {8.6.3}CU-3: EjecutarRandomSurvivalForest}{48}{subsection.8.6.3}%
+\contentsline {subsection}{\numberline {8.6.4}CU-4: ConsultarComparacionDeTecnicas}{50}{subsection.8.6.4}%
+\contentsline {subsection}{\numberline {8.6.5}CU-5: ExportarInformesYResultados}{51}{subsection.8.6.5}%
+\contentsline {subsection}{\numberline {8.6.6}CU-6: CambiarIdiomaInterfaz}{52}{subsection.8.6.6}%
+\contentsline {subsection}{\numberline {8.6.7}CU-7: AnalizarVariablesNoBinarias}{53}{subsection.8.6.7}%
+\contentsline {subsection}{\numberline {8.6.8}CU-8: MejorarInterpretacionIA}{54}{subsection.8.6.8}%
+\contentsline {subsection}{\numberline {8.6.9}CU-9: AmpliarVisualizacionesCoxTestLogRank}{56}{subsection.8.6.9}%
+\contentsline {chapter}{\numberline {9}Diseño del sistema}{57}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Arquitectura del sistema}{57}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Diseño de la interfaz}{59}{section.9.2}%
+\contentsline {subsection}{\numberline {9.2.1}Interfaz de usuario (UI)}{60}{subsection.9.2.1}%
+\contentsline {section}{\numberline {9.3}Diagrama de clases y componentes}{76}{section.9.3}%
+\contentsline {section}{\numberline {9.4}Diagramas de secuencia}{77}{section.9.4}%
+\contentsline {chapter}{\numberline {10}Implementación}{86}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Tecnologías y librerías utilizadas}{86}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Estructura del código fuente}{87}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Carga y preprocesamiento de datos}{89}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Implementación de los modelos}{89}{section.10.4}%
+\contentsline {subsection}{\numberline {10.4.1}Modelo exponencial}{89}{subsection.10.4.1}%
+\contentsline {subsection}{\numberline {10.4.2}Modelo de Weibull}{90}{subsection.10.4.2}%
+\contentsline {subsection}{\numberline {10.4.3}Random Survival Forest}{91}{subsection.10.4.3}%
+\contentsline {subsection}{\numberline {10.4.4}Regresión de Cox y Test de Log-Rank}{93}{subsection.10.4.4}%
+\contentsline {section}{\numberline {10.5}Generación de gráficas}{94}{section.10.5}%
+\contentsline {section}{\numberline {10.6}Integración con callbacks}{94}{section.10.6}%
+\contentsline {section}{\numberline {10.7}Interpretación mediante inteligencia artificial}{95}{section.10.7}%
+\contentsline {section}{\numberline {10.8}Exportación de informes}{96}{section.10.8}%
+\contentsline {section}{\numberline {10.9}Internacionalización del Dash}{97}{section.10.9}%
+\contentsline {section}{\numberline {10.10}Aspectos destacables de la implementación}{98}{section.10.10}%
+\contentsline {chapter}{\numberline {11}Pruebas}{100}{chapter.11}%
+\contentsline {section}{\numberline {11.1}CU-1: EjecutarModeloExponencial}{100}{section.11.1}%
+\contentsline {section}{\numberline {11.2}CU-2: EjecutarModeloWeibull}{101}{section.11.2}%
+\contentsline {section}{\numberline {11.3}CU-3: EjecutarRandomSurvivalForest}{103}{section.11.3}%
+\contentsline {section}{\numberline {11.4}CU-4: ConsultarComparacionDeTecnicas}{105}{section.11.4}%
+\contentsline {section}{\numberline {11.5}CU-5: ExportarInformesYResultados}{107}{section.11.5}%
+\contentsline {section}{\numberline {11.6}CU-6: CambiarIdiomaInterfaz}{109}{section.11.6}%
+\contentsline {section}{\numberline {11.7}CU-7: AnalizarVariablesNoBinarias}{111}{section.11.7}%
+\contentsline {section}{\numberline {11.8}CU-8: MejorarInterpretacionIA}{113}{section.11.8}%
+\contentsline {section}{\numberline {11.9}CU-9: AmpliarVisualizacionesCoxTestLogRank}{115}{section.11.9}%
+\contentsline {chapter}{\numberline {12}Discusión y conclusiones finales}{118}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Análisis de los objetivos iniciales}{118}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Problemas encontrados en el desarrollo}{118}{section.12.2}%
+\contentsline {section}{\numberline {12.3}Conclusiones y posibles mejoras}{118}{section.12.3}%
+\contentsline {chapter}{Bibliograf\'{\i }a}{119}{chapter*.76}%
+\contentsline {chapter}{\numberline {A}Anexo del Manual de Usuario}{121}{appendix.Alph1}%
+\contentsline {chapter}{\numberline {B}Anexo del Manual de código fuente}{123}{appendix.Alph2}%
+\contentsline {section}{\numberline {B.1}Introducción}{123}{section.Alph2.1}%

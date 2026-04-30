@@ -1,7 +1,437 @@
 \chapter{Pruebas}
-Una vez finalizada la implementación de la aplicación, resulta fundamental verificar que las funcionalidades desarrolladas producen los resultados esperados, con el fin de asegurar la calidad y la fiabilidad del proyecto.
 
-\section{CU1}
-\section{CU2}
-\section{CU3}
-\section{...}
+\paragraph*{}
+Una vez finalizada la implementación de la aplicación, resulta fundamental verificar que las funcionalidades desarrolladas producen los resultados esperados. El objetivo de este capítulo es comprobar, caso por caso, que el sistema responde correctamente tanto ante situaciones válidas como ante escenarios erróneos o incompletos. De esta forma, no solo se valida que la funcionalidad exista, sino también que se comporte de manera controlada cuando las condiciones de ejecución no son adecuadas.
+
+\newcommand{\tituloPrueba}[1]{\vspace{0.8em}\noindent\textbf{\underline{#1}}\par\vspace{0.4em}}
+
+\section{CU-1: EjecutarModeloExponencial}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Ejecutar el modelo exponencial con un dataset previamente cargado, válido y preprocesado. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite aplicar el modelo exponencial como técnica de análisis de supervivencia y que muestra los resultados generados de forma comprensible para el usuario. \\ \hline
+\textbf{Resultado esperado} & El sistema carga la vista del modelo, valida la existencia del dataset, ajusta el modelo exponencial y muestra la curva de supervivencia, la tabla de métricas y la comparación con otros ajustes, dejando los resultados disponibles para su interpretación o exportación. \\ \hline
+\textbf{Resultado obtenido} & El sistema ejecuta correctamente el análisis exponencial y muestra los resultados asociados, incluyendo la representación gráfica de la supervivencia y las métricas principales del modelo, como el parámetro \(\lambda\), el AIC y el log-likelihood. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-1: EjecutarModeloExponencial}
+\label{tab:prueba_valida_cu1}
+\normalsize
+\end{table}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/exponencial1.png}
+\caption{Evidencia de ejecución correcta del CU-1: EjecutarModeloExponencial}
+\label{fig:prueba_cu1_exponencial}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar ejecutar el modelo exponencial sin disponer de un dataset cargado o con datos insuficientes para ajustar el análisis. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema no genera resultados estadísticos inválidos cuando no se cumplen las condiciones mínimas necesarias para ejecutar el modelo. \\ \hline
+\textbf{Resultado esperado} & El sistema debe impedir la ejecución del análisis o devolver una salida controlada, evitando mostrar gráficas, métricas o interpretaciones que puedan inducir a error. \\ \hline
+\textbf{Resultado obtenido} & El sistema no completa el análisis cuando los datos no son válidos o no contienen información suficiente, manteniendo un comportamiento controlado y evitando presentar resultados inconsistentes. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con la validación implementada en el modelo. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es cargar y preprocesar un dataset válido antes de ejecutar el modelo exponencial. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-1: EjecutarModeloExponencial}
+\label{tab:prueba_erronea_cu1}
+\normalsize
+\end{table}
+
+\section{CU-2: EjecutarModeloWeibull}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Ejecutar el modelo de Weibull con un dataset previamente cargado, válido y preprocesado. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite aplicar el modelo de Weibull como técnica paramétrica de análisis de supervivencia, mostrando los resultados necesarios para estudiar el comportamiento del riesgo a lo largo del tiempo. \\ \hline
+\textbf{Resultado esperado} & El sistema carga la vista del modelo, comprueba que existe un dataset disponible, ajusta el modelo de Weibull y muestra la tabla resumen, la gráfica de supervivencia y la comparativa de ajuste. Además, los resultados deben quedar disponibles para su interpretación mediante IA o para su exportación a PDF. \\ \hline
+\textbf{Resultado obtenido} & El sistema ejecuta correctamente el análisis de Weibull y presenta los resultados asociados al modelo, incluyendo la curva de supervivencia, los parámetros principales del ajuste y las métricas de comparación necesarias para valorar su comportamiento frente a otros modelos. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-2: EjecutarModeloWeibull}
+\label{tab:prueba_valida_cu2}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/weibull1.png}
+\caption{Evidencia de ejecución correcta del CU-2: EjecutarModeloWeibull}
+\label{fig:prueba_cu2_weibull}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar ejecutar el modelo de Weibull sin disponer de un dataset cargado, con datos insuficientes o con información no compatible con el ajuste del modelo. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema controla los errores de entrada y evita generar resultados estadísticos cuando no se cumplen las condiciones mínimas para ajustar correctamente el modelo de Weibull. \\ \hline
+\textbf{Resultado esperado} & El sistema debe impedir la ejecución completa del análisis o devolver una respuesta controlada, informando de que no es posible calcular el modelo con los datos disponibles y evitando mostrar métricas o gráficas incorrectas. \\ \hline
+\textbf{Resultado obtenido} & El sistema no genera resultados cuando el dataset no está disponible o no contiene información suficiente para realizar el ajuste, manteniendo un comportamiento coherente con las validaciones definidas en el flujo alternativo del caso de uso. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El sistema responde de forma controlada ante la ausencia de datos válidos. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es cargar y preprocesar un dataset válido antes de ejecutar el modelo de Weibull. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-2: EjecutarModeloWeibull}
+\label{tab:prueba_erronea_cu2}
+\normalsize
+\end{table}
+
+\section{CU-3: EjecutarRandomSurvivalForest}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Ejecutar el modelo Random Survival Forest con un dataset previamente cargado, válido y preprocesado. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite aplicar Random Survival Forest como técnica de aprendizaje automático para análisis de supervivencia, mostrando tanto los resultados generales del modelo como la información asociada a la simulación de perfiles. \\ \hline
+\textbf{Resultado esperado} & El sistema debe cargar la vista del modelo, entrenar Random Survival Forest con los datos disponibles y mostrar la tabla resumen, las curvas de supervivencia por niveles de riesgo, la importancia de variables y el panel de simulación de perfil con valores iniciales. Además, debe permitir recalcular el perfil y dejar disponibles las acciones de explicación mediante IA y exportación a PDF. \\ \hline
+\textbf{Resultado obtenido} & El sistema ejecuta correctamente el análisis con Random Survival Forest y presenta los resultados esperados, incluyendo las estimaciones de supervivencia, la información sobre variables relevantes y el bloque de simulación de perfil para explorar escenarios concretos de forma interactiva. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-3: EjecutarRandomSurvivalForest}
+\label{tab:prueba_valida_cu3}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/rsf1.png}
+\caption{Evidencia de ejecución correcta del CU-3: EjecutarRandomSurvivalForest}
+\label{fig:prueba_cu3_rsf}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar ejecutar Random Survival Forest sin disponer de un dataset cargado, con datos insuficientes o con variables no válidas para entrenar el modelo. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema controla los errores que pueden impedir el entrenamiento o la ejecución del modelo, evitando mostrar resultados incompletos, métricas inconsistentes o simulaciones de perfil no fiables. \\ \hline
+\textbf{Resultado esperado} & El sistema debe detener la ejecución del análisis o devolver una respuesta controlada cuando no sea posible entrenar Random Survival Forest con los datos disponibles, informando al usuario de la imposibilidad de completar el proceso. \\ \hline
+\textbf{Resultado obtenido} & El sistema no completa el entrenamiento cuando los datos no cumplen las condiciones mínimas necesarias y mantiene un comportamiento controlado, sin presentar curvas, tablas o simulaciones que puedan interpretarse como resultados válidos. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con el flujo alternativo definido para el caso de uso. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es cargar y preprocesar un dataset válido, con las variables necesarias, antes de ejecutar Random Survival Forest. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-3: EjecutarRandomSurvivalForest}
+\label{tab:prueba_erronea_cu3}
+\normalsize
+\end{table}
+
+\section{CU-4: ConsultarComparacionDeTecnicas}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Acceder a la página de comparación de técnicas desde la sección de Análisis de supervivencia con un dataset disponible en sesión. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite consultar la página comparativa de técnicas y que muestra correctamente la información de apoyo para interpretar las diferencias entre los métodos implementados. \\ \hline
+\textbf{Resultado esperado} & El sistema debe cargar la página de comparación, mostrar la tabla comparativa con las características principales de cada técnica, generar la visualización de puntuaciones orientativas y presentar un bloque explicativo que resuma las diferencias entre modelos y su contexto de uso recomendado. \\ \hline
+\textbf{Resultado obtenido} & El sistema carga correctamente la página de comparación de técnicas y muestra la información prevista, incluyendo la tabla de métodos, la representación comparativa y el contenido explicativo asociado, facilitando al usuario una visión conjunta de los modelos disponibles. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-4: ConsultarComparacionDeTecnicas}
+\label{tab:prueba_valida_cu4}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/comparar1.png}
+\caption{Evidencia de ejecución correcta del CU-4: ConsultarComparacionDeTecnicas}
+\label{fig:prueba_cu4_comparacion}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar acceder a la página de comparación de técnicas cuando no existe un dataset disponible en sesión o cuando alguno de los elementos comparativos no puede generarse correctamente. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema mantiene un comportamiento controlado si no puede cargar la página completa, generar la visualización comparativa o producir el bloque explicativo automático. \\ \hline
+\textbf{Resultado esperado} & El sistema debe informar al usuario si la página no puede cargarse. Si el problema afecta solo a una parte concreta, debe mantener visible el resto de la información disponible, como la tabla comparativa, y omitir únicamente el elemento que no haya podido generarse. \\ \hline
+\textbf{Resultado obtenido} & El sistema responde de forma controlada ante situaciones incompletas, evitando dejar la vista en un estado inconsistente y conservando la información comparativa disponible cuando no es posible generar alguno de los elementos auxiliares. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con los flujos alternativos definidos para este caso de uso. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es acceder a la funcionalidad desde la sección correspondiente y disponer de los datos necesarios para completar la comparación. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-4: ConsultarComparacionDeTecnicas}
+\label{tab:prueba_erronea_cu4}
+\normalsize
+\end{table}
+
+\section{CU-5: ExportarInformesYResultados}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Exportar a PDF los resultados generados previamente por uno de los módulos de análisis del sistema. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite generar un informe reutilizable a partir de los resultados, tablas, gráficas e interpretaciones disponibles en la aplicación. \\ \hline
+\textbf{Resultado esperado} & El sistema debe abrir el modal de exportación al pulsar el botón correspondiente, permitir introducir opcionalmente el nombre del archivo y seleccionar el contenido que se desea incluir. Tras confirmar la operación, debe validar que existen resultados suficientes, generar el informe en formato PDF y entregar el archivo para su descarga. \\ \hline
+\textbf{Resultado obtenido} & El sistema muestra correctamente la opción de exportación, permite confirmar la generación del informe y produce el archivo PDF con los bloques seleccionados, dejando los resultados disponibles para documentación o análisis posteriores. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-5: ExportarInformesYResultados}
+\label{tab:prueba_valida_cu5}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.30\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Imagenes/botonExportar.png}
+\vspace{0.4em}
+
+\small Botón de exportación
+\end{minipage}
+\hfill
+{\Large$\Longrightarrow$}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Imagenes/pdf_generado_cu5.png}
+\vspace{0.4em}
+
+\small Informe PDF generado
+\end{minipage}
+\caption{Evidencia de exportación correcta del CU-5: ExportarInformesYResultados}
+\label{fig:prueba_cu5_exportar}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar generar un informe PDF sin disponer de resultados previos o cuando el sistema no puede construir el archivo solicitado. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema valida la existencia de información suficiente antes de generar el documento y que responde de forma controlada si la exportación no puede completarse. \\ \hline
+\textbf{Resultado esperado} & El sistema debe impedir la generación del PDF cuando no existan datos o resultados exportables, mostrando un mensaje de error o evitando entregar un archivo incompleto. \\ \hline
+\textbf{Resultado obtenido} & El sistema no genera el informe cuando no se cumplen las condiciones necesarias para la exportación y mantiene un comportamiento controlado, evitando la descarga de documentos vacíos o inconsistentes. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con la validación previa a la generación del archivo. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es ejecutar previamente un análisis válido y disponer de resultados antes de utilizar la funcionalidad de exportación. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-5: ExportarInformesYResultados}
+\label{tab:prueba_erronea_cu5}
+\normalsize
+\end{table}
+
+\section{CU-6: CambiarIdiomaInterfaz}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Cambiar el idioma de la interfaz desde el selector disponible en la barra de navegación. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite seleccionar otro idioma disponible y que actualiza los textos visibles de la interfaz sin alterar el funcionamiento general de la aplicación. \\ \hline
+\textbf{Resultado esperado} & El sistema debe mostrar los idiomas disponibles, procesar la selección realizada por el usuario y recargar los textos visibles de la interfaz en el idioma elegido, manteniendo accesibles las mismas secciones y funcionalidades del dashboard. \\ \hline
+\textbf{Resultado obtenido} & El sistema aplica correctamente el cambio de idioma y actualiza los textos de navegación, botones, títulos y mensajes principales, conservando el estado funcional de la aplicación y permitiendo continuar el uso normal del sistema. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-6: CambiarIdiomaInterfaz}
+\label{tab:prueba_valida_cu6}
+\normalsize
+\end{table}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar aplicar un idioma no disponible o provocar una situación en la que el sistema no pueda cargar correctamente los textos traducidos. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema mantiene un comportamiento estable cuando no puede aplicar el idioma seleccionado, evitando dejar la interfaz con textos incompletos o mezclados de forma incoherente. \\ \hline
+\textbf{Resultado esperado} & El sistema debe conservar el idioma anterior y, en caso necesario, mostrar un aviso al usuario indicando que no ha sido posible aplicar el cambio solicitado. \\ \hline
+\textbf{Resultado obtenido} & El sistema mantiene la interfaz en un estado coherente cuando no puede aplicar una traducción, conservando el idioma previo y evitando que la navegación o las funcionalidades principales queden afectadas. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con el flujo alternativo definido para este caso de uso. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es seleccionar uno de los idiomas disponibles y mantener correctamente definidas las traducciones del sistema. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-6: CambiarIdiomaInterfaz}
+\label{tab:prueba_erronea_cu6}
+\normalsize
+\end{table}
+
+\section{CU-7: AnalizarVariablesNoBinarias}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Cargar un dataset que contiene variables adicionales o no binarias y analizarlas desde los módulos de covariables o supervivencia. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema conserva las variables no binarias soportadas durante el preprocesamiento y permite utilizarlas en los análisis correspondientes, aplicando las transformaciones necesarias según la técnica seleccionada. \\ \hline
+\textbf{Resultado esperado} & El sistema debe validar la estructura del dataset, mantener las variables compatibles, permitir su selección en la interfaz y ejecutar el análisis utilizando dichas variables, mostrando tablas, métricas y gráficas actualizadas. \\ \hline
+\textbf{Resultado obtenido} & El sistema permite trabajar con variables no binarias compatibles, las integra en el flujo de análisis y muestra los resultados generados de forma coherente, facilitando la interpretación del efecto de dichas variables sobre el estudio realizado. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-7: AnalizarVariablesNoBinarias}
+\label{tab:prueba_valida_cu7}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/analisis_covariables.png}
+\caption{Evidencia de análisis de variables en el CU-7: AnalizarVariablesNoBinarias}
+\label{fig:prueba_cu7_covariables}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar analizar una variable no compatible con la técnica seleccionada o un dataset que no contiene variables adicionales válidas para el análisis. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema valida las variables seleccionadas antes de ejecutar el análisis y evita generar resultados cuando la variable no puede transformarse o utilizarse correctamente. \\ \hline
+\textbf{Resultado esperado} & El sistema debe informar al usuario de que la variable no es compatible con el análisis seleccionado o impedir la ejecución del proceso, evitando mostrar tablas, métricas o gráficas basadas en datos no válidos. \\ \hline
+\textbf{Resultado obtenido} & El sistema responde de forma controlada cuando una variable no es apta para el análisis, evitando resultados inconsistentes y manteniendo el flujo de trabajo en un estado estable. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con la validación de variables definida en el flujo alternativo. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es seleccionar variables compatibles o cargar un dataset que contenga variables válidas para el análisis. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-7: AnalizarVariablesNoBinarias}
+\label{tab:prueba_erronea_cu7}
+\normalsize
+\end{table}
+
+\section{CU-8: MejorarInterpretacionIA}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Solicitar una interpretación mediante inteligencia artificial a partir de resultados generados previamente por un análisis del sistema. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema recopila correctamente la información relevante del análisis, la envía al módulo de inteligencia artificial y muestra una explicación comprensible para el usuario. \\ \hline
+\textbf{Resultado esperado} & El sistema debe permitir solicitar la explicación, construir el resumen de entrada con los resultados disponibles, enviarlo al módulo de IA y presentar en la interfaz una respuesta textual coherente, útil y relacionada con el análisis realizado. \\ \hline
+\textbf{Resultado obtenido} & El sistema genera la interpretación solicitada y la muestra en pantalla, ofreciendo una explicación más clara de los resultados obtenidos y facilitando su lectura por parte del usuario. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-8: MejorarInterpretacionIA}
+\label{tab:prueba_valida_cu8}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{Imagenes/botonIA.png}
+\caption{Evidencia de acceso a la interpretación mediante IA del CU-8: MejorarInterpretacionIA}
+\label{fig:prueba_cu8_ia}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Solicitar una interpretación cuando no existen resultados previos suficientes o cuando el módulo de inteligencia artificial no está disponible. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema controla los errores asociados a la generación de respuestas y evita mostrar explicaciones vacías, incompletas o no relacionadas con el análisis. \\ \hline
+\textbf{Resultado esperado} & El sistema debe informar al usuario de que no ha sido posible generar una respuesta adecuada, manteniendo la interfaz estable y sin bloquear el resto de funcionalidades. \\ \hline
+\textbf{Resultado obtenido} & El sistema responde de forma controlada cuando la IA no puede generar una interpretación válida, evitando presentar una explicación incorrecta y conservando el funcionamiento normal de la aplicación. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con el flujo alternativo definido para este caso de uso. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es disponer de resultados válidos y comprobar que el módulo de inteligencia artificial se encuentra disponible antes de solicitar la interpretación. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-8: MejorarInterpretacionIA}
+\label{tab:prueba_erronea_cu8}
+\normalsize
+\end{table}
+
+\section[CU-9: AmpliarVisualizacionesCoxTestLogRank]{CU-9: AmpliarVisualizacionesCox\allowbreak{}TestLogRank}
+
+\tituloPrueba{Prueba válida}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Generar nuevas visualizaciones asociadas a los análisis de regresión de Cox y Test de Log-Rank con resultados previamente disponibles. \\ \hline
+\textbf{Objetivo de la prueba} & Verificar que el sistema permite acceder a las opciones de visualización, procesar los resultados activos y mostrar en pantalla las representaciones gráficas ampliadas para facilitar la interpretación del análisis. \\ \hline
+\textbf{Resultado esperado} & El sistema debe mostrar las opciones de visualización disponibles, obtener los resultados correspondientes a la configuración activa y generar la gráfica solicitada, dejándola visible para su consulta, interpretación o exportación posterior. \\ \hline
+\textbf{Resultado obtenido} & El sistema genera correctamente las visualizaciones asociadas a Cox y al Test de Log-Rank, mostrando las gráficas en la interfaz y permitiendo al usuario analizar de forma más clara los resultados obtenidos. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado problemas durante la ejecución de la prueba válida. \\ \hline
+\textbf{Solución} & No es necesario aplicar ninguna acción correctiva. \\ \hline
+\end{tabularx}
+\caption{Prueba válida del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\label{tab:prueba_valida_cu9}
+\normalsize
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Imagenes/graficaCox.png}
+\caption{Evidencia de visualización ampliada del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\label{fig:prueba_cu9_visualizacion}
+\end{figure}
+
+\tituloPrueba{Prueba errónea}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Caso de prueba} & Intentar generar una visualización de Cox o Test de Log-Rank sin haber ejecutado previamente el análisis correspondiente o sin resultados disponibles. \\ \hline
+\textbf{Objetivo de la prueba} & Comprobar que el sistema valida la existencia de resultados previos antes de construir la gráfica y que informa al usuario cuando no es posible generar la visualización solicitada. \\ \hline
+\textbf{Resultado esperado} & El sistema debe impedir la generación de la gráfica cuando no existan datos suficientes y mostrar un aviso indicando que es necesario ejecutar previamente el análisis de Cox o el Test de Log-Rank. \\ \hline
+\textbf{Resultado obtenido} & El sistema mantiene un comportamiento controlado cuando no existen resultados previos, evitando mostrar visualizaciones vacías o incoherentes y guiando al usuario hacia la ejecución previa del análisis necesario. \\ \hline
+\textbf{Problemas encontrados} & No se han encontrado fallos críticos. El comportamiento observado es coherente con el flujo alternativo definido para este caso de uso. \\ \hline
+\textbf{Solución} & No se requiere ninguna corrección. La acción adecuada es ejecutar primero el análisis correspondiente y, una vez generados los resultados, solicitar la visualización deseada. \\ \hline
+\end{tabularx}
+\caption{Prueba errónea del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\label{tab:prueba_erronea_cu9}
+\normalsize
+\end{table}

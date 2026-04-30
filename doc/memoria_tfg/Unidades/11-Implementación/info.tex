@@ -1,11 +1,247 @@
 \chapter{Implementación}
 
-\paragraph*{}Tras completar las fases de análisis y diseño, se aborda la etapa de implementación...
-% ==========================================================
-% COMPONENTES REALES DEL PROYECTO
-% ==========================================================
-\section{Arquitectura del sistema}
-% ==========================================================
-% SEGURIDAD (AQUÍ SÍ CLARO Y SEPARADO)
-% ==========================================================
-\section{Implementación de funcionalidades clave}
+\paragraph*{}
+Tras completar las fases de análisis y diseño, se aborda la implementación de la ampliación del dashboard. En este capítulo no se pretende repetir la arquitectura descrita anteriormente, sino explicar cómo se ha materializado en el código fuente: qué librerías se han utilizado, qué archivos concentran cada responsabilidad y cómo se han integrado los nuevos modelos, las visualizaciones, la interpretación mediante inteligencia artificial, la exportación de informes y el soporte multilingüe.
+
+\section{Tecnologías y librerías utilizadas}
+
+\paragraph*{}
+La aplicación se ha desarrollado en Python, partiendo de la base tecnológica del proyecto original. Por ese motivo, algunas librerías no se presentan como una aportación nueva, sino como parte del entorno heredado sobre el que se ha construido la ampliación. Es el caso de \texttt{Dash}, \texttt{Pandas}, \texttt{NumPy}, \texttt{Plotly}, \texttt{lifelines}, \texttt{Matplotlib} y la comunicación con un modelo local de inteligencia artificial. Todas ellas siguen siendo necesarias para que el sistema funcione, pero en este capítulo interesa distinguir entre la base ya existente y los elementos que se han reforzado o incorporado para cubrir los nuevos objetivos.
+
+\paragraph*{}
+La verdad es que esta separación resulta importante, porque evita presentar como nuevo aquello que ya formaba parte del trabajo previo y permite centrar la explicación en la ampliación realizada. En concreto, se ha prestado especial atención a las librerías y componentes que hacen posible los nuevos modelos paramétricos, Random Survival Forest, las visualizaciones añadidas, la generación de informes PDF y la interpretación automática de resultados.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.26\textwidth}|X|}
+\hline
+\textbf{Tecnología o librería} & \textbf{Papel dentro de la ampliación} \\ \hline
+\texttt{lifelines} & Se mantiene como librería estadística principal, pero se amplía su uso mediante \texttt{ExponentialFitter} y \texttt{WeibullFitter}, necesarios para implementar los modelos Exponencial y Weibull y compararlos con Kaplan-Meier. \\ \hline
+\texttt{scikit-survival} & Se incorpora para implementar Random Survival Forest, construir el objeto de supervivencia requerido por el modelo y calcular métricas como el índice de concordancia. \\ \hline
+\texttt{Plotly} & Ya formaba parte de la base del dashboard, pero en esta ampliación se utiliza para generar nuevas curvas de supervivencia, comparaciones entre modelos, gráficos de importancia de variables y visualizaciones asociadas a Cox y al Test de Log-Rank. \\ \hline
+\texttt{ReportLab} y \texttt{Kaleido} & Se utilizan para construir informes PDF con tablas, textos, cabeceras e imágenes, y para convertir las gráficas interactivas de Plotly en figuras insertables en el documento final. \\ \hline
+\texttt{requests} & Permite mantener la comunicación con el servidor local de inteligencia artificial, enviando los resultados estadísticos y recibiendo interpretaciones textuales para la interfaz o los informes. \\ \hline
+\end{tabularx}
+\caption{Tecnologías con mayor peso en la ampliación implementada}
+\label{tab:tecnologias_implementacion}
+\normalsize
+\end{table}
+
+\paragraph*{}
+El resto de librerías, como \texttt{Dash}, \texttt{Pandas} o \texttt{NumPy}, se mantienen como soporte fundamental de la aplicación: permiten construir la interfaz, almacenar estados, transformar datos y preparar las entradas que necesitan los modelos. Sin embargo, su explicación se mantiene más breve porque pertenecen principalmente a la infraestructura ya existente. La ampliación se apoya en ellas, pero aporta valor sobre todo en la nueva lógica estadística, las nuevas salidas visuales, la exportación de resultados y la interpretación asistida.
+
+\section{Estructura del código fuente}
+
+\paragraph*{}
+El código se organiza en distintos archivos Python, cada uno centrado en una responsabilidad principal. Esta organización evita concentrar toda la lógica en un único fichero y permite que los nuevos modelos añadidos en este TFG se integren sin modificar de forma agresiva el funcionamiento ya existente.
+
+\paragraph*{}
+Los nombres de archivo que aparecen en este apartado se incluyen únicamente como referencia textual para facilitar su localización dentro del proyecto. No se han configurado como enlaces clicables, ya que la memoria debe poder leerse correctamente aunque el tribunal no disponga de la misma estructura de carpetas local. Todos los archivos Python mencionados se encuentran en la raíz del repositorio de la aplicación, mientras que los recursos propios de la memoria, como imágenes, capítulos y referencias bibliográficas, se ubican dentro de la carpeta \texttt{doc/memoria\_tfg}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.32\textwidth}|X|}
+\hline
+\textbf{Archivo} & \textbf{Responsabilidad principal} \\ \hline
+\texttt{cargaDataset.py} & Inicialización de la aplicación Dash, navegación general entre páginas, cambio de idioma y registro de callbacks principales. \\ \hline
+\texttt{layout.py} & Definición de las páginas de la interfaz, incluyendo las vistas de análisis, comparación de técnicas, visualización del dataset, modales de exportación y componentes visuales. \\ \hline
+\texttt{analysis\_callbacks.py} & Registro de callbacks asociados al análisis de datos, actualización de vistas, ejecución de modelos, interpretación de resultados y conexión entre interfaz y lógica interna. \\ \hline
+\texttt{preprocesamiento.py} & Carga del dataset, limpieza de columnas, validación de datos críticos, selección de filas por estudiante y generación del dataset preparado para los modelos. \\ \hline
+\texttt{exponential.py}, \texttt{weibull.py} y \texttt{rsf.py} & Implementación de las nuevas técnicas incorporadas: modelo exponencial, modelo de Weibull y Random Survival Forest. \\ \hline
+\texttt{kaplan\_meier.py}, \texttt{cox\_regression.py}, \texttt{log\_rank\_test.py} y \texttt{survival\_plots.py} & Implementación y ampliación de técnicas ya presentes en el sistema base, incluyendo nuevas visualizaciones para Cox y Test de Log-Rank. \\ \hline
+\texttt{ollama\_AI.py} & Generación de interpretaciones mediante un modelo de inteligencia artificial ejecutado en entorno local. \\ \hline
+\texttt{pdf\_callbacks.py} y \texttt{pdf\_exporter.py} & Gestión de la exportación desde la interfaz y construcción de informes PDF con resultados, gráficas e interpretaciones. \\ \hline
+\texttt{translations.py} & Diccionario de traducciones y función de acceso a los textos en castellano e inglés. \\ \hline
+\texttt{config.py} & Definición de rutas de datos, configuración del servidor de inteligencia artificial y carga diferida de datasets. \\ \hline
+\end{tabularx}
+\caption{Distribución de responsabilidades en el código fuente}
+\label{tab:estructura_codigo}
+\normalsize
+\end{table}
+
+\section{Carga y preprocesamiento de datos}
+
+\paragraph*{}
+La carga inicial del dataset se realiza mediante la función \texttt{load\_dataset}, definida en \texttt{preprocesamiento.py}. Esta función lee el archivo en formato CSV con separador de punto y coma y elimina espacios sobrantes en los nombres de las columnas. Aunque es una operación sencilla, resulta importante porque evita errores posteriores derivados de nombres de columnas mal formados.
+
+\paragraph*{}
+El procesamiento principal se concentra en \texttt{preprocess\_data}. Esta función valida que el dataset no esté vacío y comprueba la existencia de columnas críticas como \texttt{id\_student}, \texttt{date} y \texttt{final\_result}. A partir de ahí, transforma \texttt{final\_result} en una variable binaria, donde el abandono se representa como evento observado. Esta conversión es esencial, ya que los modelos de supervivencia necesitan una variable temporal y una variable indicadora del evento.
+
+\paragraph*{}
+Una parte relevante del preprocesamiento consiste en seleccionar una única fila representativa por estudiante. Para ello, el sistema ordena los registros por identificador y fecha, y aplica una lógica distinta según el estudiante haya abandonado o no. Si no ha abandonado, se intenta conservar la observación final del periodo de estudio. Si ha abandonado, se priorizan filas con actividad registrada y, en caso contrario, se selecciona una fila representativa del inicio o del registro disponible. Esta decisión reduce duplicidades y deja un dataset más estable para los análisis posteriores.
+
+\paragraph*{}
+Además, el preprocesamiento conserva tanto variables binarias como variables no binarias incorporadas en la ampliación, como rangos de edad, nivel educativo y créditos estudiados. También se eliminan columnas no necesarias y se registran advertencias cuando faltan columnas esperadas o aparecen valores nulos en campos críticos. De esta forma, el sistema no solo limpia los datos, sino que también ofrece cierto control sobre la calidad del dataset que se usará en los modelos.
+
+\section{Implementación de los modelos}
+
+\subsection{Modelo exponencial}
+
+\paragraph*{}
+El modelo exponencial se implementa en \texttt{exponential.py} mediante la función \texttt{build\_exponential\_analysis}. Esta función recibe el dataset limpio, comprueba que existan las columnas \texttt{date} y \texttt{final\_result}, convierte sus valores a formato numérico y elimina registros incompletos. Si los datos no son suficientes, la función devuelve \texttt{None}, evitando que la interfaz muestre resultados inconsistentes.
+
+\paragraph*{}
+Para el ajuste se utiliza \texttt{ExponentialFitter} de la librería \texttt{lifelines}. Además, se ajustan también Kaplan-Meier y Weibull para poder comparar el modelo exponencial con una estimación empírica y con su generalización paramétrica. La función calcula métricas como el valor de \(\lambda\), el log-likelihood y el AIC, y devuelve tanto la gráfica de supervivencia como una tabla resumen con interpretaciones breves.
+
+\paragraph*{}
+Una decisión importante de esta implementación es presentar el modelo exponencial como caso particular de Weibull cuando el parámetro de forma es igual a 1. Por eso, la función incluye una comparación directa entre ambos modelos mediante AIC. Esto no solo aporta una salida estadística, sino que ayuda al usuario a entender si la hipótesis de riesgo constante resulta razonable para los datos analizados.
+
+\subsection{Modelo de Weibull}
+
+\paragraph*{}
+El modelo de Weibull se implementa en \texttt{weibull.py} a través de \texttt{build\_weibull\_analysis}. Su flujo de validación es similar al del modelo exponencial: se comprueba que el dataset tenga las columnas mínimas, se convierten los valores temporales y de evento, y se descartan registros incompletos antes de ajustar el modelo.
+
+\paragraph*{}
+La implementación utiliza \texttt{WeibullFitter} para obtener los parámetros de forma y escala. El parámetro de forma permite interpretar el comportamiento del riesgo a lo largo del tiempo: si es mayor que 1, el riesgo aumenta; si es menor que 1, disminuye; y si se aproxima a 1, el comportamiento se parece al modelo exponencial. Esta interpretación se incorpora directamente a la tabla de resultados, junto con métricas como la mediana de supervivencia, el log-likelihood y el AIC.
+
+\paragraph*{}
+La gráfica generada compara tres curvas: Kaplan-Meier empírico, Weibull ajustado y Exponencial ajustado. Esta comparación visual permite observar si el modelo paramétrico se adapta de forma razonable al comportamiento real de los datos. Además, al igual que en el modelo exponencial, se genera una tabla comparativa entre Weibull y Exponencial para facilitar la lectura conjunta de ambos modelos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Imagenes/imp_weibull.png}
+\caption{Fragmento de la implementación del modelo de Weibull, donde se ajustan los modelos paramétricos y se obtienen métricas de comparación}
+\label{fig:imp_weibull}
+\end{figure}
+
+\subsection{Random Survival Forest}
+
+\paragraph*{}
+Random Survival Forest se implementa en \texttt{rsf.py}. A diferencia de los modelos paramétricos, este modelo necesita construir una matriz de características a partir de las variables disponibles en el dataset. Para ello, la función interna \texttt{\_build\_feature\_matrix} elimina las columnas temporales y de evento, conserva variables numéricas, booleanas y categóricas, y aplica codificación mediante \texttt{get\_dummies}. Así se obtiene una matriz preparada para ser procesada por \texttt{scikit-survival}.
+
+\paragraph*{}
+La función \texttt{\_fit\_rsf\_model} crea el objeto de supervivencia mediante \texttt{Surv.from\_arrays}, ajusta un \texttt{RandomSurvivalForest} con 200 árboles y calcula puntuaciones de riesgo para los estudiantes. También obtiene el índice de concordancia sobre entrenamiento y, cuando está disponible, la puntuación \textit{out-of-bag}. Estas métricas permiten valorar de forma general la capacidad predictiva del modelo.
+
+\paragraph*{}
+La función principal \texttt{build\_rsf\_analysis} devuelve varias salidas reutilizables por el dashboard: curvas de supervivencia para perfiles representativos, tabla de métricas, importancia de variables y gráficos asociados. Como algunas implementaciones de Random Survival Forest no siempre proporcionan importancias directas de variables, el código incorpora un cálculo alternativo basado en la correlación entre cada característica y las puntuaciones de riesgo. La verdad es que este detalle es importante, porque evita que la vista quede incompleta cuando la librería no ofrece esa información de forma directa.
+
+\paragraph*{}
+Además, se incluye \texttt{build\_rsf\_profile\_analysis}, que permite simular perfiles de estudiantes. A partir de valores por defecto obtenidos del dataset y de las selecciones realizadas por el usuario, se construye una fila de características compatible con el modelo entrenado. Con ella se estima una curva de supervivencia personalizada, lo que añade una capa interpretativa más cercana al uso práctico del sistema.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Imagenes/imp_rsf.png}
+\caption{Fragmento de la implementación de Random Survival Forest, incluyendo la construcción del objeto de supervivencia y el ajuste del modelo}
+\label{fig:imp_rsf}
+\end{figure}
+
+\subsection{Regresión de Cox y Test de Log-Rank}
+
+\paragraph*{}
+Aunque Cox y el Test de Log-Rank ya formaban parte del sistema base, en esta ampliación se han reforzado sus visualizaciones e integración con el resto del dashboard. La regresión de Cox se ejecuta desde \texttt{cox\_regression.py}, principalmente mediante \texttt{run\_cox\_regression}. Esta función prepara las covariables seleccionadas, ajusta el modelo con \texttt{CoxPHFitter} y genera una tabla de resultados con coeficientes, hazard ratios y valores de significación.
+
+\paragraph*{}
+El Test de Log-Rank se implementa en \texttt{log\_rank\_test.py}. La función \texttt{perform\_log\_rank\_test} permite comparar curvas de supervivencia entre grupos, incluyendo estrategias específicas para variables multicategoría o variables que requieren agrupación por cuantiles. Esto encaja con uno de los objetivos de la ampliación: permitir el análisis de nuevas variables, incluidas aquellas que no son estrictamente binarias.
+
+\paragraph*{}
+Las funciones de visualización asociadas se concentran en \texttt{survival\_plots.py}. En concreto, \texttt{plot\_logrank\_curves} genera curvas comparativas entre grupos y \texttt{plot\_cox\_hazard\_ratios} representa gráficamente los efectos estimados por el modelo de Cox. Estas gráficas se construyen con \texttt{Plotly}, lo que permite mantener el mismo estilo interactivo que el resto del dashboard.
+
+\section{Generación de gráficas}
+
+\paragraph*{}
+La generación de gráficas se ha desarrollado principalmente con \texttt{Plotly}. Esta librería se adapta bien al proyecto porque permite crear figuras interactivas que se integran directamente en componentes \texttt{dcc.Graph} de Dash. De esta manera, el usuario puede explorar curvas, valores y comparaciones sin salir de la propia aplicación.
+
+\paragraph*{}
+En los modelos Exponencial y Weibull, las gráficas se construyen a partir de una rejilla temporal generada con \texttt{NumPy}. Sobre esa rejilla se calculan las probabilidades de supervivencia del modelo ajustado y se representan junto a la curva empírica de Kaplan-Meier. En Random Survival Forest, en cambio, las curvas se obtienen a partir de las funciones de supervivencia predichas por el modelo para perfiles representativos o simulados.
+
+\paragraph*{}
+Además de las curvas de supervivencia, se generan visualizaciones complementarias como gráficos de importancia de variables, curvas comparativas por grupo y forest plots para la regresión de Cox. Todas estas figuras mantienen una estructura común: título, ejes, leyenda, plantilla visual clara y datos preparados para su posterior exportación a PDF.
+
+\section{Integración con callbacks}
+
+\paragraph*{}
+La conexión entre interfaz y lógica interna se realiza mediante callbacks de Dash. El archivo \texttt{cargaDataset.py} inicializa la aplicación, configura la navegación y registra los callbacks principales mediante \texttt{register\_analysis\_callbacks} y \texttt{register\_pdf\_export\_callbacks}. Por su parte, \texttt{analysis\_callbacks.py} concentra gran parte de las interacciones relacionadas con la carga del dataset, la ejecución de análisis y la actualización de los resultados mostrados en pantalla.
+
+\paragraph*{}
+El flujo habitual es el siguiente: el usuario interactúa con un botón, filtro o selector; Dash activa el callback correspondiente; el callback recupera el dataset almacenado, llama a la función de análisis necesaria y devuelve a la interfaz tablas, gráficas, mensajes o componentes actualizados. Este patrón se repite en los distintos modelos, lo que permite que la experiencia de uso sea coherente aunque internamente cada técnica requiera un tratamiento diferente.
+
+\paragraph*{}
+La interfaz se define en \texttt{layout.py} mediante funciones específicas para cada página. Entre ellas se encuentran las vistas de análisis de supervivencia, Weibull, Exponencial, Random Survival Forest, análisis de covariables y el modal de exportación a PDF. Esta separación permite construir las pantallas de forma modular y reutilizar componentes comunes, como botones, modales o tablas.
+
+\section{Interpretación mediante inteligencia artificial}
+
+\paragraph*{}
+La interpretación automática de resultados se implementa en \texttt{ollama\_AI.py}. El sistema se comunica con un servidor local compatible con la API de chat completions mediante la librería \texttt{requests}. La configuración del servidor y el nombre del modelo se definen en \texttt{config.py}, donde se establece \texttt{LLAMA\_SERVER\_URL} y \texttt{MODEL\_NAME}. En la versión actual se utiliza el modelo \texttt{qwen2.5-1.5b-instruct}.
+
+\paragraph*{}
+Para mejorar la calidad de las respuestas, el módulo define un prompt de sistema orientado al contexto académico del TFG. Este prompt indica al modelo que debe redactar explicaciones claras, basadas únicamente en los resultados proporcionados y sin usar listas. Además, si la salida generada parece una enumeración, el sistema intenta reescribirla como prosa académica mediante \texttt{\_rewrite\_to\_prose\_if\_needed}. Este pequeño control ayuda a que las interpretaciones encajen mejor con el tono del informe.
+
+\paragraph*{}
+La función \texttt{generate\_interpretation\_for\_pdf} construye prompts específicos según el tipo de análisis: Kaplan-Meier, Cox, Test de Log-Rank, Weibull o Exponencial. Para cada caso se recopilan datos resumen y tablas de resultados, y se envían al modelo para obtener una explicación textual. Si el servidor local no está disponible, el sistema evita bloquear la generación del informe y devuelve una respuesta vacía o controlada.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Imagenes/imp_IA1.png}
+\caption{Definición del prompt académico utilizado para orientar las respuestas generadas por el módulo de inteligencia artificial}
+\label{fig:imp_ia_prompt}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Imagenes/imp_IA2.png}
+\caption{Llamada al modelo local de inteligencia artificial mediante una petición HTTP y tratamiento posterior de la respuesta generada}
+\label{fig:imp_ia_llamada}
+\end{figure}
+
+\section{Exportación de informes}
+
+\paragraph*{}
+La exportación de informes se divide en dos partes. Por un lado, \texttt{pdf\_callbacks.py} gestiona la interacción con la interfaz: apertura de modales, selección de contenido, validación de interpretaciones y descarga del archivo generado. Por otro lado, \texttt{pdf\_exporter.py} contiene la lógica encargada de construir el documento PDF.
+
+\paragraph*{}
+El elemento central de la exportación es la clase \texttt{SurvivalAnalysisPDFExporter}. Esta clase configura los estilos del documento, añade cabeceras, textos, tablas, gráficas e interpretaciones, y genera el archivo final. Para ello utiliza \texttt{ReportLab}, que permite construir PDFs de forma programática, y \texttt{Plotly} junto con \texttt{Kaleido}, que facilita convertir las figuras en imágenes aptas para ser insertadas en el informe.
+
+\paragraph*{}
+El sistema contempla una exportación general para los análisis de supervivencia y una exportación combinada para Weibull y Exponencial. Esta última tiene sentido porque ambos modelos están relacionados: el exponencial puede entenderse como un caso particular del Weibull. Por ello, el informe combinado permite presentar sus métricas y comparaciones en un mismo documento.
+
+\paragraph*{}
+Como resultado de este proceso, el sistema no genera una simple captura de pantalla, sino un informe estructurado. El documento incluye una cabecera identificativa, el tipo de análisis realizado, tablas resumen con los valores obtenidos, métricas relevantes y, cuando procede, gráficas exportadas desde Plotly mediante \texttt{Kaleido}. Además, si se ha solicitado una interpretación mediante inteligencia artificial, esta también puede incorporarse al informe para acompañar los resultados con una explicación textual más cercana.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.47\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Imagenes/pdf_generado_cu5.png}
+\vspace{0.4em}
+
+\small Informe del modelo exponencial
+\end{minipage}
+\hfill
+\begin{minipage}{0.47\textwidth}
+\centering
+\includegraphics[width=\textwidth]{Imagenes/pdf_generado_ew.png}
+\vspace{0.4em}
+
+\small Informe combinado Weibull-Exponencial
+\end{minipage}
+\caption{Ejemplos de informes PDF generados por el sistema a partir de distintos análisis}
+\label{fig:imp_pdf_generado}
+\end{figure}
+
+\section{Internacionalización del Dash}
+
+\paragraph*{}
+El soporte multilingüe se implementa mediante el archivo \texttt{translations.py}. Este módulo contiene un diccionario de textos en castellano e inglés y expone la función \texttt{get\_translation}, que recibe el idioma actual y la clave del texto solicitado. Con este mecanismo, la interfaz puede cambiar de idioma sin duplicar la lógica de las páginas.
+
+\paragraph*{}
+El idioma se gestiona desde \texttt{cargaDataset.py}, donde se actualizan los textos de navegación y se pasa el idioma activo a las funciones de layout y análisis. A su vez, los modelos y las exportaciones reciben el parámetro \texttt{language}, lo que permite adaptar títulos, etiquetas, captions, tablas e interpretaciones. Esta decisión evita que el cambio de idioma sea solo superficial y hace que afecte también a los resultados generados por el sistema.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{Imagenes/imp_translation.png}
+\caption{Implementación del sistema de traducciones empleado en la internacionalización del dashboard}
+\label{fig:imp_translation}
+\end{figure}
+
+\section{Aspectos destacables de la implementación}
+
+\paragraph*{}
+Uno de los aspectos más relevantes de la implementación es que las nuevas técnicas se han añadido como módulos independientes. Exponencial, Weibull y Random Survival Forest cuentan con sus propios archivos y funciones de construcción de resultados, pero devuelven estructuras parecidas: figura, tabla resumen, métricas e interpretación. Esto facilita que los callbacks puedan integrarlas sin tener que tratar cada técnica como un caso completamente aislado.
+
+\paragraph*{}
+También destaca la separación entre análisis, visualización, IA y exportación. Los modelos no generan directamente el PDF, ni la interfaz contiene la lógica estadística completa. Cada parte tiene su lugar, y eso hace que el sistema sea más mantenible. Si en el futuro se quisiera añadir otra técnica de supervivencia, el camino natural sería crear un nuevo módulo de análisis, una página en \texttt{layout.py}, los callbacks correspondientes y, si procede, una rutina de exportación.
+
+\paragraph*{}
+Por último, la implementación mantiene compatibilidad con el trabajo previo, pero añade funcionalidades que amplían claramente su alcance: nuevas variables, nuevos modelos, nuevas visualizaciones, interpretación más controlada mediante IA, exportación mejorada y soporte multilingüe. En conjunto, el código resultante no sustituye el dashboard original, sino que lo extiende de forma progresiva y coherente con los objetivos del TFG.

@@ -1,0 +1,86 @@
+\babel@toc {spanish}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1}{\ignorespaces Ejemplo de funciones de supervivencia exponenciales con distintos valores del parámetro $\lambda $.}}{14}{figure.caption.5}%
+\contentsline {figure}{\numberline {2}{\ignorespaces Ejemplo de distribuciones de Weibull con diferentes valores del parámetro de forma.}}{15}{figure.caption.6}%
+\contentsline {figure}{\numberline {3}{\ignorespaces Ejemplo de curvas de supervivencia predichas mediante Random Survival Forest.}}{16}{figure.caption.7}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4}{\ignorespaces Diagrama de casos de uso de la ampliación del sistema}}{27}{figure.caption.8}%
+\contentsline {figure}{\numberline {5}{\ignorespaces Diagrama de actividad del CU-1: EjecutarModeloExponencial}}{45}{figure.caption.9}%
+\contentsline {figure}{\numberline {6}{\ignorespaces Diagrama de actividad del CU-2: EjecutarModeloWeibull}}{46}{figure.caption.10}%
+\contentsline {figure}{\numberline {7}{\ignorespaces Diagrama de actividad del CU-3: EjecutarRandomSurvivalForest}}{48}{figure.caption.11}%
+\contentsline {figure}{\numberline {8}{\ignorespaces Diagrama de actividad del CU-4: ConsultarComparacionDeTecnicas}}{50}{figure.caption.12}%
+\contentsline {figure}{\numberline {9}{\ignorespaces Diagrama de actividad del CU-5: ExportarInformesYResultados}}{51}{figure.caption.13}%
+\contentsline {figure}{\numberline {10}{\ignorespaces Diagrama de actividad del CU-6: CambiarIdiomaInterfaz}}{52}{figure.caption.14}%
+\contentsline {figure}{\numberline {11}{\ignorespaces Diagrama de actividad del CU-7: AnalizarVariablesNoBinarias}}{53}{figure.caption.15}%
+\contentsline {figure}{\numberline {12}{\ignorespaces Diagrama de actividad del CU-8: MejorarInterpretacionIA}}{54}{figure.caption.16}%
+\contentsline {figure}{\numberline {13}{\ignorespaces Diagrama de actividad del CU-9: AmpliarVisualizacionesCoxTestLogRank}}{56}{figure.caption.17}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {14}{\ignorespaces Pantalla principal del dashboard}}{60}{figure.caption.18}%
+\contentsline {figure}{\numberline {15}{\ignorespaces Visualización del archivo bruto cargado en el sistema}}{61}{figure.caption.19}%
+\contentsline {figure}{\numberline {16}{\ignorespaces Visualización del archivo limpio tras el preprocesamiento}}{61}{figure.caption.20}%
+\contentsline {figure}{\numberline {17}{\ignorespaces Vista inicial de la sección Ver dataset}}{62}{figure.caption.21}%
+\contentsline {figure}{\numberline {18}{\ignorespaces Detalle de la visualización del dataset dentro del dashboard}}{62}{figure.caption.22}%
+\contentsline {figure}{\numberline {19}{\ignorespaces Sección de análisis de covariables}}{63}{figure.caption.23}%
+\contentsline {figure}{\numberline {20}{\ignorespaces Sección de análisis de supervivencia}}{63}{figure.caption.24}%
+\contentsline {figure}{\numberline {21}{\ignorespaces Vista general del análisis Kaplan-Meier}}{64}{figure.caption.25}%
+\contentsline {figure}{\numberline {22}{\ignorespaces Curva de supervivencia generada mediante Kaplan-Meier}}{64}{figure.caption.26}%
+\contentsline {figure}{\numberline {23}{\ignorespaces Filtros disponibles en el análisis Kaplan-Meier}}{65}{figure.caption.27}%
+\contentsline {figure}{\numberline {24}{\ignorespaces Exportación a PDF de los resultados de Kaplan-Meier}}{65}{figure.caption.28}%
+\contentsline {figure}{\numberline {25}{\ignorespaces Vista principal de la regresión de Cox}}{66}{figure.caption.29}%
+\contentsline {figure}{\numberline {26}{\ignorespaces Filtros utilizados en la regresión de Cox}}{66}{figure.caption.30}%
+\contentsline {figure}{\numberline {27}{\ignorespaces Gráfica generada a partir del modelo de regresión de Cox}}{66}{figure.caption.31}%
+\contentsline {figure}{\numberline {28}{\ignorespaces Botón de exportación a PDF utilizado en Cox y también en el Test de Log-Rank}}{67}{figure.caption.32}%
+\contentsline {figure}{\numberline {29}{\ignorespaces Vista principal del Test de Log-Rank}}{67}{figure.caption.33}%
+\contentsline {figure}{\numberline {30}{\ignorespaces Filtros compartidos por Cox y el Test de Log-Rank}}{68}{figure.caption.34}%
+\contentsline {figure}{\numberline {31}{\ignorespaces Ejemplo de resultado generado mediante el Test de Log-Rank}}{68}{figure.caption.35}%
+\contentsline {figure}{\numberline {32}{\ignorespaces Vista inicial del análisis mediante el modelo de Weibull}}{69}{figure.caption.36}%
+\contentsline {figure}{\numberline {33}{\ignorespaces Resultados y visualizaciones del modelo de Weibull}}{69}{figure.caption.37}%
+\contentsline {figure}{\numberline {34}{\ignorespaces Botón de exportación combinada utilizado en Weibull y Exponencial, ya que ambos modelos exportan el mismo tipo de resultados}}{70}{figure.caption.38}%
+\contentsline {figure}{\numberline {35}{\ignorespaces Vista inicial del análisis mediante el modelo exponencial}}{71}{figure.caption.39}%
+\contentsline {figure}{\numberline {36}{\ignorespaces Resultados y visualizaciones del modelo exponencial}}{71}{figure.caption.40}%
+\contentsline {figure}{\numberline {37}{\ignorespaces Vista inicial del análisis mediante Random Survival Forest}}{72}{figure.caption.41}%
+\contentsline {figure}{\numberline {38}{\ignorespaces Resultados generales generados por Random Survival Forest}}{72}{figure.caption.42}%
+\contentsline {figure}{\numberline {39}{\ignorespaces Visualización complementaria del análisis Random Survival Forest}}{73}{figure.caption.43}%
+\contentsline {figure}{\numberline {40}{\ignorespaces Página de comparación de técnicas de supervivencia}}{73}{figure.caption.44}%
+\contentsline {figure}{\numberline {41}{\ignorespaces Detalle explicativo de la comparación de técnicas}}{74}{figure.caption.45}%
+\contentsline {figure}{\numberline {42}{\ignorespaces Botón para consultar el dataset bruto}}{74}{figure.caption.46}%
+\contentsline {figure}{\numberline {43}{\ignorespaces Botón para consultar el dataset limpio}}{74}{figure.caption.47}%
+\contentsline {figure}{\numberline {44}{\ignorespaces Botón para solicitar una interpretación mediante inteligencia artificial}}{75}{figure.caption.48}%
+\contentsline {figure}{\numberline {45}{\ignorespaces Botón de exportación de resultados}}{75}{figure.caption.49}%
+\contentsline {figure}{\numberline {46}{\ignorespaces Botón de confirmación para generar y descargar el informe PDF}}{75}{figure.caption.50}%
+\contentsline {figure}{\numberline {47}{\ignorespaces Botón de exportación combinada para Weibull y Exponencial}}{75}{figure.caption.51}%
+\contentsline {figure}{\numberline {48}{\ignorespaces Botón de simulación de perfiles en Random Survival Forest}}{76}{figure.caption.52}%
+\contentsline {figure}{\numberline {49}{\ignorespaces Diagrama de secuencia del CU-1: EjecutarModeloExponencial}}{78}{figure.caption.53}%
+\contentsline {figure}{\numberline {50}{\ignorespaces Diagrama de secuencia del CU-2: EjecutarModeloWeibull}}{79}{figure.caption.54}%
+\contentsline {figure}{\numberline {51}{\ignorespaces Diagrama de secuencia del CU-3: EjecutarRandomSurvivalForest}}{80}{figure.caption.55}%
+\contentsline {figure}{\numberline {52}{\ignorespaces Diagrama de secuencia del CU-4: ConsultarComparacionDeTecnicas}}{81}{figure.caption.56}%
+\contentsline {figure}{\numberline {53}{\ignorespaces Diagrama de secuencia del CU-5: ExportarInformesYResultados}}{82}{figure.caption.57}%
+\contentsline {figure}{\numberline {54}{\ignorespaces Diagrama de secuencia del CU-6: CambiarIdiomaInterfaz}}{83}{figure.caption.58}%
+\contentsline {figure}{\numberline {55}{\ignorespaces Diagrama de secuencia del CU-7: AnalizarVariablesNoBinarias}}{84}{figure.caption.59}%
+\contentsline {figure}{\numberline {56}{\ignorespaces Diagrama de secuencia del CU-8: MejorarInterpretacionIA}}{84}{figure.caption.60}%
+\contentsline {figure}{\numberline {57}{\ignorespaces Diagrama de secuencia del CU-9: AmpliarVisualizacionesCoxTestLogRank}}{85}{figure.caption.61}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {58}{\ignorespaces Fragmento de la implementación del modelo de Weibull, donde se ajustan los modelos paramétricos y se obtienen métricas de comparación}}{91}{figure.caption.62}%
+\contentsline {figure}{\numberline {59}{\ignorespaces Fragmento de la implementación de Random Survival Forest, incluyendo la construcción del objeto de supervivencia y el ajuste del modelo}}{93}{figure.caption.63}%
+\contentsline {figure}{\numberline {60}{\ignorespaces Definición del prompt académico utilizado para orientar las respuestas generadas por el módulo de inteligencia artificial}}{95}{figure.caption.64}%
+\contentsline {figure}{\numberline {61}{\ignorespaces Llamada al modelo local de inteligencia artificial mediante una petición HTTP y tratamiento posterior de la respuesta generada}}{96}{figure.caption.65}%
+\contentsline {figure}{\numberline {62}{\ignorespaces Ejemplo de informe PDF generado por el sistema a partir de los resultados de análisis}}{97}{figure.caption.66}%
+\contentsline {figure}{\numberline {63}{\ignorespaces Implementación del sistema de traducciones empleado en la internacionalización del dashboard}}{98}{figure.caption.67}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {64}{\ignorespaces Evidencia de ejecución correcta del CU-1: EjecutarModeloExponencial}}{101}{figure.caption.68}%
+\contentsline {figure}{\numberline {65}{\ignorespaces Evidencia de ejecución correcta del CU-2: EjecutarModeloWeibull}}{102}{figure.caption.69}%
+\contentsline {figure}{\numberline {66}{\ignorespaces Evidencia de ejecución correcta del CU-3: EjecutarRandomSurvivalForest}}{104}{figure.caption.70}%
+\contentsline {figure}{\numberline {67}{\ignorespaces Evidencia de ejecución correcta del CU-4: ConsultarComparacionDeTecnicas}}{106}{figure.caption.71}%
+\contentsline {figure}{\numberline {68}{\ignorespaces Evidencia de exportación correcta del CU-5: ExportarInformesYResultados}}{108}{figure.caption.72}%
+\contentsline {figure}{\numberline {69}{\ignorespaces Evidencia de análisis de variables en el CU-7: AnalizarVariablesNoBinarias}}{112}{figure.caption.73}%
+\contentsline {figure}{\numberline {70}{\ignorespaces Evidencia de acceso a la interpretación mediante IA del CU-8: MejorarInterpretacionIA}}{114}{figure.caption.74}%
+\contentsline {figure}{\numberline {71}{\ignorespaces Evidencia de visualización ampliada del CU-9: AmpliarVisualizacionesCoxTestLogRank}}{116}{figure.caption.75}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
