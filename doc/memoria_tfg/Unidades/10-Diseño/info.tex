@@ -16,32 +16,28 @@ La arquitectura del sistema se organiza siguiendo una estructura modular. Esta d
 Desde un punto de vista general, el sistema puede entenderse como una aplicación web local compuesta por varias capas. En primer lugar, se encuentra la capa de presentación, construida con Dash, HTML y componentes interactivos. Esta capa es la que ve el usuario: menús, formularios, botones, tablas, gráficas y modales de exportación. En segundo lugar, aparece la capa de control, formada principalmente por los callbacks de Dash, que conectan las acciones del usuario con la lógica interna de la aplicación. Por último, se encuentra la capa de procesamiento, donde se ejecutan los modelos estadísticos, las transformaciones de datos, la generación de visualizaciones, la creación de PDFs y las peticiones al módulo de inteligencia artificial.
 
 \paragraph*{}
-El archivo \texttt{cargaDataset.py} actúa como punto de entrada de la aplicación. En él se inicializa el dashboard, se configuran las rutas principales y se gestiona la navegación entre páginas. El archivo \texttt{layout.py} concentra la definición visual de las distintas pantallas, mientras que \texttt{analysis\_callbacks.py} contiene gran parte de la lógica de interacción entre la interfaz y los análisis. Esta separación ayuda a que el diseño sea más comprensible: por un lado está lo que se muestra, y por otro lo que ocurre cuando el usuario interactúa con la aplicación.
+La separación por capas se completa con una distribución por componentes. En lugar de concentrar toda la lógica en una única parte de la aplicación, el diseño distingue entre navegación, presentación visual, gestión de eventos, preparación de datos, ejecución de modelos, visualización de resultados, generación de informes, traducción de textos e interpretación mediante inteligencia artificial. Esta visión resulta más clara para entender el sistema en conjunto, mientras que los archivos concretos que materializan cada responsabilidad se detallan más adelante en el capítulo de implementación.
 
 \paragraph*{}
-Como apoyo a esta estructura, el módulo \texttt{config.py} centraliza rutas y constantes de configuración, pero evita cargar los conjuntos de datos en el momento de importar el módulo. En su lugar, la carga se realiza bajo demanda cuando alguna parte de la aplicación necesita acceder a los ficheros CSV. Esta decisión reduce acoplamientos innecesarios entre módulos y evita que la aplicación falle al arrancar únicamente porque un archivo de datos todavía no esté disponible. Además, el modo de depuración del servidor Dash se plantea como una opción configurable mediante variable de entorno, de forma que el arranque normal del sistema no dependa de un modo de desarrollo activado de forma permanente.
-
-\paragraph*{}
-La parte analítica se reparte en módulos específicos según la técnica utilizada. Los modelos ya presentes en el sistema base, como Kaplan-Meier, regresión de Cox y Test de Log-Rank, se complementan con los nuevos módulos \texttt{exponential.py}, \texttt{weibull.py} y \texttt{rsf.py}. De esta forma, cada técnica mantiene su propia lógica de cálculo y puede evolucionar sin afectar directamente al resto del sistema. En el caso concreto de la regresión de Cox, el diseño contempla mecanismos de recuperación ante problemas de convergencia, utilizando regularización antes de recurrir a simplificar el conjunto de covariables. Además, el módulo \texttt{survival\_plots.py} recoge visualizaciones asociadas a los análisis, y los módulos \texttt{pdf\_exporter.py} y \texttt{pdf\_callbacks.py} se encargan de la exportación de resultados.
+Esta organización también facilita la ampliación del dashboard. Si se incorpora una nueva técnica de supervivencia, no es necesario replantear toda la aplicación: basta con integrarla dentro del componente de análisis, conectarla con la interfaz y, si procede, añadir sus visualizaciones y su exportación. La verdad es que esta idea es importante, porque el proyecto parte de un sistema previo y necesita crecer sin perder estabilidad ni coherencia.
 
 \begin{table}[H]
 \centering
 \small
 \begin{tabular}{|p{0.35\textwidth}|p{0.55\textwidth}|}
 \hline
-\textbf{Módulo} & \textbf{Responsabilidad principal} \\ \hline
-\texttt{cargaDataset.py} & Inicialización de la aplicación, rutas, navegación y arranque del dashboard. \\ \hline
-\texttt{layout.py} & Construcción de las páginas, componentes visuales, formularios y modales. \\ \hline
-\texttt{analysis\_callbacks.py} & Gestión de callbacks, interacción del usuario, carga, validación y ejecución de análisis. \\ \hline
-\texttt{config.py} & Centralización de rutas y constantes, con carga de datos bajo demanda para reducir dependencias al inicio. \\ \hline
-\texttt{preprocesamiento.py} & Limpieza y preparación del conjunto de datos antes de aplicar los modelos. \\ \hline
-\texttt{kaplan\_meier.py}, \texttt{cox\_regression.py} y \texttt{log\_rank\_test.py} & Técnicas de análisis de supervivencia procedentes del sistema base. \\ \hline
-\texttt{exponential.py}, \texttt{weibull.py} y \texttt{rsf.py} & Nuevas técnicas incorporadas en esta ampliación del dashboard. \\ \hline
-\texttt{ollama\_AI.py} & Generación de explicaciones interpretativas mediante inteligencia artificial local. \\ \hline
-\texttt{pdf\_exporter.py} y \texttt{pdf\_callbacks.py} & Construcción y descarga de informes PDF con resultados, gráficas e interpretaciones. \\ \hline
-\texttt{translations.py} & Gestión de textos en castellano e inglés para el soporte multilingüe. \\ \hline
+\textbf{Componente de diseño} & \textbf{Responsabilidad principal} \\ \hline
+Interfaz de usuario & Presenta las pantallas, controles, tablas, gráficas, botones y modales con los que interactúa el usuario. \\ \hline
+Gestor de navegación & Organiza el acceso a las distintas secciones del dashboard y mantiene un recorrido coherente entre carga, análisis, comparación y exportación. \\ \hline
+Gestor de interacción & Recibe las acciones del usuario y coordina la respuesta del sistema, conectando la interfaz con los procesos internos. \\ \hline
+Gestor de datos & Controla la carga, validación, limpieza y preparación del dataset antes de ejecutar los modelos. \\ \hline
+Motor de análisis & Agrupa las técnicas estadísticas y predictivas utilizadas para estudiar la supervivencia académica. \\ \hline
+Generador de visualizaciones & Transforma los resultados de los modelos en gráficas, curvas, tablas y comparaciones interpretables. \\ \hline
+Generador de informes & Prepara la exportación de resultados en documentos reutilizables, incorporando tablas, gráficos e interpretaciones. \\ \hline
+Módulo de inteligencia artificial & Produce explicaciones textuales de apoyo a partir de los resultados obtenidos en los análisis. \\ \hline
+Sistema de internacionalización & Gestiona los textos de la interfaz y permite adaptar la aplicación a castellano e inglés. \\ \hline
 \end{tabular}
-\caption{Distribución modular del sistema}
+\caption{Componentes principales de la arquitectura del sistema}
 \label{tab:modulos_sistema}
 \end{table}
 
@@ -376,10 +372,10 @@ En los modelos Weibull y Exponencial se incluye además un botón de exportació
 Al tratarse de una aplicación desarrollada principalmente con Dash, funciones de Python y callbacks, el sistema no sigue una estructura clásica basada únicamente en clases. Por ese motivo, en este apartado se plantea una vista mixta de clases y componentes, donde se representan tanto la clase principal de exportación como los módulos funcionales que sostienen el comportamiento del dashboard. Esta visión resulta más fiel al proyecto que forzar un diagrama de clases tradicional con entidades que realmente no existen en el código.
 
 \paragraph*{}
-El componente central es la aplicación Dash, inicializada desde \texttt{cargaDataset.py}. A partir de ella se conectan los layouts definidos en \texttt{layout.py} y los callbacks registrados en \texttt{analysis\_callbacks.py} y \texttt{pdf\_callbacks.py}. Los callbacks actúan como punto de unión entre la interacción del usuario y los módulos funcionales. Por ejemplo, cuando el usuario selecciona el modelo de Weibull, el callback correspondiente recoge el dataset preparado, invoca la función de análisis y devuelve a la interfaz los resultados que deben mostrarse.
+El componente central es la aplicación Dash, que actúa como núcleo de ejecución y como punto de conexión entre la interfaz, la navegación y los callbacks. A partir de ella se coordinan los componentes visuales y las respuestas del sistema ante las acciones del usuario. Por ejemplo, cuando se selecciona una técnica de análisis, el sistema recupera el dataset preparado, ejecuta el modelo correspondiente y devuelve a la interfaz los resultados que deben mostrarse.
 
 \paragraph*{}
-En cuanto a clases propiamente dichas, destaca \texttt{SurvivalAnalysisPDFExporter}, definida en \texttt{pdf\_exporter.py}. Esta clase concentra la responsabilidad de construir los informes PDF, añadiendo secciones, tablas, gráficas e interpretaciones. Su existencia tiene sentido porque la generación de documentos requiere mantener una estructura interna y reutilizar operaciones comunes en distintos tipos de informe.
+En cuanto a clases propiamente dichas, destaca la clase responsable de construir los informes PDF. Esta clase concentra la creación del documento final, añadiendo secciones, tablas, gráficas e interpretaciones. Su existencia tiene sentido porque la generación de informes requiere mantener una estructura interna y reutilizar operaciones comunes en distintos tipos de salida. Los detalles concretos de esta clase y de los archivos implicados se describen en el capítulo de implementación.
 
 \begin{table}[H]
 \centering

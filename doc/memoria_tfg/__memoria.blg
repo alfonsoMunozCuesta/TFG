@@ -5,53 +5,44 @@ Reallocating 'name_of_file' (item size: 1) to 9 items.
 The style file: unsrtnat.bst
 Reallocating 'name_of_file' (item size: 1) to 16 items.
 Database file #1: referencias.bib
-Warning--entry type for "github_tfg_alfonso" isn't style-file defined
---line 606 of file referencias.bib
-Warning--entry type for "wikimedia_exponential_survival" isn't style-file defined
---line 614 of file referencias.bib
-Warning--entry type for "wikimedia_weibull_pdf" isn't style-file defined
---line 622 of file referencias.bib
-Warning--entry type for "scikit_survival_rsf" isn't style-file defined
---line 630 of file referencias.bib
-You've used 5 entries,
+You've used 13 entries,
             2481 wiz_defined-function locations,
-            574 strings with 5085 characters,
-and the built_in function-call counts, 1409 in all, are:
-= -- 121
-> -- 43
-< -- 5
-+ -- 23
-- -- 12
-* -- 69
-:= -- 224
-add.period$ -- 19
-call.type$ -- 5
-change.case$ -- 10
-chr.to.int$ -- 4
-cite$ -- 5
-duplicate$ -- 75
-empty$ -- 151
-format.name$ -- 19
-if$ -- 304
+            635 strings with 7884 characters,
+and the built_in function-call counts, 5279 in all, are:
+= -- 365
+> -- 427
+< -- 11
++ -- 163
+- -- 136
+* -- 428
+:= -- 939
+add.period$ -- 54
+call.type$ -- 13
+change.case$ -- 26
+chr.to.int$ -- 12
+cite$ -- 13
+duplicate$ -- 211
+empty$ -- 411
+format.name$ -- 151
+if$ -- 1060
 int.to.chr$ -- 2
-int.to.str$ -- 6
-missing$ -- 2
-newline$ -- 37
-num.names$ -- 15
-pop$ -- 59
+int.to.str$ -- 14
+missing$ -- 7
+newline$ -- 88
+num.names$ -- 39
+pop$ -- 124
 preamble$ -- 1
-purify$ -- 5
+purify$ -- 13
 quote$ -- 0
-skip$ -- 53
+skip$ -- 132
 stack$ -- 0
-substring$ -- 10
-swap$ -- 12
+substring$ -- 92
+swap$ -- 28
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 32
+type$ -- 88
 warning$ -- 0
-while$ -- 10
+while$ -- 33
 width$ -- 0
-write$ -- 76
-(There were 4 warnings)
+write$ -- 198

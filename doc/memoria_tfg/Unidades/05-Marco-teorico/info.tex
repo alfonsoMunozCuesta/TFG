@@ -42,7 +42,7 @@
 \paragraph*{}La ampliación desarrollada en este Trabajo Fin de Grado incorpora nuevas técnicas de análisis de supervivencia con el fin de enriquecer la capacidad analítica del sistema. La idea no es sustituir los métodos clásicos, sino complementarlos. Cada modelo aporta una forma distinta de mirar los datos, y esa variedad permite comparar enfoques, detectar patrones y ofrecer una interpretación más completa del fenómeno estudiado.
 
 \subsection{Modelo exponencial}
-\paragraph*{}El modelo exponencial es un modelo paramétrico de análisis de supervivencia. A diferencia de métodos como Kaplan-Meier, que no imponen una forma concreta a la función de supervivencia, los modelos paramétricos asumen una determinada distribución para describir el tiempo hasta el evento. En el caso del modelo exponencial, se supone que el riesgo de que ocurra el evento permanece constante a lo largo del tiempo.
+\paragraph*{}El modelo exponencial es un modelo paramétrico de análisis de supervivencia. A diferencia de métodos como Kaplan-Meier, que no imponen una forma concreta a la función de supervivencia, los modelos paramétricos asumen una determinada distribución para describir el tiempo hasta el evento \cite{davidsonpilon2019lifelines,jackson2016flexsurv}. En el caso del modelo exponencial, se supone que el riesgo de que ocurra el evento permanece constante a lo largo del tiempo.
 
 \paragraph*{}Esta característica lo convierte en un modelo sencillo y fácil de interpretar. Si el riesgo de abandono se considera estable durante el periodo analizado, el modelo exponencial puede ofrecer una aproximación útil. Sin embargo, esa misma simplicidad puede convertirse en una limitación cuando el riesgo cambia con el tiempo, algo que puede ocurrir en contextos educativos. Por ejemplo, puede haber periodos iniciales con mayor incertidumbre o momentos concretos del curso en los que el abandono sea más probable.
 
@@ -51,13 +51,12 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.78\textwidth]{Imagenes/modelo_exponencial_supervivencia.png}
-    \caption{Ejemplo de funciones de supervivencia exponenciales con distintos valores del parámetro $\lambda$.}
+    \caption[Ejemplo de funciones de supervivencia exponenciales]{Ejemplo de funciones de supervivencia exponenciales con distintos valores del parámetro $\lambda$. Fuente: Michaelg2015, Wikimedia Commons \cite{wikimedia_exponential_survival}.}
     \label{fig:modelo_exponencial_supervivencia}
 \end{figure}
-\paragraph*{\footnotesize Fuente: Wikimedia Commons \cite{wikimedia_exponential_survival}.}
 
 \subsection{Modelo de Weibull}
-\paragraph*{}El modelo de Weibull es también un modelo paramétrico, pero ofrece mayor flexibilidad que el modelo exponencial. Su principal ventaja es que permite representar situaciones en las que el riesgo no permanece constante, sino que puede aumentar o disminuir a lo largo del tiempo. Esta característica resulta especialmente interesante en el análisis del abandono académico, donde el riesgo puede variar según la etapa en la que se encuentre el estudiante.
+\paragraph*{}El modelo de Weibull es también un modelo paramétrico, pero ofrece mayor flexibilidad que el modelo exponencial. Su principal ventaja es que permite representar situaciones en las que el riesgo no permanece constante, sino que puede aumentar o disminuir a lo largo del tiempo \cite{davidsonpilon2019lifelines,jackson2016flexsurv}. Esta característica resulta especialmente interesante en el análisis del abandono académico, donde el riesgo puede variar según la etapa en la que se encuentre el estudiante.
 
 \paragraph*{}Por ejemplo, es posible que algunos estudiantes presenten mayor riesgo de abandono durante los primeros periodos de observación, mientras que otros lo hagan más adelante. El modelo de Weibull permite capturar este tipo de comportamientos de una forma más flexible. Por ello, su incorporación al dashboard amplía las posibilidades de análisis y permite comparar si una aproximación paramétrica más compleja se ajusta mejor a los datos que el modelo exponencial.
 
@@ -66,22 +65,20 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.40\textwidth]{Imagenes/modelo_weibull_pdf.png}
-    \caption{Ejemplo de distribuciones de Weibull con diferentes valores del parámetro de forma.}
+    \caption[Ejemplo de distribuciones de Weibull]{Ejemplo de distribuciones de Weibull con diferentes valores del parámetro de forma. Fuente: Calimo, Wikimedia Commons \cite{wikimedia_weibull_pdf}.}
     \label{fig:modelo_weibull_pdf}
 \end{figure}
-\paragraph*{\footnotesize Fuente: Wikimedia Commons \cite{wikimedia_weibull_pdf}.}
 
 \subsection{Random Survival Forest}
-\paragraph*{}Random Survival Forest es una técnica basada en aprendizaje automático adaptada al análisis de supervivencia. Parte de la idea de los bosques aleatorios, pero incorpora la capacidad de trabajar con tiempos hasta evento y datos censurados. A diferencia de los modelos clásicos o paramétricos, este enfoque no exige asumir una forma concreta para la función de supervivencia ni una relación lineal entre las variables.
+\paragraph*{}Random Survival Forest es una técnica basada en aprendizaje automático adaptada al análisis de supervivencia. Parte de la idea de los bosques aleatorios, pero incorpora la capacidad de trabajar con tiempos hasta evento y datos censurados \cite{ishwaran2008rsf}. A diferencia de los modelos clásicos o paramétricos, este enfoque no exige asumir una forma concreta para la función de supervivencia ni una relación lineal entre las variables.
 
 \paragraph*{}Una de sus principales ventajas es su capacidad para capturar relaciones complejas entre covariables. En un contexto como el abandono universitario, donde pueden intervenir muchos factores de forma simultánea, esta flexibilidad resulta especialmente útil. El modelo puede aprender patrones no evidentes y ofrecer estimaciones de supervivencia para distintos perfiles de estudiantes.
 
-\paragraph*{}Además, Random Survival Forest permite obtener información sobre la importancia de las variables, lo que ayuda a identificar qué factores tienen mayor peso en la predicción del abandono. Esta característica conecta directamente con uno de los objetivos del proyecto: mejorar la capacidad de interpretación y análisis de los factores asociados al abandono académico. Aun así, al tratarse de un modelo más complejo, sus resultados deben interpretarse con cuidado y, siempre que sea posible, compararse con los obtenidos mediante técnicas más clásicas.
+\paragraph*{}Además, Random Survival Forest permite obtener información sobre la importancia de las variables, lo que ayuda a identificar qué factores tienen mayor peso en la predicción del abandono. Esta característica conecta directamente con uno de los objetivos del proyecto: mejorar la capacidad de interpretación y análisis de los factores asociados al abandono académico. Aun así, al tratarse de un modelo más complejo, sus resultados deben interpretarse con cuidado y, siempre que sea posible, compararse con los obtenidos mediante técnicas más clásicas. En este proyecto se utiliza a través de \texttt{scikit-survival}, una librería especializada en análisis de tiempo hasta evento sobre el ecosistema de \texttt{scikit-learn} \cite{polsterl2020scikit}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.72\textwidth]{Imagenes/random_survival_forest_predicciones.png}
-    \caption{Ejemplo de curvas de supervivencia predichas mediante Random Survival Forest.}
+    \caption[Ejemplo de curvas predichas mediante Random Survival Forest]{Ejemplo de curvas de supervivencia predichas mediante Random Survival Forest. Fuente: documentación oficial de scikit-survival \cite{scikit_survival_rsf}.}
     \label{fig:random_survival_forest_predicciones}
 \end{figure}
-\paragraph*{\footnotesize Fuente: documentación de scikit-survival \cite{scikit_survival_rsf}.}

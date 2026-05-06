@@ -61,6 +61,44 @@ Permite generar nuevas visualizaciones asociadas a los modelos de regresión de 
 \normalsize
 \end{table}
 
+\section{Variables utilizadas en el análisis}
+\paragraph*{}La ampliación del sistema se apoya en un conjunto de variables que permiten estudiar el abandono académico desde una perspectiva temporal y, además, relacionarlo con características concretas del estudiante. Algunas de ellas son imprescindibles para cualquier modelo de supervivencia, mientras que otras actúan como covariables y permiten comparar perfiles o alimentar modelos más complejos, como la regresión de Cox, el Test de Log-Rank o Random Survival Forest.
+
+\paragraph*{}La selección de estas variables no se ha realizado de forma arbitraria. Se han priorizado aquellas que cumplen tres criterios principales: que estén disponibles de forma estable en el conjunto de datos, que tengan una interpretación clara dentro del contexto académico y que puedan aportar información útil sobre la permanencia o el abandono del estudiante. También se ha buscado mantener un equilibrio razonable entre riqueza analítica y claridad, ya que incluir demasiadas variables puede hacer que los resultados sean más difíciles de explicar.
+
+\small
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{6.1cm}|}
+\hline
+\textbf{Variable o grupo} & \textbf{Qué representa} & \textbf{Motivo de selección} \\ \hline
+\endfirsthead
+
+\hline
+\textbf{Variable o grupo} & \textbf{Qué representa} & \textbf{Motivo de selección} \\ \hline
+\endhead
+
+Identificador del estudiante \newline \texttt{id\_student} & Identifica de forma única a cada estudiante dentro del conjunto de datos. & Se utiliza para consolidar registros y evitar duplicidades durante el preprocesamiento. No es una covariable explicativa, pero resulta necesaria para construir un dataset limpio y coherente. \\ \hline
+
+Tiempo observado \newline \texttt{date} & Indica el tiempo de seguimiento utilizado por los modelos de supervivencia. & Es una variable imprescindible, ya que el objetivo del análisis no es solo saber si se produce el abandono, sino estudiar cuándo ocurre. \\ \hline
+
+Evento de abandono \newline \texttt{final\_result} & Recoge el resultado final del estudiante y permite identificar si se produce el evento de abandono. & Es la variable que define el evento analizado. Se transforma en una variable binaria para diferenciar abandono y no abandono dentro de los modelos. \\ \hline
+
+Género \newline \texttt{gender\_F} & Representa el género del estudiante mediante una codificación binaria. & Se incluye porque permite analizar si existen diferencias de permanencia entre grupos. Además, es una variable sencilla de interpretar y útil para segmentar resultados. \\ \hline
+
+Discapacidad \newline \texttt{disability\_N} & Indica si el estudiante aparece registrado con o sin discapacidad. & Se selecciona por su relevancia en el contexto educativo, ya que puede estar relacionada con necesidades de apoyo, accesibilidad o condiciones que influyen en la trayectoria académica. \\ \hline
+
+Tramo de edad \newline \texttt{age\_band\_*} & Agrupa al alumnado en rangos de edad: \texttt{0-35}, \texttt{35-55} y \texttt{55<=}. & Se incluye porque la edad puede reflejar perfiles académicos distintos: estudiantes jóvenes, personas que retoman estudios o alumnado con otras responsabilidades. Esto permite comparar curvas y riesgos entre grupos. \\ \hline
+
+Nivel educativo previo \newline \texttt{highest\_education\_*} & Describe la formación máxima alcanzada antes de acceder al curso o programa analizado. & Se considera relevante porque la preparación académica previa puede influir en la adaptación al entorno universitario y, por tanto, en la probabilidad de permanencia o abandono. \\ \hline
+
+Créditos estudiados \newline \texttt{studied\_credits} & Refleja la carga académica asumida por el estudiante. & Se incorpora porque permite estudiar si la dedicación académica o el volumen de créditos se relaciona con el abandono. Además, es una variable no binaria, por lo que ayuda a cumplir el objetivo de ampliar el análisis más allá de variables simples. \\ \hline
+
+\caption{Variables principales utilizadas y justificación de su selección}
+\label{tab:variables_analisis}\\
+\end{longtable}
+\normalsize
+
+\paragraph*{}Aunque el conjunto de datos puede contener más atributos procedentes del sistema original, como actividad en recursos, módulos, presentaciones, regiones o intentos previos, esta ampliación se centra especialmente en las variables anteriores. La razón es que permiten cubrir los objetivos del trabajo sin perder claridad: se conserva la información mínima necesaria para los modelos de supervivencia y se incorporan covariables personales y académicas que enriquecen la interpretación de los resultados. Otras variables podrían ser útiles en futuros análisis, pero en esta versión se ha optado por un conjunto más controlado, comprensible y directamente relacionado con los casos de uso definidos.
+
 
 
 
@@ -545,7 +583,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-1: EjecutarModeloExponencial}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Imagenes/act_cu1.png}
+    \includegraphics[width=\textwidth]{Imagenes/act_cu1_2.png}
     \caption{Diagrama de actividad del CU-1: EjecutarModeloExponencial}
     \label{fig:act_cu1}
 \end{figure}
@@ -554,7 +592,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-2: EjecutarModeloWeibull}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Imagenes/act_cu2.png}
+    \includegraphics[width=\textwidth]{Imagenes/act_cu2_2.png}
     \caption{Diagrama de actividad del CU-2: EjecutarModeloWeibull}
     \label{fig:act_cu2}
 \end{figure}
@@ -563,7 +601,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-3: EjecutarRandomSurvivalForest}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{Imagenes/act_cu3.png}
+    \includegraphics[width=0.9\textwidth]{Imagenes/act_cu3_2.png}
     \caption{Diagrama de actividad del CU-3: EjecutarRandomSurvivalForest}
     \label{fig:act_cu3}
 \end{figure}
@@ -572,7 +610,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-4: ConsultarComparacionDeTecnicas}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Imagenes/act_cu4.png}
+    \includegraphics[width=\textwidth]{Imagenes/act_cu4_2.png}
     \caption{Diagrama de actividad del CU-4: ConsultarComparacionDeTecnicas}
     \label{fig:act_cu4}
 \end{figure}
@@ -580,7 +618,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-5: ExportarInformesYResultados}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Imagenes/act_cu5.png}
+    \includegraphics[width=0.8\textwidth]{Imagenes/act_cu5_2.png}
     \caption{Diagrama de actividad del CU-5: ExportarInformesYResultados}
     \label{fig:act_cu5}
 \end{figure}
@@ -589,7 +627,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-6: CambiarIdiomaInterfaz}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{Imagenes/act_cu6.png}
+    \includegraphics[width=0.85\textwidth]{Imagenes/act_cu6_2.png}
     \caption{Diagrama de actividad del CU-6: CambiarIdiomaInterfaz}
     \label{fig:act_cu6}
 \end{figure}
@@ -597,7 +635,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-7: AnalizarVariablesNoBinarias}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{Imagenes/act_cu7.png}
+    \includegraphics[width=0.9\textwidth]{Imagenes/act_cu7_2.png}
     \caption{Diagrama de actividad del CU-7: AnalizarVariablesNoBinarias}
     \label{fig:act_cu7}
 \end{figure}
@@ -605,7 +643,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-8: MejorarInterpretacionIA}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Imagenes/act_cu8.png}
+    \includegraphics[width=\textwidth]{Imagenes/act_cu8_2.png}
     \caption{Diagrama de actividad del CU-8: MejorarInterpretacionIA}
     \label{fig:act_cu8}
 \end{figure}
@@ -613,7 +651,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \subsection{CU-9: AmpliarVisualizacionesCoxTestLogRank}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Imagenes/act_cu9.png}
+    \includegraphics[width=0.8\textwidth]{Imagenes/act_cu9_2.png}
     \caption{Diagrama de actividad del CU-9: AmpliarVisualizacionesCoxTestLogRank}
     \label{fig:act_cu9}
 \end{figure}

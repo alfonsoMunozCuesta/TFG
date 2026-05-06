@@ -17,8 +17,8 @@ La verdad es que esta separación resulta importante, porque evita presentar com
 \begin{tabularx}{\textwidth}{|p{0.26\textwidth}|X|}
 \hline
 \textbf{Tecnología o librería} & \textbf{Papel dentro de la ampliación} \\ \hline
-\texttt{lifelines} & Se mantiene como librería estadística principal, pero se amplía su uso mediante \texttt{ExponentialFitter} y \texttt{WeibullFitter}, necesarios para implementar los modelos Exponencial y Weibull y compararlos con Kaplan-Meier. \\ \hline
-\texttt{scikit-survival} & Se incorpora para implementar Random Survival Forest, construir el objeto de supervivencia requerido por el modelo y calcular métricas como el índice de concordancia. \\ \hline
+\texttt{lifelines} & Se mantiene como librería estadística principal, pero se amplía su uso mediante \texttt{ExponentialFitter} y \texttt{WeibullFitter}, necesarios para implementar los modelos Exponencial y Weibull y compararlos con Kaplan-Meier \cite{davidsonpilon2019lifelines}. \\ \hline
+\texttt{scikit-survival} & Se incorpora para implementar Random Survival Forest, construir el objeto de supervivencia requerido por el modelo y calcular métricas como el índice de concordancia \cite{polsterl2020scikit}. \\ \hline
 \texttt{Plotly} & Ya formaba parte de la base del dashboard, pero en esta ampliación se utiliza para generar nuevas curvas de supervivencia, comparaciones entre modelos, gráficos de importancia de variables y visualizaciones asociadas a Cox y al Test de Log-Rank. \\ \hline
 \texttt{ReportLab} y \texttt{Kaleido} & Se utilizan para construir informes PDF con tablas, textos, cabeceras e imágenes, y para convertir las gráficas interactivas de Plotly en figuras insertables en el documento final. \\ \hline
 \texttt{requests} & Permite mantener la comunicación con el servidor local de inteligencia artificial, enviando los resultados estadísticos y recibiendo interpretaciones textuales para la interfaz o los informes. \\ \hline
@@ -73,7 +73,7 @@ El procesamiento principal se concentra en \texttt{preprocess\_data}. Esta funci
 Una parte relevante del preprocesamiento consiste en seleccionar una única fila representativa por estudiante. Para ello, el sistema ordena los registros por identificador y fecha, y aplica una lógica distinta según el estudiante haya abandonado o no. Si no ha abandonado, se intenta conservar la observación final del periodo de estudio. Si ha abandonado, se priorizan filas con actividad registrada y, en caso contrario, se selecciona una fila representativa del inicio o del registro disponible. Esta decisión reduce duplicidades y deja un dataset más estable para los análisis posteriores.
 
 \paragraph*{}
-Además, el preprocesamiento conserva tanto variables binarias como variables no binarias incorporadas en la ampliación, como rangos de edad, nivel educativo y créditos estudiados. También se eliminan columnas no necesarias y se registran advertencias cuando faltan columnas esperadas o aparecen valores nulos en campos críticos. De esta forma, el sistema no solo limpia los datos, sino que también ofrece cierto control sobre la calidad del dataset que se usará en los modelos.
+Además, el preprocesamiento conserva tanto variables binarias como variables no binarias incorporadas en la ampliación. Entre ellas se encuentran \texttt{gender\_F}, \texttt{disability\_N}, los rangos de edad definidos mediante \texttt{age\_band\_*}, las categorías de nivel educativo previo recogidas en \texttt{highest\_education\_*} y la variable numérica \texttt{studied\_credits}. Esta última resulta especialmente relevante porque no se trata de una variable binaria: según la técnica utilizada, el sistema puede agruparla en intervalos o cuantiles para compararla dentro de Kaplan-Meier, Cox o el Test de Log-Rank. También se eliminan columnas no necesarias y se registran advertencias cuando faltan columnas esperadas o aparecen valores nulos en campos críticos. De esta forma, el sistema no solo limpia los datos, sino que también ofrece cierto control sobre la calidad del dataset que se usará en los modelos.
 
 \section{Implementación de los modelos}
 
@@ -163,13 +163,19 @@ La interfaz se define en \texttt{layout.py} mediante funciones específicas para
 \section{Interpretación mediante inteligencia artificial}
 
 \paragraph*{}
-La interpretación automática de resultados se implementa en \texttt{ollama\_AI.py}. El sistema se comunica con un servidor local compatible con la API de chat completions mediante la librería \texttt{requests}. La configuración del servidor y el nombre del modelo se definen en \texttt{config.py}, donde se establece \texttt{LLAMA\_SERVER\_URL} y \texttt{MODEL\_NAME}. En la versión actual se utiliza el modelo \texttt{qwen2.5-1.5b-instruct}.
+La interpretación automática de resultados se implementa en \texttt{ollama\_AI.py}. El sistema se comunica con un servidor local mediante la librería \texttt{requests}, utilizando un endpoint HTTP compatible con la estructura de la API de chat completions. La configuración del servidor y el nombre del modelo se definen en \texttt{config.py}, donde se establece \texttt{LLAMA\_SERVER\_URL} y \texttt{MODEL\_NAME}. En la versión actual se utiliza \texttt{Qwen2.5-1.5B-Instruct} en formato \texttt{GGUF}, una variante cuantizada preparada para ejecución local \cite{qwen25_technical_report,qwen25_huggingface_gguf}.
+
+\paragraph*{}
+El modelo no se ejecuta desde un servicio externo, sino mediante \texttt{llama.cpp}, una herramienta open-source de inferencia local para modelos de lenguaje en C/C++ \cite{llamacpp_repo}. En concreto, se emplea el componente \texttt{llama-server.exe}, que levanta un servidor HTTP local y permite consumir el modelo a través de rutas compatibles como \texttt{/v1/chat/completions} \cite{llamacpp_server}. Esta decisión permite mantener la generación de explicaciones dentro del propio equipo de trabajo, sin enviar los resultados estadísticos a un servicio remoto.
+
+\paragraph*{}
+Un aspecto práctico importante es que el servidor local debe estar activo antes de solicitar una interpretación. Si \texttt{llama-server.exe} no está en ejecución o el modelo no se ha cargado correctamente, el módulo de inteligencia artificial no puede devolver una respuesta. Por ello, el código contempla este escenario para evitar que la aplicación quede bloqueada y devolver una salida controlada cuando el servicio no está disponible.
 
 \paragraph*{}
 Para mejorar la calidad de las respuestas, el módulo define un prompt de sistema orientado al contexto académico del TFG. Este prompt indica al modelo que debe redactar explicaciones claras, basadas únicamente en los resultados proporcionados y sin usar listas. Además, si la salida generada parece una enumeración, el sistema intenta reescribirla como prosa académica mediante \texttt{\_rewrite\_to\_prose\_if\_needed}. Este pequeño control ayuda a que las interpretaciones encajen mejor con el tono del informe.
 
 \paragraph*{}
-La función \texttt{generate\_interpretation\_for\_pdf} construye prompts específicos según el tipo de análisis: Kaplan-Meier, Cox, Test de Log-Rank, Weibull o Exponencial. Para cada caso se recopilan datos resumen y tablas de resultados, y se envían al modelo para obtener una explicación textual. Si el servidor local no está disponible, el sistema evita bloquear la generación del informe y devuelve una respuesta vacía o controlada.
+La función \texttt{generate\_interpretation\_for\_pdf} construye prompts específicos según el tipo de análisis: Kaplan-Meier, Cox, Test de Log-Rank, Weibull o Exponencial. Para cada caso se recopilan datos resumen y tablas de resultados, y se envían al modelo para obtener una explicación textual. De esta manera, la IA actúa como una capa de apoyo interpretativo sobre resultados ya calculados por el sistema, no como sustituto de los modelos estadísticos.
 
 \begin{figure}[H]
 \centering
