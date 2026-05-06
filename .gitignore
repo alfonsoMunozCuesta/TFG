@@ -8,3 +8,24 @@ venv/
 
 # Generated reports
 downloads/*.pdf
+downloads/
+
+# LaTeX generated files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+_minted-*/
+
+# Local packaged or reference documents
+*.zip
+*.docx
+Anteproyecto.pdf
+doc/MANUAL DE USUARIO.pdf

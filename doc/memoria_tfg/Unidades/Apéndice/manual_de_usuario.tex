@@ -31,8 +31,8 @@
 
 \begin{itemize}
     \item Sistema operativo Windows. Es el entorno principal para el que se han preparado los scripts de arranque.
-    \item Python instalado. Se recomienda utilizar Python 3.10, Python 3.11 o superior para evitar problemas de compatibilidad con librerías científicas, especialmente con \texttt{scikit-survival}. El proyecto incluye medidas de compatibilidad para Windows y versiones recientes de Python, pero para una instalación externa se aconseja usar una versión estable como 3.10 o 3.11.
-    \item Gestor de paquetes \texttt{pip}, incluido normalmente con Python.
+    \item Python instalado. El proyecto se ha desarrollado y probado con Python 3.13.2, por lo que se recomienda utilizar esa misma versión para reproducir el entorno con mayor seguridad.
+    \item Gestor de paquetes \texttt{pip}, incluido normalmente con Python. En Windows, la forma más fiable de utilizarlo es mediante \texttt{python -m pip}.
     \item Navegador web actualizado, por ejemplo Google Chrome, Microsoft Edge o Firefox.
     \item Código fuente del proyecto descargado en una carpeta local.
     \item Conexión a Internet durante la instalación de dependencias, salvo que se disponga previamente de los paquetes descargados.
@@ -45,7 +45,7 @@
     \item \texttt{pandas==2.2.3} y \texttt{numpy==2.2.3}, utilizadas para la carga y transformación de datos.
     \item \texttt{plotly==6.2.0} y \texttt{matplotlib==3.10.1}, utilizadas para la generación de gráficas.
     \item \texttt{lifelines==0.30.0}, utilizada para Kaplan-Meier, Cox, Weibull y Exponencial.
-    \item \texttt{scikit-survival}, utilizada para Random Survival Forest.
+    \item \texttt{scikit-survival==0.27.0}, utilizada para Random Survival Forest.
     \item \texttt{reportlab==4.0.8} y \texttt{kaleido==0.2.1}, utilizadas para la exportación de informes PDF.
     \item \texttt{requests==2.32.3}, utilizada para la comunicación con el servidor local de inteligencia artificial.
     \item \texttt{Pillow==11.1.0}, utilizada como soporte para el tratamiento de imágenes.
@@ -84,10 +84,10 @@ git clone https://github.com/alfonsoMunozCuesta/TFG.git
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 \end{verbatim}
 
-\paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. Si durante la instalación aparece un error relacionado con \texttt{scikit-survival}, lo más prudente es comprobar la versión de Python utilizada y repetir el proceso con Python 3.10 o 3.11, que suelen dar menos problemas con este tipo de librerías científicas.
+\paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. La verdad es que esta parte conviene hacerla con un poco de cuidado, porque \texttt{scikit-survival} es una dependencia más sensible que otras librerías habituales. En este proyecto se ha fijado la versión \texttt{0.27.0}, que es la utilizada durante las pruebas con Python 3.13.2.
 
 \subsection{Ejecución de la aplicación}
 
@@ -128,6 +128,15 @@ http://127.0.0.1:8050
     \item \texttt{tools/llama.cpp/llama-server.exe}
 \end{itemize}
 
+\paragraph*{}Estos dos archivos no se incluyen directamente en el repositorio por su tamaño y por tratarse de recursos externos al código fuente. Por ese motivo, deben entregarse aparte, por ejemplo mediante una carpeta compartida en Drive, y copiarse manualmente en las rutas indicadas antes de arrancar el servidor de inteligencia artificial. Es un paso pequeño, pero importante: si alguno de los dos archivos no está en su sitio, el dashboard seguirá funcionando, aunque la generación de explicaciones mediante IA no estará disponible.
+
+\paragraph*{}Los enlaces de descarga empleados para esta instalación son los siguientes:
+
+\begin{itemize}
+    \item Modelo GGUF: \href{https://drive.google.com/file/d/1G9zDMnDXh1nBYblO3OPhTiROFFuCHuGS/view?usp=drive_link}{enlace de descarga del modelo}.
+    \item Ejecutable \texttt{llama-server.exe}: \href{https://drive.google.com/file/d/1H3-fTrxCdiM9gZoL_5c38NETQeU0I__9/view?usp=drive_link}{enlace de descarga del ejecutable}.
+\end{itemize}
+
 \paragraph*{}Si el usuario tiene el modelo o el ejecutable en otra ubicación, puede modificar las variables \texttt{MODEL\_PATH} y \texttt{LLAMA\_SERVER} antes de ejecutar el script. Si el servidor de IA no está activo, la aplicación seguirá funcionando con normalidad, aunque no se generarán explicaciones automáticas.
 
 \subsection{Desinstalación del proyecto}
@@ -160,6 +169,12 @@ http://127.0.0.1:8050
 \paragraph*{}La interfaz incorpora un selector de idioma situado en la barra superior. Este control permite alternar entre español e inglés sin reiniciar la aplicación. Al modificar el idioma, se actualizan los textos principales de navegación, botones, mensajes y módulos de análisis.
 
 \paragraph*{}El idioma seleccionado también se tiene en cuenta en varias salidas generadas por el sistema, como interpretaciones textuales o informes PDF. De esta forma, el cambio de idioma no afecta únicamente a los menús, sino también a parte del contenido producido por la aplicación, algo importante cuando los resultados van a compartirse con otras personas.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/idioma.png}
+    \caption{Botón que cambia el idioma de la aplicación}
+    \label{fig:manual_usuario_idioma}
+\end{figure}
 
 \subsection{Carga del dataset}
 
@@ -483,7 +498,7 @@ http://127.0.0.1:8050
 
 \subsection{Problemas durante la instalación de dependencias}
 
-\paragraph*{}Si aparece un error durante la instalación de librerías, el primer paso es comprobar la versión de Python utilizada. Para este proyecto se recomienda Python 3.10 o 3.11. La dependencia que puede requerir más atención es \texttt{scikit-survival}, ya que trabaja con componentes científicos especializados y puede ser más sensible al entorno.
+\paragraph*{}Si aparece un error durante la instalación de librerías, el primer paso es comprobar la versión de Python utilizada. Para este proyecto se ha empleado Python 3.13.2 junto con \texttt{scikit-survival==0.27.0}. La dependencia que puede requerir más atención es precisamente \texttt{scikit-survival}, ya que trabaja con componentes científicos especializados y puede ser más sensible al entorno.
 
 \paragraph*{}También se recomienda actualizar \texttt{pip} antes de instalar las dependencias y utilizar un entorno virtual limpio. Muchas instalaciones fallidas se solucionan simplemente empezando desde un entorno sin librerías mezcladas.
 

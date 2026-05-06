@@ -389,6 +389,51 @@ Una vez finalizada la implementación de la aplicación, resulta fundamental ver
 \normalsize
 \end{table}
 
+\tituloPrueba{Medición de rendimiento}
+
+\paragraph*{}Además de comprobar que el módulo de inteligencia artificial genera respuestas válidas, se realizó una medición específica de rendimiento. La verdad es que esta prueba resulta importante porque la IA no debe convertirse en una espera incómoda dentro del flujo de análisis; su función es acompañar la interpretación de los resultados, no interrumpir el trabajo del usuario. Para ello, se ejecutaron cinco consultas por cada técnica de análisis disponible, utilizando el servidor local \texttt{llama-server} y el modelo \texttt{Qwen2.5-1.5B-Instruct} en formato \texttt{GGUF}. Los resultados se registraron automáticamente mediante el script \texttt{benchmark\_ia.py}, quedando almacenados en el archivo \texttt{benchmarks/ia\_benchmark\_20260506\_175802.csv}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.34\textwidth}|X|}
+\hline
+\textbf{Elemento} & \textbf{Valor utilizado en la prueba} \\ \hline
+Modelo evaluado & \texttt{qwen2.5-1.5b-instruct} mediante \texttt{llama-server}. \\ \hline
+Modelo del sistema previo & Llama 3 mediante Ollama, tomado como referencia tecnológica del TFG anterior. \\ \hline
+Equipo de pruebas & Ordenador personal descrito en el apartado de recursos hardware: Lenovo 82KU, AMD Ryzen 7 5700U with Radeon Graphics, 8 GB de memoria RAM, Windows 11 Home de 64 bits y tarjeta gráfica AMD Radeon Graphics integrada. \\ \hline
+Modo de ejecución & Inferencia local en CPU, con servidor HTTP en \texttt{http://127.0.0.1:8000}. \\ \hline
+Número de consultas & 30 consultas medidas en total: 5 por cada una de las 6 técnicas de análisis. \\ \hline
+\end{tabularx}
+\caption{Configuración utilizada para medir el rendimiento del módulo de inteligencia artificial}
+\label{tab:config_benchmark_ia}
+\normalsize
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|c|c|}
+\hline
+\textbf{Técnica} & \textbf{N} & \textbf{\shortstack{Tiempo\\medio (s)}} & \textbf{\shortstack{Tiempo\\máximo (s)}} & \textbf{\shortstack{RAM máx.\\aprox. (MB)}} \\ \hline
+Kaplan-Meier & 5 & 3.877 & 5.340 & 1013.32 \\ \hline
+Regresión de Cox & 5 & 8.553 & 12.468 & 1049.43 \\ \hline
+Test Log-Rank & 5 & 4.566 & 4.927 & 1052.55 \\ \hline
+Weibull & 5 & 6.361 & 8.591 & 1073.43 \\ \hline
+Exponencial & 5 & 5.352 & 7.558 & 1097.62 \\ \hline
+Random Survival Forest & 5 & 3.976 & 4.526 & 1098.16 \\ \hline
+\textbf{Media global} & 30 & \textbf{5.448} & \textbf{12.468} & \textbf{1098.16} \\ \hline
+\end{tabularx}
+\caption{Resultados de rendimiento del modelo de inteligencia artificial por técnica de análisis}
+\label{tab:rendimiento_ia_tecnicas}
+\normalsize
+\end{table}
+
+\paragraph*{}Los resultados muestran que el modelo actual ofrece tiempos de respuesta asumibles para un uso interactivo. La media global se sitúa en 5.448 segundos, con un máximo de 12.468 segundos en una consulta asociada a la regresión de Cox, que es precisamente una de las técnicas que genera entradas más densas para la explicación. El consumo máximo aproximado de memoria se mantiene alrededor de 1.1 GB, una cifra razonable para una ejecución local en un equipo portátil con recursos limitados.
+
+\paragraph*{}En comparación con el enfoque del sistema previo, basado en Llama 3 mediante Ollama, esta nueva configuración apuesta por un modelo más ligero y por una ejecución local controlada mediante \texttt{llama-server}. Aunque la comparación exacta con el TFG anterior depende del equipo y de la configuración concreta usada en aquel entorno, la medición realizada confirma que la solución actual responde de forma estable en todas las técnicas evaluadas y que puede integrarse en el dashboard sin romper la continuidad del análisis.
+
 \section[CU-9: AmpliarVisualizacionesCoxTestLogRank]{CU-9: AmpliarVisualizacionesCox\allowbreak{}TestLogRank}
 
 \tituloPrueba{Prueba válida}

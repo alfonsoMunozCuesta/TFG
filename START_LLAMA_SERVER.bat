@@ -4,12 +4,33 @@ REM No usa rutas absolutas del equipo.
 
 setlocal enabledelayedexpansion
 set "PROJECT_DIR=%~dp0"
+set "DEFAULT_MODEL_PATH=%PROJECT_DIR%models\qwen2.5-1.5b-instruct-q4_k_m.gguf"
+set "DEFAULT_LLAMA_SERVER=%PROJECT_DIR%tools\llama.cpp\llama-server.exe"
+set "LEGACY_MODEL_PATH=%USERPROFILE%\Desktop\IA\qwen2.5-1.5b-instruct-q4_k_m.gguf"
+set "LEGACY_LLAMA_SERVER=%USERPROFILE%\Desktop\IA\llama.cpp\llama-server.exe"
 
 REM Puedes sobrescribir estas rutas antes de ejecutar el script:
 REM   set MODEL_PATH=C:\ruta\al\modelo.gguf
 REM   set LLAMA_SERVER=C:\ruta\a\llama-server.exe
-if "%MODEL_PATH%"=="" set "MODEL_PATH=%PROJECT_DIR%models\qwen2.5-1.5b-instruct-q4_k_m.gguf"
-if "%LLAMA_SERVER%"=="" set "LLAMA_SERVER=%PROJECT_DIR%tools\llama.cpp\llama-server.exe"
+if "%MODEL_PATH%"=="" (
+    if exist "%DEFAULT_MODEL_PATH%" (
+        set "MODEL_PATH=%DEFAULT_MODEL_PATH%"
+    ) else if exist "%LEGACY_MODEL_PATH%" (
+        set "MODEL_PATH=%LEGACY_MODEL_PATH%"
+    ) else (
+        set "MODEL_PATH=%DEFAULT_MODEL_PATH%"
+    )
+)
+
+if "%LLAMA_SERVER%"=="" (
+    if exist "%DEFAULT_LLAMA_SERVER%" (
+        set "LLAMA_SERVER=%DEFAULT_LLAMA_SERVER%"
+    ) else if exist "%LEGACY_LLAMA_SERVER%" (
+        set "LLAMA_SERVER=%LEGACY_LLAMA_SERVER%"
+    ) else (
+        set "LLAMA_SERVER=%DEFAULT_LLAMA_SERVER%"
+    )
+)
 
 REM Parametros de inferencia. Ajusta estos valores segun tu CPU/RAM.
 if "%N_THREADS%"=="" set "N_THREADS=8"
