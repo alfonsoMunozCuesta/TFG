@@ -7,9 +7,7 @@
 % =========================================================
 
 % =========================================================
-% PARCHE ToC: evita "A.1Introducción" (sin espacio)
-% Causa: numwidth del ToC demasiado pequeño con numeración tipo A.1
-% Solución: aumentar el ancho reservado a la numeración en secciones
+% PARCHE ToC: evita problemas de espaciado con numeración tipo A.1
 % =========================================================
 \makeatletter
 \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{4.0em}}
@@ -17,13 +15,510 @@
 \renewcommand*\l@subsubsection{\@dottedtocline{3}{7.0em}{5.2em}}
 \makeatother
 
-% =========================
-% INTRODUCCIÓN
-% =========================
+\section{Introducción}
 
-% ------------------------------------------------------------
-% PRESENTACIÓN DEL MANUAL (ADMINISTRADOR Y TRABAJADOR)
-% ------------------------------------------------------------
+\paragraph*{}Este manual recoge, paso a paso, el proceso de instalación, puesta en marcha y uso de la aplicación desarrollada para el análisis de supervivencia aplicado al abandono académico universitario. La idea es que cualquier usuario pueda arrancarla sin perderse entre archivos, comandos o pantallas intermedias.
 
-\paragraph*{}Esta aplicación ha sido desarrollada con el objetivo de digitalizar y centralizar los procesos esenciales de gestión de personal y planificación de eventos dentro de una organización. La plataforma permite registrar eventos, solicitar disponibilidad, asignar trabajadores, mantener un canal de comunicación interno y gestionar el seguimiento de pagos, ofreciendo un entorno único y accesible que reduce la dependencia de herramientas externas.
+\paragraph*{}La aplicación se ejecuta como un dashboard web local construido con Dash. Esto significa que no es necesario desplegarla en un servidor externo para utilizarla: el usuario inicia el programa en su propio equipo y accede a la interfaz desde un navegador mediante una dirección local. Desde ahí puede cargar el dataset, preprocesarlo, consultar los datos, ejecutar diferentes técnicas de análisis de supervivencia, generar interpretaciones y exportar informes en formato PDF. En la práctica, todo el flujo de trabajo queda reunido en una misma herramienta.
 
+\paragraph*{}El módulo de inteligencia artificial es opcional. La aplicación puede funcionar sin él, manteniendo disponibles la carga de datos, los análisis estadísticos, las gráficas y la exportación de informes. Ahora bien, si se desea utilizar la generación automática de explicaciones, es necesario arrancar previamente el servidor local de IA mediante el script correspondiente.
+
+\section{Instalación}
+
+\subsection{Requisitos previos}
+
+\paragraph*{}Antes de ejecutar la aplicación, conviene comprobar con calma que el equipo dispone de los siguientes elementos. Es un paso sencillo, pero evita muchos errores posteriores:
+
+\begin{itemize}
+    \item Sistema operativo Windows. Es el entorno principal para el que se han preparado los scripts de arranque.
+    \item Python instalado. Se recomienda utilizar Python 3.10, Python 3.11 o superior para evitar problemas de compatibilidad con librerías científicas, especialmente con \texttt{scikit-survival}. El proyecto incluye medidas de compatibilidad para Windows y versiones recientes de Python, pero para una instalación externa se aconseja usar una versión estable como 3.10 o 3.11.
+    \item Gestor de paquetes \texttt{pip}, incluido normalmente con Python.
+    \item Navegador web actualizado, por ejemplo Google Chrome, Microsoft Edge o Firefox.
+    \item Código fuente del proyecto descargado en una carpeta local.
+    \item Conexión a Internet durante la instalación de dependencias, salvo que se disponga previamente de los paquetes descargados.
+\end{itemize}
+
+\paragraph*{}Las librerías necesarias se encuentran recogidas en el archivo \texttt{requirements.txt}. Entre las dependencias principales se incluyen:
+
+\begin{itemize}
+    \item \texttt{dash==2.0.0} y \texttt{dash-daq==0.6.0}, utilizadas para construir la interfaz web.
+    \item \texttt{pandas==2.2.3} y \texttt{numpy==2.2.3}, utilizadas para la carga y transformación de datos.
+    \item \texttt{plotly==6.2.0} y \texttt{matplotlib==3.10.1}, utilizadas para la generación de gráficas.
+    \item \texttt{lifelines==0.30.0}, utilizada para Kaplan-Meier, Cox, Weibull y Exponencial.
+    \item \texttt{scikit-survival}, utilizada para Random Survival Forest.
+    \item \texttt{reportlab==4.0.8} y \texttt{kaleido==0.2.1}, utilizadas para la exportación de informes PDF.
+    \item \texttt{requests==2.32.3}, utilizada para la comunicación con el servidor local de inteligencia artificial.
+    \item \texttt{Pillow==11.1.0}, utilizada como soporte para el tratamiento de imágenes.
+\end{itemize}
+
+\paragraph*{}Para utilizar el módulo de inteligencia artificial se requiere, además, disponer de \texttt{llama-server.exe} y de un modelo en formato \texttt{GGUF}. En la configuración actual se utiliza un modelo Qwen2.5 Instruct cuantizado. La verdad es que esta parte puede parecer la más delicada de la instalación, pero solo afecta a las explicaciones automáticas: el resto del dashboard puede usarse sin tener activa la IA.
+
+\subsection{Descarga del código}
+
+\paragraph*{}El código fuente del proyecto se obtiene desde el repositorio de GitHub correspondiente. Para ello existen dos caminos habituales: descargar el proyecto como archivo comprimido ZIP o clonar el repositorio mediante Git. La primera opción es más directa; la segunda resulta más cómoda si se quiere mantener el proyecto conectado con el repositorio.
+
+\paragraph*{}\textbf{Opción 1: descarga como archivo comprimido ZIP.} La primera opción consiste en acceder al repositorio desde el navegador, pulsar sobre el botón \texttt{Code} y seleccionar la opción \texttt{Download ZIP}. Tras la descarga, se debe descomprimir el archivo en una carpeta local. Esta alternativa es la más sencilla si el usuario solo quiere ejecutar la aplicación, probar el dashboard y no necesita modificar el repositorio.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{Imagenes/Git.png}
+    \caption{Descarga del proyecto desde GitHub como archivo ZIP}
+    \label{fig:manual_usuario_git_zip}
+\end{figure}
+
+\paragraph*{}\textbf{Opción 2: clonación del repositorio mediante Git.} La segunda opción consiste en clonar el repositorio mediante Git. Para ello, el usuario debe tener Git instalado y ejecutar desde una terminal el siguiente comando:
+
+\begin{verbatim}
+git clone https://github.com/alfonsoMunozCuesta/TFG.git
+\end{verbatim}
+
+\paragraph*{}Esta alternativa es recomendable si se desea mantener el proyecto vinculado a GitHub, actualizarlo posteriormente o trabajar con control de versiones. Además, resulta especialmente útil si el proyecto va a revisarse o ampliarse más adelante.
+
+\paragraph*{}Una vez descargado, se debe abrir una terminal en la carpeta raíz del proyecto, es decir, en la carpeta donde se encuentran archivos como \texttt{cargaDataset.py}, \texttt{requirements.txt}, \texttt{START\_DASH\_APP.bat} y \texttt{START\_LLAMA\_SERVER.bat}.
+
+\subsection{Instalación de las librerías de Python requeridas}
+
+\paragraph*{}Se recomienda instalar las dependencias dentro de un entorno virtual para no mezclar las librerías del proyecto con las del sistema. Es una pequeña precaución, pero ayuda bastante a mantener el entorno limpio. Desde la carpeta raíz del proyecto, se pueden ejecutar los siguientes comandos en PowerShell:
+
+\begin{verbatim}
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+\end{verbatim}
+
+\paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. Si durante la instalación aparece un error relacionado con \texttt{scikit-survival}, lo más prudente es comprobar la versión de Python utilizada y repetir el proceso con Python 3.10 o 3.11, que suelen dar menos problemas con este tipo de librerías científicas.
+
+\subsection{Ejecución de la aplicación}
+
+\paragraph*{}Una vez instaladas las dependencias, la aplicación puede iniciarse desde la carpeta raíz del proyecto mediante:
+
+\begin{verbatim}
+python cargaDataset.py
+\end{verbatim}
+
+\paragraph*{}También puede utilizarse el script de arranque preparado para Windows:
+
+\begin{verbatim}
+.\START_DASH_APP.bat
+\end{verbatim}
+
+\paragraph*{}Ambas opciones arrancan el servidor local de Dash. Cuando el proceso se inicia correctamente, la aplicación queda disponible en el navegador a través de la siguiente dirección. Es, por así decirlo, la puerta de entrada al dashboard:
+
+\begin{verbatim}
+http://127.0.0.1:8050
+\end{verbatim}
+
+\paragraph*{}Para detener la aplicación basta con volver a la terminal donde se está ejecutando y pulsar \texttt{Ctrl+C}. Si se utiliza el archivo \texttt{START\_DASH\_APP.bat}, la ventana mostrará también un mensaje final antes de cerrarse.
+
+\subsection{Ejecución del módulo de inteligencia artificial}
+
+\paragraph*{}El módulo de inteligencia artificial se ejecuta de forma independiente al dashboard. Para utilizarlo, debe abrirse una terminal adicional en la carpeta raíz del proyecto y ejecutar:
+
+\begin{verbatim}
+.\START_LLAMA_SERVER.bat
+\end{verbatim}
+
+\paragraph*{}Este script inicia \texttt{llama-server} en la dirección local \texttt{http://127.0.0.1:8000}. La aplicación Dash se comunica con ese servidor cuando el usuario solicita una interpretación automática desde la interfaz o al generar un informe PDF con explicación de IA. Por eso, si se quiere usar esta parte, ambas ventanas deben permanecer abiertas.
+
+\paragraph*{}Por defecto, el script espera encontrar el modelo y el ejecutable en las siguientes rutas relativas al proyecto:
+
+\begin{itemize}
+    \item \texttt{models/qwen2.5-1.5b-instruct-q4\_k\_m.gguf}
+    \item \texttt{tools/llama.cpp/llama-server.exe}
+\end{itemize}
+
+\paragraph*{}Si el usuario tiene el modelo o el ejecutable en otra ubicación, puede modificar las variables \texttt{MODEL\_PATH} y \texttt{LLAMA\_SERVER} antes de ejecutar el script. Si el servidor de IA no está activo, la aplicación seguirá funcionando con normalidad, aunque no se generarán explicaciones automáticas.
+
+\subsection{Desinstalación del proyecto}
+
+\paragraph*{}La aplicación no requiere un proceso de desinstalación complejo, ya que se ejecuta desde la carpeta del proyecto. Para retirarla del equipo basta con cerrar la aplicación, borrar la carpeta del proyecto y, si se creó un entorno virtual, eliminar también la carpeta \texttt{.venv}. No deja una instalación repartida por el sistema.
+
+\paragraph*{}Si se descargaron por separado el modelo GGUF o \texttt{llama-server.exe}, estos archivos también pueden eliminarse manualmente si ya no van a utilizarse. En caso de haber instalado dependencias dentro de un entorno virtual, no es necesario desinstalar cada librería una por una, ya que al borrar dicho entorno se eliminan de forma conjunta.
+
+\section{Interfaz de usuario}
+
+\paragraph*{}Una vez iniciada la aplicación y abierta la dirección local en el navegador, el usuario accede a la interfaz principal del dashboard. La aplicación está organizada en distintas páginas conectadas mediante una barra de navegación superior. Desde ella se puede volver al inicio, consultar el dataset, acceder al análisis de covariables, entrar en los módulos de análisis de supervivencia y comparar técnicas. La navegación está pensada para que el recorrido sea bastante natural: primero se cargan los datos, después se revisan y, finalmente, se analizan.
+
+\paragraph*{}Las capturas incluidas en este manual tienen una función práctica: muestran al usuario qué pantalla debe localizar durante el flujo de uso. El capítulo de diseño recoge la distribución visual y los componentes de la interfaz con mayor detalle, mientras que este anexo se centra en acompañar el uso real de la aplicación, casi como una guía de trabajo.
+
+\subsection{Pantalla principal}
+
+\paragraph*{}La pantalla principal es el punto de entrada de la aplicación. En ella se muestra el área de carga del archivo CSV y el botón que permite iniciar el preprocesamiento del dataset. Esta vista concentra el primer paso importante del flujo de trabajo: seleccionar el archivo de datos que después utilizarán todos los módulos del sistema.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/home.png}
+    \caption{Pantalla principal de la aplicación}
+    \label{fig:manual_usuario_home}
+\end{figure}
+
+\paragraph*{}Antes de acceder a los módulos de análisis, es necesario cargar y preprocesar un dataset válido. Si el usuario intenta entrar en una sección que requiere datos sin haber completado este paso, la aplicación muestra un mensaje informativo indicando que primero debe cargarse el dataset académico. Es una protección sencilla, pero evita trabajar sobre datos vacíos o incompletos.
+
+\subsection{Selector de idioma}
+
+\paragraph*{}La interfaz incorpora un selector de idioma situado en la barra superior. Este control permite alternar entre español e inglés sin reiniciar la aplicación. Al modificar el idioma, se actualizan los textos principales de navegación, botones, mensajes y módulos de análisis.
+
+\paragraph*{}El idioma seleccionado también se tiene en cuenta en varias salidas generadas por el sistema, como interpretaciones textuales o informes PDF. De esta forma, el cambio de idioma no afecta únicamente a los menús, sino también a parte del contenido producido por la aplicación, algo importante cuando los resultados van a compartirse con otras personas.
+
+\subsection{Carga del dataset}
+
+\paragraph*{}Para comenzar el análisis, el usuario debe cargar un archivo CSV desde la pantalla principal. La aplicación está preparada para trabajar con un dataset académico que contenga las columnas necesarias para el análisis de supervivencia. Entre las variables fundamentales se encuentran el identificador del estudiante, el tiempo observado y el resultado final que permite determinar si se ha producido el evento de abandono.
+
+\paragraph*{}La carga se realiza seleccionando el archivo desde el explorador del sistema o arrastrándolo sobre el área correspondiente. Una vez cargado, la aplicación valida que el archivo tenga un formato compatible y que contenga los campos mínimos requeridos. Si el archivo es válido, se muestra una confirmación y el usuario puede continuar con el preprocesamiento sin tener que revisar manualmente toda la estructura del CSV.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/archivo_bruto.png}
+    \caption{Archivo CSV cargado antes de iniciar el preprocesamiento}
+    \label{fig:manual_usuario_archivo_bruto}
+\end{figure}
+
+\paragraph*{}Si el archivo no es correcto, está vacío o no contiene las columnas esperadas, el sistema muestra un mensaje de error. En ese caso, el usuario debe revisar el archivo y repetir la carga con un dataset compatible.
+
+\subsection{Preprocesamiento del dataset}
+
+\paragraph*{}Tras cargar un archivo válido, el usuario debe pulsar el botón de preprocesamiento. Este paso prepara el dataset para que pueda ser utilizado por las técnicas de análisis de supervivencia. Durante el proceso se validan columnas, se transforman variables, se eliminan registros no válidos y se genera una versión limpia de los datos. Es una especie de filtro previo: antes de analizar, el sistema deja los datos en una forma más estable.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonYaLimpio.png}
+    \caption{Confirmación del dataset preprocesado}
+    \label{fig:manual_usuario_preprocesado}
+\end{figure}
+
+\paragraph*{}Cuando el preprocesamiento finaliza correctamente, la aplicación permite acceder al resto de módulos. A partir de ese momento, el dataset limpio queda disponible para consultar los datos, ejecutar análisis de covariables, aplicar técnicas de supervivencia y generar informes. En otras palabras, es el punto en el que el dashboard queda realmente preparado para trabajar.
+
+\subsection{Navegación entre módulos}
+
+\paragraph*{}La navegación principal se realiza desde la barra superior de la aplicación. Los accesos disponibles permiten desplazarse entre las partes principales del dashboard:
+
+\begin{itemize}
+    \item \texttt{INICIO}: vuelve a la pantalla principal de carga del dataset.
+    \item \texttt{VER DATASET}: muestra el dataset limpio y la descripción de las variables.
+    \item \texttt{ANÁLISIS DE COVARIABLES}: permite explorar variables académicas y personales antes de aplicar técnicas de supervivencia.
+    \item \texttt{ANÁLISIS DE SUPERVIVENCIA}: da acceso a Kaplan-Meier, Regresión de Cox, Test Log-Rank, Weibull, Exponencial y Random Survival Forest.
+    \item \texttt{COMPARACIÓN DE TÉCNICAS}: permite revisar una comparación general entre los métodos disponibles.
+\end{itemize}
+
+\paragraph*{}Al volver a la pantalla inicial, la aplicación puede solicitar confirmación para evitar perder el dataset cargado y los análisis realizados. Esta medida reduce el riesgo de abandonar accidentalmente el flujo de trabajo activo, algo que puede pasar con facilidad cuando se está explorando varias secciones seguidas.
+
+\section{Visualización del dataset}
+
+\paragraph*{}Después de completar el preprocesamiento, el usuario puede acceder a la sección de visualización del dataset. Esta parte permite revisar los datos cargados y comprobar la estructura del dataset limpio que utilizarán los modelos de supervivencia. Es un paso recomendable antes de lanzarse al análisis, porque ayuda a detectar si algo no encaja.
+
+\subsection{Consulta del dataset cargado}
+
+\paragraph*{}La consulta del dataset cargado permite comprobar que el archivo original se ha incorporado correctamente a la aplicación. Esta revisión es útil para detectar posibles problemas iniciales, como columnas ausentes, separadores incorrectos o valores inesperados, antes de continuar con el análisis.
+
+\paragraph*{}En esta fase el usuario debe verificar que el dataset corresponde al archivo esperado y que contiene las variables necesarias para el análisis. Si el archivo no cumple la estructura requerida, el sistema no permitirá continuar correctamente con el flujo de análisis.
+
+\subsection{Consulta del dataset preprocesado}
+
+\paragraph*{}Una vez aplicado el preprocesamiento, el usuario puede consultar el dataset limpio. Esta versión es la que se utiliza internamente para ejecutar las técnicas de análisis de supervivencia. En ella se han tratado las variables necesarias y se han preparado los datos para su uso en los modelos estadísticos.
+
+\paragraph*{}La vista de dataset muestra una tabla con los registros disponibles y permite revisar el resultado del proceso de limpieza. Además, la aplicación incluye una descripción de las variables principales para facilitar la interpretación de los campos utilizados por los modelos. Esto ayuda a no tratar las columnas como nombres sueltos, sino como información con significado dentro del problema académico.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/ver1.png}
+    \caption{Consulta del dataset limpio desde la sección de visualización}
+    \label{fig:manual_usuario_dataset_limpio}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/ver2.png}
+    \caption{Descripción de variables disponible para interpretar el dataset}
+    \label{fig:manual_usuario_variables_dataset}
+\end{figure}
+
+\section{Análisis de covariables}
+
+\paragraph*{}El análisis de covariables permite explorar de forma inicial la relación entre distintas variables del dataset y el abandono académico. Esta sección sirve como paso previo a los modelos de supervivencia, ya que ayuda a identificar patrones generales en función de características personales o académicas del alumnado. No ofrece todavía una conclusión definitiva, pero sí una primera lectura muy útil.
+
+\subsection{Selección de covariables}
+
+\paragraph*{}Para utilizar esta sección, el usuario debe seleccionar el tipo de análisis de covariable que desea visualizar. La aplicación permite revisar variables como género, discapacidad, tramo de edad, nivel educativo previo y créditos estudiados. También puede mostrarse una visión general del abandono total.
+
+\paragraph*{}La selección se realiza mediante los controles disponibles en la página. Al cambiar la opción seleccionada, la aplicación actualiza automáticamente la información mostrada para reflejar el análisis correspondiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/analisis_covariables.png}
+    \caption{Selección de covariables para la exploración descriptiva}
+    \label{fig:manual_usuario_covariables}
+\end{figure}
+
+\subsection{Interpretación de tablas y gráficas}
+
+\paragraph*{}Los resultados del análisis de covariables se presentan mediante tablas, gráficos e interpretaciones textuales. Las gráficas permiten comparar de forma visual la distribución del abandono entre grupos, mientras que las tablas resumen ofrecen valores concretos que ayudan a interpretar cada variable.
+
+\paragraph*{}La interpretación debe realizarse como una exploración descriptiva inicial. Es decir, esta sección permite observar diferencias entre grupos, pero no sustituye a los modelos de supervivencia posteriores. Para estudiar el comportamiento temporal del abandono y comparar curvas o riesgos, el usuario debe acudir a las técnicas específicas de análisis de supervivencia. La idea es mirar primero el terreno antes de entrar en el análisis más profundo.
+
+\section{Técnicas de análisis de supervivencia}
+
+\paragraph*{}La sección de análisis de supervivencia agrupa los métodos estadísticos disponibles en la aplicación. Para utilizar cualquiera de ellos es necesario haber cargado y preprocesado previamente el dataset. Desde esta página, el usuario puede acceder a los distintos modelos y pruebas mediante los botones o enlaces internos de navegación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/analisis_superv.png}
+    \caption{Página de acceso a las técnicas de análisis de supervivencia}
+    \label{fig:manual_usuario_analisis_supervivencia}
+\end{figure}
+
+\subsection{Kaplan-Meier}
+
+\paragraph*{}El módulo Kaplan-Meier permite estimar la función de supervivencia del alumnado a lo largo del tiempo. Al acceder a esta sección se muestra una curva general de supervivencia, que representa la probabilidad estimada de permanencia en función del tiempo observado. Es una de las formas más directas de ver cómo evoluciona el abandono conforme avanza el periodo estudiado.
+
+\paragraph*{}El usuario puede seleccionar distintas covariables para comparar curvas entre grupos. Entre las opciones disponibles se encuentran género, discapacidad, tramo de edad, nivel educativo previo y créditos estudiados. Al elegir una covariable, la gráfica se actualiza para mostrar las curvas correspondientes a cada grupo.
+
+\paragraph*{}La curva generada permite observar diferencias en la permanencia estimada entre grupos. Una caída más pronunciada de la curva indica una mayor concentración de eventos de abandono en menor tiempo. El usuario también puede solicitar una explicación mediante IA y exportar el análisis a PDF cuando existan resultados disponibles. De este modo, la gráfica no se queda solo como una visualización puntual, sino que puede convertirse en parte de un informe.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/curva_kp.png}
+    \caption{Resultado esperado al generar una curva Kaplan-Meier estratificada}
+    \label{fig:manual_usuario_kaplan_curva}
+\end{figure}
+
+\subsection{Regresión de Cox}
+
+\paragraph*{}La regresión de Cox permite analizar el efecto de una o varias covariables sobre el riesgo de abandono. En esta pantalla, el usuario selecciona las variables que desea incluir en el modelo y ejecuta el análisis. El resultado principal se expresa mediante el Hazard Ratio, que ayuda a interpretar si una covariable se asocia con un aumento o una reducción del riesgo.
+
+\paragraph*{}Tras ejecutar el modelo, la aplicación muestra una tabla con los coeficientes, valores de significación y medidas asociadas. Además, puede generarse una visualización tipo forest plot que facilita comparar el efecto relativo de las covariables seleccionadas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Imagenes/graficaCox.png}
+    \caption{Visualización de los efectos obtenidos tras ejecutar la regresión de Cox}
+    \label{fig:manual_usuario_cox_grafica}
+\end{figure}
+
+\paragraph*{}Para interpretar los resultados, se debe prestar atención al Hazard Ratio y al p-valor. Un Hazard Ratio superior a 1 indica mayor riesgo relativo de abandono, mientras que un valor inferior a 1 apunta a un posible efecto protector. El p-valor ayuda a valorar si la asociación observada es estadísticamente significativa. La lectura conjunta de ambos valores es importante, porque una cifra aislada puede resultar engañosa si no se mira dentro del contexto del modelo.
+
+\subsection{Test Log-Rank}
+
+\paragraph*{}El Test Log-Rank permite comparar curvas de supervivencia entre grupos y determinar si existen diferencias estadísticamente significativas entre ellas. Para utilizarlo, el usuario selecciona la variable o covariable que desea comparar y ejecuta la prueba. Resulta especialmente útil cuando una diferencia visual parece clara, pero se quiere comprobar con un contraste estadístico.
+
+\paragraph*{}El sistema muestra los resultados de la comparación, incluyendo el estadístico de prueba y el p-valor. Si el p-valor es inferior al umbral habitual de 0.05, puede considerarse que existen diferencias estadísticamente significativas entre las curvas comparadas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/ejemploLogRank.png}
+    \caption{Resultado mostrado al comparar grupos mediante el Test Log-Rank}
+    \label{fig:manual_usuario_logrank_resultado}
+\end{figure}
+
+\paragraph*{}Este análisis funciona muy bien como complemento de Kaplan-Meier, ya que no solo permite visualizar diferencias entre curvas, sino también contrastarlas mediante una prueba estadística. Primero se observa la curva; después, se comprueba si esa diferencia tiene respaldo numérico.
+
+\subsection{Modelo Weibull}
+
+\paragraph*{}El modelo Weibull es una técnica paramétrica de análisis de supervivencia. A diferencia de Kaplan-Meier, que estima la curva de forma empírica, Weibull ajusta una distribución al comportamiento temporal de los datos. Esta aproximación permite interpretar parámetros del modelo y comparar su ajuste con otros métodos, algo útil cuando se busca una lectura más estructurada del fenómeno.
+
+\paragraph*{}Al ejecutar el análisis, la aplicación muestra la curva ajustada y una tabla resumen con métricas del modelo. Entre los elementos relevantes se encuentran los parámetros de forma y escala, la mediana de supervivencia, el log-likelihood y el AIC. El parámetro de forma permite valorar si el riesgo aumenta, disminuye o se mantiene aproximadamente constante a lo largo del tiempo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/weibull2.png}
+    \caption{Resultados que debe revisar el usuario tras ejecutar el modelo Weibull}
+    \label{fig:manual_usuario_weibull_resultado}
+\end{figure}
+
+\subsection{Modelo Exponencial}
+
+\paragraph*{}El modelo Exponencial es otro modelo paramétrico de supervivencia. Su característica principal es que asume un riesgo constante a lo largo del tiempo. Por este motivo, resulta útil como modelo sencillo de referencia frente a otros enfoques más flexibles, como Weibull o Kaplan-Meier. La verdad es que su interés está precisamente en esa sencillez: permite comprobar si una hipótesis básica encaja razonablemente con los datos.
+
+\paragraph*{}Al ejecutar el análisis, la aplicación presenta la curva del modelo exponencial y una tabla resumen con sus métricas principales. El usuario puede comparar visualmente el ajuste exponencial con la estimación empírica de Kaplan-Meier para valorar si la hipótesis de riesgo constante resulta razonable.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/exponencial2.png}
+    \caption{Resultados que debe revisar el usuario tras ejecutar el modelo Exponencial}
+    \label{fig:manual_usuario_exponencial_resultado}
+\end{figure}
+
+\subsection{Random Survival Forest}
+
+\paragraph*{}Random Survival Forest es un modelo de aprendizaje automático adaptado a datos de supervivencia. Su objetivo es estimar el riesgo y la supervivencia teniendo en cuenta múltiples variables de entrada. En la aplicación, este módulo permite entrenar el modelo, revisar métricas generales, consultar la importancia de variables y simular perfiles. Es el enfoque más flexible de los incluidos en el dashboard, aunque también exige una interpretación más cuidadosa.
+
+\paragraph*{}Tras ejecutar el modelo, se muestran curvas de supervivencia para distintos perfiles de riesgo, junto con métricas como el índice de concordancia. Estas salidas permiten valorar la capacidad del modelo para diferenciar perfiles con mayor o menor riesgo de abandono.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/rsf2.png}
+    \caption{Curvas y métricas generadas por Random Survival Forest}
+    \label{fig:manual_usuario_rsf_resultado}
+\end{figure}
+
+\paragraph*{}El módulo también permite revisar la importancia de variables y simular un perfil específico. Esta funcionalidad ayuda a interpretar qué características tienen mayor influencia en la predicción y cómo varía la supervivencia estimada ante un caso concreto. Por ejemplo, permite observar cómo cambia la curva si se modifican determinados rasgos académicos del estudiante.
+
+\subsection{Comparación de técnicas}
+
+\paragraph*{}La comparación de técnicas ofrece una vista conjunta de los métodos incluidos en la aplicación. Esta sección ayuda al usuario a distinguir el propósito de cada técnica, sus ventajas y sus limitaciones. Es especialmente útil cuando se desea decidir qué resultado utilizar como referencia principal en un análisis, porque no todos los métodos responden exactamente a la misma pregunta.
+
+\paragraph*{}La aplicación permite revisar de forma comparativa los modelos clásicos, paramétricos y de aprendizaje automático. Esta visión conjunta facilita entender que cada método responde a una pregunta distinta: Kaplan-Meier estima curvas, Log-Rank compara grupos, Cox analiza riesgos relativos, Weibull y Exponencial ajustan modelos paramétricos, y Random Survival Forest incorpora capacidad predictiva con múltiples variables.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/comparar1.png}
+    \caption{Vista utilizada para consultar la comparación entre técnicas disponibles}
+    \label{fig:manual_usuario_comparacion}
+\end{figure}
+
+\section{Interpretación con inteligencia artificial}
+
+\paragraph*{}La aplicación incorpora un módulo opcional de inteligencia artificial para generar explicaciones textuales de los resultados estadísticos. Esta funcionalidad actúa como apoyo interpretativo y no sustituye a las tablas, curvas ni métricas calculadas por los modelos. Su papel es ayudar a leer los resultados con más claridad, no decidir por el usuario.
+
+\subsection{Arranque del servidor local de IA}
+
+\paragraph*{}Para utilizar la interpretación automática, el servidor local de IA debe estar iniciado antes de solicitar una explicación desde el dashboard. Para ello, se abre una terminal en la carpeta raíz del proyecto y se ejecuta:
+
+\begin{verbatim}
+.\START_LLAMA_SERVER.bat
+\end{verbatim}
+
+\paragraph*{}Este servidor se ejecuta de forma independiente a la aplicación Dash. Por tanto, si se desea usar la IA, deben mantenerse abiertas dos terminales: una con \texttt{llama-server} y otra con la aplicación Dash iniciada mediante \texttt{python cargaDataset.py} o mediante \texttt{START\_DASH\_APP.bat}. Puede parecer un detalle menor, pero si una de las dos se cierra, la parte de IA dejará de responder.
+
+\paragraph*{}Si el servidor no está activo, la aplicación sigue funcionando. En ese caso, las técnicas estadísticas y las gráficas continúan disponibles, pero no se generarán respuestas automáticas de IA.
+
+\subsection{Generación de explicaciones automáticas}
+
+\paragraph*{}Las explicaciones automáticas pueden solicitarse desde los módulos de análisis mediante los botones de interpretación disponibles en la interfaz. Al pulsar el botón correspondiente, la aplicación recopila los resultados calculados y los envía al modelo local para obtener una explicación redactada en lenguaje natural. Así, el usuario no parte solo de una tabla o una curva, sino también de un texto que ayuda a ordenar la lectura.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Imagenes/botonIA.png}
+    \caption{Botón de interpretación mediante inteligencia artificial}
+    \label{fig:manual_usuario_boton_ia}
+\end{figure}
+
+\paragraph*{}La respuesta generada se muestra en la propia página del análisis. Además, si el usuario selecciona la opción correspondiente al exportar un informe PDF, la interpretación puede incluirse dentro del documento generado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/imp_IA1.png}
+    \caption{Ejemplo de explicación generada para apoyar la interpretación de resultados}
+    \label{fig:manual_usuario_ia_respuesta}
+\end{figure}
+
+\subsection{Limitaciones de las interpretaciones generadas}
+
+\paragraph*{}Las respuestas generadas por inteligencia artificial deben entenderse como una ayuda para redactar e interpretar los resultados, no como una conclusión automática definitiva. El usuario debe revisar siempre que el texto sea coherente con las tablas, curvas y métricas mostradas en pantalla. Esta revisión es importante, porque la interpretación final sigue dependiendo del análisis estadístico y del criterio de quien utiliza la herramienta.
+
+\paragraph*{}El modelo trabaja con la información que recibe desde la aplicación. Si los resultados son incompletos, si no se ha ejecutado correctamente el análisis o si el servidor local no está disponible, la explicación puede no generarse. Además, aunque el sistema intenta restringir la respuesta a los datos proporcionados, es recomendable contrastar cualquier interpretación con los valores estadísticos originales.
+
+\section{Exportación de informes PDF}
+
+\paragraph*{}La aplicación permite exportar informes PDF desde los distintos módulos de análisis. Esta funcionalidad facilita conservar los resultados principales de cada técnica, incluyendo tablas, gráficas, resúmenes e interpretaciones generadas mediante IA cuando el usuario así lo selecciona. Es especialmente útil cuando se quiere guardar una evidencia del análisis o compartir los resultados sin depender de la interfaz.
+
+\subsection{Selección de contenido del informe}
+
+\paragraph*{}Para generar un informe, el usuario debe pulsar el botón de exportación disponible en el módulo correspondiente. A continuación se abre una ventana modal donde se puede indicar el nombre del informe y seleccionar qué elementos se desean incluir.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Imagenes/botonExportar.png}
+    \caption{Botón que inicia la exportación desde un módulo de análisis}
+    \label{fig:manual_usuario_boton_exportar}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Imagenes/generarPDF.png}
+    \caption{Opciones de contenido para el informe PDF}
+    \label{fig:manual_usuario_modal_exportar}
+\end{figure}
+
+\paragraph*{}Las opciones disponibles pueden variar según el módulo, pero normalmente permiten incluir resumen, tabla de resultados, gráfica e interpretación automática. En algunos casos, como los modelos Weibull y Exponencial, también puede generarse un informe combinado.
+
+\subsection{Generación y descarga del PDF}
+
+\paragraph*{}Una vez seleccionadas las opciones deseadas, el usuario debe confirmar la exportación. El sistema valida que existan resultados suficientes y genera el informe PDF. Si no se han calculado resultados o si falta algún elemento necesario, la aplicación muestra un mensaje de aviso. De esta forma se evita descargar documentos vacíos o poco útiles.
+
+\paragraph*{}El documento generado incluye los elementos seleccionados y mantiene una estructura orientada a la lectura del análisis: título del informe, información general, resultados, gráficas e interpretación cuando procede.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/pdf_generado_cu5.png}
+    \caption{Ejemplo de informe PDF generado a partir de los resultados seleccionados}
+    \label{fig:manual_usuario_pdf_generado}
+\end{figure}
+
+\subsection{Ubicación de los informes generados}
+
+\paragraph*{}Los informes generados se almacenan en la carpeta \texttt{downloads/} del proyecto. Desde esa ubicación pueden abrirse, copiarse o adjuntarse como cualquier otro documento PDF.
+
+\paragraph*{}Se recomienda asignar nombres descriptivos a los informes para identificar fácilmente la técnica utilizada y el contenido exportado. Por ejemplo, pueden emplearse nombres como \texttt{informe\_kaplan\_genero}, \texttt{cox\_covariables} o \texttt{comparacion\_weibull\_exponencial}. Este pequeño hábito ahorra tiempo cuando se generan varios PDFs durante una misma sesión de análisis.
+
+\section{Errores frecuentes}
+
+\paragraph*{}Durante el uso de la aplicación pueden aparecer errores relacionados con la carga del dataset, la instalación de dependencias, el arranque del servidor o la generación de informes. Esta sección resume las incidencias más habituales y la forma recomendada de actuar. No todos los avisos indican un fallo grave; muchas veces solo señalan que falta completar un paso previo.
+
+\subsection{Problemas al cargar el dataset}
+
+\paragraph*{}Si el sistema rechaza el archivo cargado, se debe comprobar que se trata de un archivo CSV válido y que contiene las columnas obligatorias. También conviene revisar el separador utilizado, la codificación del archivo y que las columnas críticas no estén vacías. A veces el problema no está en los datos en sí, sino en pequeños detalles de formato que impiden que la aplicación los lea correctamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Imagenes/error2.png}
+    \caption{Mensaje mostrado cuando el archivo cargado no corresponde al dataset esperado}
+    \label{fig:manual_usuario_error_dataset}
+\end{figure}
+
+\paragraph*{}Si el archivo se ha modificado manualmente, es recomendable compararlo con el formato esperado por la aplicación antes de volver a cargarlo. Un cambio mínimo en el nombre de una columna puede ser suficiente para que el sistema no la reconozca.
+
+\subsection{Problemas al acceder a módulos sin preprocesar}
+
+\paragraph*{}Algunas secciones del dashboard necesitan que el dataset haya sido cargado y preprocesado previamente. Si el usuario intenta acceder a un módulo de análisis sin haber completado ese paso, la aplicación muestra un aviso indicando que primero debe cargarse el dataset académico y pulsarse la opción de preprocesamiento.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Imagenes/error1.png}
+    \caption{Aviso mostrado al acceder a una sección que requiere el dataset preprocesado}
+    \label{fig:manual_usuario_error_preprocesado}
+\end{figure}
+
+\paragraph*{}Para resolver este caso, el usuario debe volver a la pantalla de inicio, cargar el archivo CSV correcto y ejecutar el preprocesamiento. Una vez finalizado correctamente, las secciones de análisis quedarán habilitadas para trabajar con el dataset limpio. Es el mismo flujo inicial, simplemente repetido con los datos preparados de forma adecuada.
+
+\subsection{Problemas durante la instalación de dependencias}
+
+\paragraph*{}Si aparece un error durante la instalación de librerías, el primer paso es comprobar la versión de Python utilizada. Para este proyecto se recomienda Python 3.10 o 3.11. La dependencia que puede requerir más atención es \texttt{scikit-survival}, ya que trabaja con componentes científicos especializados y puede ser más sensible al entorno.
+
+\paragraph*{}También se recomienda actualizar \texttt{pip} antes de instalar las dependencias y utilizar un entorno virtual limpio. Muchas instalaciones fallidas se solucionan simplemente empezando desde un entorno sin librerías mezcladas.
+
+\subsection{Problemas al arrancar la aplicación}
+
+\paragraph*{}Si la aplicación no arranca, se debe comprobar que la terminal está situada en la carpeta raíz del proyecto y que las dependencias se han instalado correctamente. También debe verificarse que el archivo \texttt{cargaDataset.py} existe en esa carpeta. Es un error frecuente abrir la terminal en una ruta distinta y ejecutar el comando desde ahí.
+
+\paragraph*{}Si el puerto \texttt{8050} estuviera ocupado por otro proceso, puede ser necesario cerrar la ejecución anterior de la aplicación o reiniciar la terminal.
+
+\subsection{Problemas con el módulo de inteligencia artificial}
+
+\paragraph*{}Si no se genera una interpretación automática, lo más habitual es que el servidor local de IA no esté iniciado. En ese caso, debe ejecutarse \texttt{START\_LLAMA\_SERVER.bat} y comprobar que \texttt{llama-server} queda escuchando en \texttt{http://127.0.0.1:8000}. Mientras ese servidor no esté activo, el dashboard seguirá funcionando, pero no tendrá a quién pedirle la explicación.
+
+\paragraph*{}También debe comprobarse que existen el modelo GGUF y el ejecutable \texttt{llama-server.exe} en las rutas configuradas. Si el usuario utiliza rutas propias, debe ajustar las variables \texttt{MODEL\_PATH} y \texttt{LLAMA\_SERVER}.
+
+\subsection{Problemas al generar informes PDF}
+
+\paragraph*{}Si el PDF no se genera, se debe verificar que el análisis correspondiente se ha ejecutado previamente y que existen resultados válidos para exportar. Algunas opciones del informe, como incluir gráficas o interpretación IA, requieren que esos elementos estén disponibles antes de confirmar la descarga. En resumen, el informe solo puede guardar aquello que ya se ha calculado.
+
+\paragraph*{}Si el problema está relacionado con las gráficas, puede estar asociado a la conversión de figuras mediante \texttt{kaleido}. En ese caso, conviene revisar que las dependencias se hayan instalado correctamente desde \texttt{requirements.txt}.
+
+\section{Flujo completo recomendado}
+
+\paragraph*{}El flujo de uso recomendado para trabajar con la aplicación es el siguiente. Seguir este orden ayuda a avanzar sin saltarse pasos importantes:
+
+\begin{enumerate}
+    \item Iniciar la aplicación con \texttt{python cargaDataset.py} o con \texttt{START\_DASH\_APP.bat}.
+    \item Abrir en el navegador la dirección \texttt{http://127.0.0.1:8050}.
+    \item Cargar el archivo CSV desde la pantalla principal.
+    \item Preprocesar el dataset para generar la versión limpia.
+    \item Revisar el dataset en la sección de visualización.
+    \item Explorar las covariables para obtener una primera lectura descriptiva.
+    \item Ejecutar las técnicas de análisis de supervivencia necesarias.
+    \item Solicitar interpretaciones mediante IA si el servidor local está activo.
+    \item Exportar los resultados relevantes a PDF.
+\end{enumerate}
+
+\paragraph*{}Este orden permite avanzar desde la carga de datos hasta la obtención de resultados exportables de forma controlada. Aunque el usuario puede navegar libremente por la interfaz, la mayoría de módulos requieren que el dataset haya sido cargado y preprocesado previamente. La verdad es que, si se respeta este flujo, la aplicación resulta bastante más cómoda de usar.

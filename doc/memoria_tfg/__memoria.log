@@ -1,6 +1,7 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.29)  6 MAY 2026 09:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.29)  6 MAY 2026 13:33
 entering extended mode
  \write18 enabled.
+ file:line:error style messages enabled.
  %&-line parsing enabled.
 **./__memoria.tex
 (__memoria.tex
@@ -1621,30 +1622,30 @@ Package newfloat Info: Trying Plan B...
 Package newfloat Info: `float' package detected.
  (Portada/cover.tex
 (Configuracion/_datos_proyecto.tex)
-<Portada/Img/topRightCorner.pdf, id=390, 372.71536pt x 177.29297pt>
+<Portada/Img/topRightCorner.pdf, id=566, 372.71536pt x 177.29297pt>
 File: Portada/Img/topRightCorner.pdf Graphic file (type pdf)
 <use Portada/Img/topRightCorner.pdf>
 Package pdftex.def Info: Portada/Img/topRightCorner.pdf  used on input line 20.
 
 (pdftex.def)             Requested size: 358.91168pt x 170.71652pt.
-<Portada/Img/bottomLeftCorner.pdf, id=391, 373.7158pt x 179.53836pt>
+<Portada/Img/bottomLeftCorner.pdf, id=567, 373.7158pt x 179.53836pt>
 File: Portada/Img/bottomLeftCorner.pdf Graphic file (type pdf)
 <use Portada/Img/bottomLeftCorner.pdf>
 Package pdftex.def Info: Portada/Img/bottomLeftCorner.pdf  used on input line 2
 3.
 (pdftex.def)             Requested size: 355.36444pt x 170.71652pt.
-<Portada/Img/uco_escudo.png, id=392, 279.9258pt x 146.949pt>
+<Portada/Img/uco_escudo.png, id=568, 279.9258pt x 146.949pt>
 File: Portada/Img/uco_escudo.png Graphic file (type png)
 <use Portada/Img/uco_escudo.png>
 Package pdftex.def Info: Portada/Img/uco_escudo.png  used on input line 25.
 (pdftex.def)             Requested size: 108.40178pt x 56.9055pt.
-<Portada/Img/emblema-ing-informatica.png, id=394, 499.11469pt x 427.5975pt>
+<Portada/Img/emblema-ing-informatica.png, id=570, 499.11469pt x 427.5975pt>
 File: Portada/Img/emblema-ing-informatica.png Graphic file (type png)
 <use Portada/Img/emblema-ing-informatica.png>
 Package pdftex.def Info: Portada/Img/emblema-ing-informatica.png  used on input
  line 27.
 (pdftex.def)             Requested size: 66.41797pt x 56.9055pt.
-<Portada/Img/LogotipoEPSC.pdf, id=395, 634.5805pt x 190.81488pt>
+<Portada/Img/LogotipoEPSC.pdf, id=571, 634.5805pt x 190.81488pt>
 File: Portada/Img/LogotipoEPSC.pdf Graphic file (type pdf)
 <use Portada/Img/LogotipoEPSC.pdf>
 Package pdftex.def Info: Portada/Img/LogotipoEPSC.pdf  used on input line 38.
@@ -1737,7 +1738,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [4] [5]
 Package hyperref Info: Option `pageanchor' set `true' on input line 178.
 Package hyperref Info: Option `pageanchor' set `false' on input line 191.
-<Imagenes/logo_uco.png, id=426, 279.9258pt x 146.949pt>
+<Imagenes/logo_uco.png, id=602, 279.9258pt x 146.949pt>
 File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 191.
@@ -1781,7 +1782,11 @@ Overfull \hbox (3.00272pt too wide) detected at line 73
 \OT1/cmr/m/n/12 10.10. 
  []
 
-)
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 103.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+[7])
 \tf@toc=\write7
 \openout7 = `__memoria.toc'.
 
@@ -1790,7 +1795,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 202.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [7] [8]
+ [8] [9]
 Package hyperref Info: Option `pageanchor' set `true' on input line 202.
  (__memoria.lof
 LaTeX Info: Redefining \. on input line 1.
@@ -1807,7 +1812,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 44.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
-[9
+[10
 
 ]
 Overfull \hbox (12.14975pt too wide) in paragraph at lines 67--67
@@ -1831,7 +1836,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 77.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
-[10]
+[11]
 Overfull \hbox (6.9012pt too wide) in paragraph at lines 78--78
  [][] [][]\OT1/cmr/m/n/12 Evidencia de eje-cu-ci^^Son co-rrec-ta del CU-3: Eje-
 cu-ta-rRan-dom-Sur-vi-val-Fo-rest[] [][]  
@@ -1861,6 +1866,12 @@ Overfull \hbox (79.05878pt too wide) in paragraph at lines 83--83
 : Am-pliar-Vi-sua-li-za-cio-nes-Cox-TestLo-gRank[] [][]  
  []
 
+
+Underfull \hbox (badness 1281) in paragraph at lines 105--105
+ [][] [][]\OT1/cmr/m/n/12 Ejemplo de in-for-me PDF ge-ne-ra-do a par-tir de los
+ re-sul-ta-dos 
+ []
+
 )
 \tf@lof=\write8
 \openout8 = `__memoria.lof'.
@@ -1870,7 +1881,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 204.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [11] [12]
+ [12] [13]
 Package hyperref Info: Option `pageanchor' set `true' on input line 204.
  (__memoria.lot
 LaTeX Info: Redefining \. on input line 1.
@@ -1881,7 +1892,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 45.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [13
+ [14
 
 ])
 \tf@lot=\write9
@@ -1892,7 +1903,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 207.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [14] [15]
+ [15] [16]
 Package hyperref Info: Option `pageanchor' set `true' on input line 207.
  (Unidades/01-Introducción/info.tex
 Cap\'{\i }tulo 1.
@@ -2022,7 +2033,8 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 50.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [13]
-<Imagenes/modelo_exponencial_supervivencia.png, id=860, 1284.8pt x 716.6775pt>
+<Imagenes/modelo_exponencial_supervivencia.png, id=1133, 1284.8pt x 716.6775pt>
+
 File: Imagenes/modelo_exponencial_supervivencia.png Graphic file (type png)
 <use Imagenes/modelo_exponencial_supervivencia.png>
 Package pdftex.def Info: Imagenes/modelo_exponencial_supervivencia.png  used on
@@ -2035,7 +2047,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 64.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [14 <./Imagenes/modelo_exponencial_supervivencia.png>]
-<Imagenes/modelo_weibull_pdf.png, id=873, 1284.8pt x 1255.69125pt>
+<Imagenes/modelo_weibull_pdf.png, id=1146, 1284.8pt x 1255.69125pt>
 File: Imagenes/modelo_weibull_pdf.png Graphic file (type png)
 <use Imagenes/modelo_weibull_pdf.png>
 Package pdftex.def Info: Imagenes/modelo_weibull_pdf.png  used on input line 67
@@ -2054,8 +2066,8 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 78.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 [15 <./Imagenes/modelo_weibull_pdf.png>]
-<Imagenes/random_survival_forest_predicciones.png, id=885, 387.4475pt x 262.982
-5pt>
+<Imagenes/random_survival_forest_predicciones.png, id=1158, 387.4475pt x 262.98
+25pt>
 File: Imagenes/random_survival_forest_predicciones.png Graphic file (type png)
 <use Imagenes/random_survival_forest_predicciones.png>
 Package pdftex.def Info: Imagenes/random_survival_forest_predicciones.png  used
@@ -2290,7 +2302,8 @@ Overfull \hbox (14.95708pt too wide) in paragraph at lines 91--91
 \OT1/cmtt/m/n/10.95 highest[]education[]*|  
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:97: ignored error: Infinite glue shrinkage found
+ in box being split
 LaTeX Info: Redefining \. on input line 97.
 LaTeX Info: Redefining \% on input line 97.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2305,7 +2318,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 108.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [28]
-<Imagenes/diagrama_cu.png, id=951, 513.71925pt x 365.56575pt>
+<Imagenes/diagrama_cu.png, id=1225, 513.71925pt x 365.56575pt>
 File: Imagenes/diagrama_cu.png Graphic file (type png)
 <use Imagenes/diagrama_cu.png>
 Package pdftex.def Info: Imagenes/diagrama_cu.png  used on input line 112.
@@ -2316,8 +2329,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 119.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
-
-[29 <./Imagenes/diagrama_cu.png>]
+ [29 <./Imagenes/diagrama_cu.png>]
 Underfull \hbox (badness 4899) in paragraph at lines 142--143
 []\OT1/cmr/m/n/10.95 El usua-rio de-be ha-ber ac-ce-di-do a la sec-ci^^Son
  []
@@ -2334,7 +2346,8 @@ Underfull \hbox (badness 7064) in paragraph at lines 164--164
 
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:166: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 166.
 LaTeX Info: Redefining \% on input line 166.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2353,7 +2366,8 @@ Underfull \hbox (badness 4899) in paragraph at lines 187--188
 []\OT1/cmr/m/n/10.95 El usua-rio de-be ha-ber ac-ce-di-do a la sec-ci^^Son
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:211: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 211.
 LaTeX Info: Redefining \% on input line 211.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2384,7 +2398,8 @@ Underfull \hbox (badness 1009) in paragraph at lines 253--254
 i-cas
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:270: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 270.
 LaTeX Info: Redefining \% on input line 270.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2470,7 +2485,8 @@ Underfull \hbox (badness 1082) in paragraph at lines 320--321
 
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:323: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 323.
 LaTeX Info: Redefining \% on input line 323.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2478,7 +2494,8 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 323.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [36]
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:323: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 323.
 LaTeX Info: Redefining \% on input line 323.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2497,7 +2514,8 @@ Underfull \hbox (badness 1577) in paragraph at lines 360--361
 []\OT1/cmr/m/n/10.95 El sis-te-ma en-tre-ga el ar-chi-vo ge-ne-ra-do pa-ra su
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:369: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 369.
 LaTeX Info: Redefining \% on input line 369.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2518,8 +2536,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 412.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
-
-[41]
+ [41]
 Underfull \hbox (badness 1226) in paragraph at lines 441--442
 \OT1/cmr/m/n/10.95 apli-ca-da (por ejem-plo, agru-pa-ci^^Son por ca-te-gor^^S^^
 Pas
@@ -2547,7 +2564,8 @@ Underfull \hbox (badness 10000) in paragraph at lines 445--446
 \OT1/cmr/m/n/10.95 ac-tua-li-za-dos, in-clu-yen-do ta-blas, m^^Setri-cas y
  []
 
-ignored error: Infinite glue shrinkage found in box being split
+Unidades/09-Análisis/info.tex:456: ignored error: Infinite glue shrinkage foun
+d in box being split
 LaTeX Info: Redefining \. on input line 456.
 LaTeX Info: Redefining \% on input line 456.
 File: Imagenes/logo_uco.png Graphic file (type png)
@@ -2625,17 +2643,17 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 578.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [46]
-<Imagenes/act_cu1_2.png, id=1084, 2947.01pt x 951.555pt>
+<Imagenes/act_cu1_2.png, id=1358, 2947.01pt x 951.555pt>
 File: Imagenes/act_cu1_2.png Graphic file (type png)
 <use Imagenes/act_cu1_2.png>
 Package pdftex.def Info: Imagenes/act_cu1_2.png  used on input line 586.
 (pdftex.def)             Requested size: 426.79135pt x 137.80496pt.
-<Imagenes/act_cu2_2.png, id=1085, 2951.025pt x 951.555pt>
+<Imagenes/act_cu2_2.png, id=1359, 2951.025pt x 951.555pt>
 File: Imagenes/act_cu2_2.png Graphic file (type png)
 <use Imagenes/act_cu2_2.png>
 Package pdftex.def Info: Imagenes/act_cu2_2.png  used on input line 595.
 (pdftex.def)             Requested size: 426.79135pt x 137.61621pt.
-<Imagenes/act_cu3_2.png, id=1086, 2866.71pt x 1409.265pt>
+<Imagenes/act_cu3_2.png, id=1360, 2866.71pt x 1409.265pt>
 File: Imagenes/act_cu3_2.png Graphic file (type png)
 <use Imagenes/act_cu3_2.png>
 Package pdftex.def Info: Imagenes/act_cu3_2.png  used on input line 604.
@@ -2647,12 +2665,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 608.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [47 <./Imagenes/act_cu1_2.png> <./Imagenes/act_cu2_2.png>]
-<Imagenes/act_cu4_2.png, id=1094, 2291.56125pt x 1098.1025pt>
+<Imagenes/act_cu4_2.png, id=1367, 2291.56125pt x 1098.1025pt>
 File: Imagenes/act_cu4_2.png Graphic file (type png)
 <use Imagenes/act_cu4_2.png>
 Package pdftex.def Info: Imagenes/act_cu4_2.png  used on input line 613.
 (pdftex.def)             Requested size: 426.79135pt x 204.50299pt.
-<Imagenes/act_cu5_2.png, id=1095, 1496.59125pt x 1172.38pt>
+<Imagenes/act_cu5_2.png, id=1368, 1496.59125pt x 1172.38pt>
 File: Imagenes/act_cu5_2.png Graphic file (type png)
 <use Imagenes/act_cu5_2.png>
 Package pdftex.def Info: Imagenes/act_cu5_2.png  used on input line 621.
@@ -2664,7 +2682,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 625.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [48 <./Imagenes/act_cu3_2.png> <./Imagenes/act_cu4_2.png>]
-<Imagenes/act_cu6_2.png, id=1102, 1005.7575pt x 620.3175pt>
+<Imagenes/act_cu6_2.png, id=1375, 1005.7575pt x 620.3175pt>
 File: Imagenes/act_cu6_2.png Graphic file (type png)
 <use Imagenes/act_cu6_2.png>
 Package pdftex.def Info: Imagenes/act_cu6_2.png  used on input line 630.
@@ -2676,12 +2694,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 634.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [49 <./Imagenes/act_cu5_2.png>]
-<Imagenes/act_cu7_2.png, id=1108, 1729.46124pt x 915.42pt>
+<Imagenes/act_cu7_2.png, id=1381, 1729.46124pt x 915.42pt>
 File: Imagenes/act_cu7_2.png Graphic file (type png)
 <use Imagenes/act_cu7_2.png>
 Package pdftex.def Info: Imagenes/act_cu7_2.png  used on input line 638.
 (pdftex.def)             Requested size: 384.1096pt x 203.30666pt.
-<Imagenes/act_cu8_2.png, id=1109, 1930.21124pt x 752.8125pt>
+<Imagenes/act_cu8_2.png, id=1382, 1930.21124pt x 752.8125pt>
 File: Imagenes/act_cu8_2.png Graphic file (type png)
 <use Imagenes/act_cu8_2.png>
 Package pdftex.def Info: Imagenes/act_cu8_2.png  used on input line 646.
@@ -2693,7 +2711,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 650.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [50 <./Imagenes/act_cu6_2.png> <./Imagenes/act_cu7_2.png>]
-<Imagenes/act_cu9_2.png, id=1116, 1452.42625pt x 782.925pt>
+<Imagenes/act_cu9_2.png, id=1389, 1452.42625pt x 782.925pt>
 File: Imagenes/act_cu9_2.png Graphic file (type png)
 <use Imagenes/act_cu9_2.png>
 Package pdftex.def Info: Imagenes/act_cu9_2.png  used on input line 654.
@@ -2758,7 +2776,7 @@ Underfull \hbox (badness 1028) in paragraph at lines 56--57
 in-for-me, co-mo ta-blas, gr^^Safi-cos o
  []
 
-<Imagenes/home.png, id=1134, 1142.46825pt x 546.843pt>
+<Imagenes/home.png, id=1407, 1142.46825pt x 546.843pt>
 File: Imagenes/home.png Graphic file (type png)
 <use Imagenes/home.png>
 Package pdftex.def Info: Imagenes/home.png  used on input line 65.
@@ -2770,12 +2788,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 69.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 [54]
-<Imagenes/archivo_bruto.png, id=1139, 1144.275pt x 548.64975pt>
+<Imagenes/archivo_bruto.png, id=1412, 1144.275pt x 548.64975pt>
 File: Imagenes/archivo_bruto.png Graphic file (type png)
 <use Imagenes/archivo_bruto.png>
 Package pdftex.def Info: Imagenes/archivo_bruto.png  used on input line 72.
 (pdftex.def)             Requested size: 426.79135pt x 204.63808pt.
-<Imagenes/archivo_limpio.png, id=1140, 1136.44576pt x 551.05875pt>
+<Imagenes/archivo_limpio.png, id=1413, 1136.44576pt x 551.05875pt>
 File: Imagenes/archivo_limpio.png Graphic file (type png)
 <use Imagenes/archivo_limpio.png>
 Package pdftex.def Info: Imagenes/archivo_limpio.png  used on input line 79.
@@ -2787,12 +2805,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 83.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [55 <./Imagenes/home.png> <./Imagenes/archivo_bruto.png>]
-<Imagenes/ver1.png, id=1147, 1132.83224pt x 527.571pt>
+<Imagenes/ver1.png, id=1420, 1132.83224pt x 527.571pt>
 File: Imagenes/ver1.png Graphic file (type png)
 <use Imagenes/ver1.png>
 Package pdftex.def Info: Imagenes/ver1.png  used on input line 91.
 (pdftex.def)             Requested size: 426.79135pt x 198.75635pt.
-<Imagenes/ver2.png, id=1148, 1112.35574pt x 325.215pt>
+<Imagenes/ver2.png, id=1421, 1112.35574pt x 325.215pt>
 File: Imagenes/ver2.png Graphic file (type png)
 <use Imagenes/ver2.png>
 Package pdftex.def Info: Imagenes/ver2.png  used on input line 98.
@@ -2804,13 +2822,13 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 102.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [56 <./Imagenes/archivo_limpio.png> <./Imagenes/ver1.png>]
-<Imagenes/analisis_covariables.png, id=1155, 1135.8435pt x 546.843pt>
+<Imagenes/analisis_covariables.png, id=1428, 1135.8435pt x 546.843pt>
 File: Imagenes/analisis_covariables.png Graphic file (type png)
 <use Imagenes/analisis_covariables.png>
 Package pdftex.def Info: Imagenes/analisis_covariables.png  used on input line 
 110.
 (pdftex.def)             Requested size: 426.79135pt x 205.47447pt.
-<Imagenes/analisis_superv.png, id=1156, 1120.185pt x 540.21825pt>
+<Imagenes/analisis_superv.png, id=1429, 1120.185pt x 540.21825pt>
 File: Imagenes/analisis_superv.png Graphic file (type png)
 <use Imagenes/analisis_superv.png>
 Package pdftex.def Info: Imagenes/analisis_superv.png  used on input line 122.
@@ -2822,12 +2840,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 126.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [57 <./Imagenes/ver2.png> <./Imagenes/analisis_covariables.png>]
-<Imagenes/kp_general.png, id=1163, 1130.42325pt x 546.24075pt>
+<Imagenes/kp_general.png, id=1436, 1130.42325pt x 546.24075pt>
 File: Imagenes/kp_general.png Graphic file (type png)
 <use Imagenes/kp_general.png>
 Package pdftex.def Info: Imagenes/kp_general.png  used on input line 134.
 (pdftex.def)             Requested size: 426.79135pt x 206.23172pt.
-<Imagenes/curva_kp.png, id=1164, 1129.821pt x 431.81325pt>
+<Imagenes/curva_kp.png, id=1437, 1129.821pt x 431.81325pt>
 File: Imagenes/curva_kp.png Graphic file (type png)
 <use Imagenes/curva_kp.png>
 Package pdftex.def Info: Imagenes/curva_kp.png  used on input line 141.
@@ -2839,12 +2857,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 145.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [58 <./Imagenes/analisis_superv.png> <./Imagenes/kp_general.png>]
-<Imagenes/filtros_kp.png, id=1171, 751.00575pt x 66.84975pt>
+<Imagenes/filtros_kp.png, id=1445, 751.00575pt x 66.84975pt>
 File: Imagenes/filtros_kp.png Graphic file (type png)
 <use Imagenes/filtros_kp.png>
 Package pdftex.def Info: Imagenes/filtros_kp.png  used on input line 148.
 (pdftex.def)             Requested size: 426.79135pt x 37.98947pt.
-<Imagenes/exportarPDFKp.png, id=1172, 275.22826pt x 245.11575pt>
+<Imagenes/exportarPDFKp.png, id=1446, 275.22826pt x 245.11575pt>
 File: Imagenes/exportarPDFKp.png Graphic file (type png)
 <use Imagenes/exportarPDFKp.png>
 Package pdftex.def Info: Imagenes/exportarPDFKp.png  used on input line 155.
@@ -2856,7 +2874,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 159.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [59 <./Imagenes/curva_kp.png> <./Imagenes/filtros_kp.png>]
-<Imagenes/regresionCox.png, id=1180, 998.5305pt x 441.44925pt>
+<Imagenes/regresionCox.png, id=1453, 998.5305pt x 441.44925pt>
 File: Imagenes/regresionCox.png Graphic file (type png)
 <use Imagenes/regresionCox.png>
 Package pdftex.def Info: Imagenes/regresionCox.png  used on input line 167.
@@ -2869,17 +2887,17 @@ Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 171.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 
 [60 <./Imagenes/exportarPDFKp.png>]
-<Imagenes/filtrosCox.png, id=1186, 702.2235pt x 118.64325pt>
+<Imagenes/filtrosCox.png, id=1459, 702.2235pt x 118.64325pt>
 File: Imagenes/filtrosCox.png Graphic file (type png)
 <use Imagenes/filtrosCox.png>
 Package pdftex.def Info: Imagenes/filtrosCox.png  used on input line 174.
 (pdftex.def)             Requested size: 426.79135pt x 72.10796pt.
-<Imagenes/graficaCox.png, id=1187, 1134.03674pt x 540.21825pt>
+<Imagenes/graficaCox.png, id=1460, 1134.03674pt x 540.21825pt>
 File: Imagenes/graficaCox.png Graphic file (type png)
 <use Imagenes/graficaCox.png>
 Package pdftex.def Info: Imagenes/graficaCox.png  used on input line 181.
 (pdftex.def)             Requested size: 426.79135pt x 203.30673pt.
-<Imagenes/botonPDFCox.png, id=1188, 280.6485pt x 260.77425pt>
+<Imagenes/botonPDFCox.png, id=1461, 280.6485pt x 260.77425pt>
 File: Imagenes/botonPDFCox.png Graphic file (type png)
 <use Imagenes/botonPDFCox.png>
 Package pdftex.def Info: Imagenes/botonPDFCox.png  used on input line 188.
@@ -2892,7 +2910,7 @@ Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 192.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [61 <./Imagenes/regresionCox.png> <./Imagenes/filtrosCox.png> <./Imagenes/graf
 icaCox.png>]
-<Imagenes/logRank.png, id=1196, 1142.46825pt x 481.8pt>
+<Imagenes/logRank.png, id=1469, 1142.46825pt x 481.8pt>
 File: Imagenes/logRank.png Graphic file (type png)
 <use Imagenes/logRank.png>
 Package pdftex.def Info: Imagenes/logRank.png  used on input line 200.
@@ -2908,12 +2926,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 211.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [62 <./Imagenes/botonPDFCox.png> <./Imagenes/logRank.png>]
-<Imagenes/ejemploLogRank.png, id=1203, 1132.23pt x 533.5935pt>
+<Imagenes/ejemploLogRank.png, id=1476, 1132.23pt x 533.5935pt>
 File: Imagenes/ejemploLogRank.png Graphic file (type png)
 <use Imagenes/ejemploLogRank.png>
 Package pdftex.def Info: Imagenes/ejemploLogRank.png  used on input line 214.
 (pdftex.def)             Requested size: 426.79135pt x 201.13109pt.
-<Imagenes/weibull1.png, id=1204, 1133.4345pt x 420.3705pt>
+<Imagenes/weibull1.png, id=1477, 1133.4345pt x 420.3705pt>
 File: Imagenes/weibull1.png Graphic file (type png)
 <use Imagenes/weibull1.png>
 Package pdftex.def Info: Imagenes/weibull1.png  used on input line 226.
@@ -2925,12 +2943,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 230.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [63 <./Imagenes/ejemploLogRank.png>]
-<Imagenes/weibull2.png, id=1210, 1130.42325pt x 386.6445pt>
+<Imagenes/weibull2.png, id=1483, 1130.42325pt x 386.6445pt>
 File: Imagenes/weibull2.png Graphic file (type png)
 <use Imagenes/weibull2.png>
 Package pdftex.def Info: Imagenes/weibull2.png  used on input line 233.
 (pdftex.def)             Requested size: 426.79135pt x 145.97658pt.
-<Imagenes/exportarCombinado.png, id=1211, 207.77625pt x 247.52475pt>
+<Imagenes/exportarCombinado.png, id=1484, 207.77625pt x 247.52475pt>
 File: Imagenes/exportarCombinado.png Graphic file (type png)
 <use Imagenes/exportarCombinado.png>
 Package pdftex.def Info: Imagenes/exportarCombinado.png  used on input line 240
@@ -2950,12 +2968,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 249.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [65 <./Imagenes/exportarCombinado.png>]
-<Imagenes/exponencial1.png, id=1224, 1136.44576pt x 416.757pt>
+<Imagenes/exponencial1.png, id=1497, 1136.44576pt x 416.757pt>
 File: Imagenes/exponencial1.png Graphic file (type png)
 <use Imagenes/exponencial1.png>
 Package pdftex.def Info: Imagenes/exponencial1.png  used on input line 252.
 (pdftex.def)             Requested size: 426.79135pt x 156.51242pt.
-<Imagenes/exponencial2.png, id=1225, 1130.42325pt x 537.80925pt>
+<Imagenes/exponencial2.png, id=1498, 1130.42325pt x 537.80925pt>
 File: Imagenes/exponencial2.png Graphic file (type png)
 <use Imagenes/exponencial2.png>
 Package pdftex.def Info: Imagenes/exponencial2.png  used on input line 259.
@@ -2967,17 +2985,17 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 268.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [66 <./Imagenes/exponencial1.png> <./Imagenes/exponencial2.png>]
-<Imagenes/rsf1.png, id=1232, 1133.4345pt x 548.0475pt>
+<Imagenes/rsf1.png, id=1505, 1133.4345pt x 548.0475pt>
 File: Imagenes/rsf1.png Graphic file (type png)
 <use Imagenes/rsf1.png>
 Package pdftex.def Info: Imagenes/rsf1.png  used on input line 271.
 (pdftex.def)             Requested size: 426.79135pt x 206.36192pt.
-<Imagenes/rsf2.png, id=1233, 1132.23pt x 514.92375pt>
+<Imagenes/rsf2.png, id=1506, 1132.23pt x 514.92375pt>
 File: Imagenes/rsf2.png Graphic file (type png)
 <use Imagenes/rsf2.png>
 Package pdftex.def Info: Imagenes/rsf2.png  used on input line 278.
 (pdftex.def)             Requested size: 426.79135pt x 194.09378pt.
-<Imagenes/rsf3.png, id=1234, 1124.40076pt x 528.17325pt>
+<Imagenes/rsf3.png, id=1507, 1124.40076pt x 528.17325pt>
 File: Imagenes/rsf3.png Graphic file (type png)
 <use Imagenes/rsf3.png>
 Package pdftex.def Info: Imagenes/rsf3.png  used on input line 285.
@@ -2989,12 +3007,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 289.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [67 <./Imagenes/rsf1.png> <./Imagenes/rsf2.png>]
-<Imagenes/comparar1.png, id=1241, 1135.24126pt x 359.54324pt>
+<Imagenes/comparar1.png, id=1514, 1135.24126pt x 359.54324pt>
 File: Imagenes/comparar1.png Graphic file (type png)
 <use Imagenes/comparar1.png>
 Package pdftex.def Info: Imagenes/comparar1.png  used on input line 297.
 (pdftex.def)             Requested size: 426.79135pt x 135.16852pt.
-<Imagenes/comparar2.png, id=1242, 1130.42325pt x 374.5995pt>
+<Imagenes/comparar2.png, id=1515, 1130.42325pt x 374.5995pt>
 File: Imagenes/comparar2.png Graphic file (type png)
 <use Imagenes/comparar2.png>
 Package pdftex.def Info: Imagenes/comparar2.png  used on input line 304.
@@ -3006,17 +3024,17 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 308.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [68 <./Imagenes/rsf3.png> <./Imagenes/comparar1.png>]
-<Imagenes/botonInicio.png, id=1249, 84.91725pt x 22.8855pt>
+<Imagenes/botonInicio.png, id=1522, 84.91725pt x 22.8855pt>
 File: Imagenes/botonInicio.png Graphic file (type png)
 <use Imagenes/botonInicio.png>
 Package pdftex.def Info: Imagenes/botonInicio.png  used on input line 316.
 (pdftex.def)             Requested size: 234.73654pt x 63.27019pt.
-<Imagenes/botonYaLimpio.png, id=1250, 82.50826pt x 22.28325pt>
+<Imagenes/botonYaLimpio.png, id=1523, 82.50826pt x 22.28325pt>
 File: Imagenes/botonYaLimpio.png Graphic file (type png)
 <use Imagenes/botonYaLimpio.png>
 Package pdftex.def Info: Imagenes/botonYaLimpio.png  used on input line 323.
 (pdftex.def)             Requested size: 234.73654pt x 63.4021pt.
-<Imagenes/botonIA.png, id=1251, 457.71pt x 95.1555pt>
+<Imagenes/botonIA.png, id=1524, 457.71pt x 95.1555pt>
 File: Imagenes/botonIA.png Graphic file (type png)
 <use Imagenes/botonIA.png>
 Package pdftex.def Info: Imagenes/botonIA.png  used on input line 330.
@@ -3029,23 +3047,23 @@ Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 334.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [69 <./Imagenes/comparar2.png> <./Imagenes/botonInicio.png> <./Imagenes/botonY
 aLimpio.png>]
-<Imagenes/botonExportar.png, id=1259, 85.5195pt x 31.317pt>
+<Imagenes/botonExportar.png, id=1532, 85.5195pt x 31.317pt>
 File: Imagenes/botonExportar.png Graphic file (type png)
 <use Imagenes/botonExportar.png>
 Package pdftex.def Info: Imagenes/botonExportar.png  used on input line 337.
 (pdftex.def)             Requested size: 234.73654pt x 85.96332pt.
-<Imagenes/botonDentroexportar.png, id=1260, 138.5175pt x 31.91925pt>
+<Imagenes/botonDentroexportar.png, id=1533, 138.5175pt x 31.91925pt>
 File: Imagenes/botonDentroexportar.png Graphic file (type png)
 <use Imagenes/botonDentroexportar.png>
 Package pdftex.def Info: Imagenes/botonDentroexportar.png  used on input line 3
 47.
 (pdftex.def)             Requested size: 234.73654pt x 54.092pt.
-<Imagenes/botonCombinado.png, id=1261, 132.495pt x 28.30576pt>
+<Imagenes/botonCombinado.png, id=1534, 132.495pt x 28.30576pt>
 File: Imagenes/botonCombinado.png Graphic file (type png)
 <use Imagenes/botonCombinado.png>
 Package pdftex.def Info: Imagenes/botonCombinado.png  used on input line 357.
 (pdftex.def)             Requested size: 234.73654pt x 50.15213pt.
-<Imagenes/botonSimularPerfil.png, id=1262, 68.05424pt x 25.89674pt>
+<Imagenes/botonSimularPerfil.png, id=1535, 68.05424pt x 25.89674pt>
 File: Imagenes/botonSimularPerfil.png Graphic file (type png)
 <use Imagenes/botonSimularPerfil.png>
 Package pdftex.def Info: Imagenes/botonSimularPerfil.png  used on input line 36
@@ -3075,7 +3093,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 397.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 [71 <./Imagenes/botonSimularPerfil.png>]
-<Imagenes/sec_cu1.png, id=1277, 1460.45625pt x 1076.02pt>
+<Imagenes/sec_cu1.png, id=1550, 1460.45625pt x 1076.02pt>
 File: Imagenes/sec_cu1.png Graphic file (type png)
 <use Imagenes/sec_cu1.png>
 Package pdftex.def Info: Imagenes/sec_cu1.png  used on input line 407.
@@ -3087,7 +3105,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 411.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [72]
-<Imagenes/sec_cu2.png, id=1282, 1430.34375pt x 1076.02pt>
+<Imagenes/sec_cu2.png, id=1555, 1430.34375pt x 1076.02pt>
 File: Imagenes/sec_cu2.png Graphic file (type png)
 <use Imagenes/sec_cu2.png>
 Package pdftex.def Info: Imagenes/sec_cu2.png  used on input line 414.
@@ -3099,7 +3117,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 418.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [73 <./Imagenes/sec_cu1.png>]
-<Imagenes/sec_cu3.png, id=1288, 1620.0525pt x 1311.90125pt>
+<Imagenes/sec_cu3.png, id=1561, 1620.0525pt x 1311.90125pt>
 File: Imagenes/sec_cu3.png Graphic file (type png)
 <use Imagenes/sec_cu3.png>
 Package pdftex.def Info: Imagenes/sec_cu3.png  used on input line 421.
@@ -3112,7 +3130,7 @@ Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 425.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 
 [74 <./Imagenes/sec_cu2.png>]
-<Imagenes/sec_cu4.png, id=1294, 1458.44875pt x 1002.74625pt>
+<Imagenes/sec_cu4.png, id=1567, 1458.44875pt x 1002.74625pt>
 File: Imagenes/sec_cu4.png Graphic file (type png)
 <use Imagenes/sec_cu4.png>
 Package pdftex.def Info: Imagenes/sec_cu4.png  used on input line 428.
@@ -3124,7 +3142,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 432.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [75 <./Imagenes/sec_cu3.png (PNG copy)>]
-<Imagenes/sec_cu5.png, id=1299, 1640.1275pt x 1016.79875pt>
+<Imagenes/sec_cu5.png, id=1572, 1640.1275pt x 1016.79875pt>
 File: Imagenes/sec_cu5.png Graphic file (type png)
 <use Imagenes/sec_cu5.png>
 Package pdftex.def Info: Imagenes/sec_cu5.png  used on input line 435.
@@ -3136,7 +3154,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 439.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [76 <./Imagenes/sec_cu4.png>]
-<Imagenes/sec_cu6.png, id=1305, 1227.58624pt x 721.69624pt>
+<Imagenes/sec_cu6.png, id=1579, 1227.58624pt x 721.69624pt>
 File: Imagenes/sec_cu6.png Graphic file (type png)
 <use Imagenes/sec_cu6.png>
 Package pdftex.def Info: Imagenes/sec_cu6.png  used on input line 442.
@@ -3148,7 +3166,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 446.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [77 <./Imagenes/sec_cu5.png>]
-<Imagenes/sec_cu7.png, id=1312, 1659.19875pt x 1026.83624pt>
+<Imagenes/sec_cu7.png, id=1585, 1659.19875pt x 1026.83624pt>
 File: Imagenes/sec_cu7.png Graphic file (type png)
 <use Imagenes/sec_cu7.png>
 Package pdftex.def Info: Imagenes/sec_cu7.png  used on input line 449.
@@ -3160,12 +3178,12 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 453.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [78 <./Imagenes/sec_cu6.png>]
-<Imagenes/sec_cu8.png, id=1318, 1806.75pt x 882.29625pt>
+<Imagenes/sec_cu8.png, id=1591, 1806.75pt x 882.29625pt>
 File: Imagenes/sec_cu8.png Graphic file (type png)
 <use Imagenes/sec_cu8.png>
 Package pdftex.def Info: Imagenes/sec_cu8.png  used on input line 456.
 (pdftex.def)             Requested size: 426.79135pt x 208.41666pt.
-<Imagenes/sec_cu9.png, id=1319, 1698.345pt x 955.57pt>
+<Imagenes/sec_cu9.png, id=1592, 1698.345pt x 955.57pt>
 File: Imagenes/sec_cu9.png Graphic file (type png)
 <use Imagenes/sec_cu9.png>
 Package pdftex.def Info: Imagenes/sec_cu9.png  used on input line 463.
@@ -3290,7 +3308,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 94--95
 t/m/n/10.95 weibull.py \OT1/cmr/m/n/10.95 a trav^^Ses de
  []
 
-<Imagenes/imp_weibull.png, id=1354, 439.6425pt x 510.708pt>
+<Imagenes/imp_weibull.png, id=1627, 439.6425pt x 510.708pt>
 File: Imagenes/imp_weibull.png Graphic file (type png)
 <use Imagenes/imp_weibull.png>
 Package pdftex.def Info: Imagenes/imp_weibull.png  used on input line 104.
@@ -3309,7 +3327,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 114.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
  [86 <./Imagenes/imp_weibull.png>]
-<Imagenes/imp_rsf.png, id=1364, 497.4585pt x 326.4195pt>
+<Imagenes/imp_rsf.png, id=1637, 497.4585pt x 326.4195pt>
 File: Imagenes/imp_rsf.png Graphic file (type png)
 <use Imagenes/imp_rsf.png>
 Package pdftex.def Info: Imagenes/imp_rsf.png  used on input line 125.
@@ -3386,7 +3404,7 @@ Underfull \hbox (badness 1783) in paragraph at lines 169--170
 /n/10.95 llama-server.exe\OT1/cmr/m/n/10.95 , que le-van-ta un
  []
 
-<Imagenes/imp_IA1.png, id=1384, 428.19975pt x 123.46124pt>
+<Imagenes/imp_IA1.png, id=1657, 428.19975pt x 123.46124pt>
 File: Imagenes/imp_IA1.png Graphic file (type png)
 <use Imagenes/imp_IA1.png>
 Package pdftex.def Info: Imagenes/imp_IA1.png  used on input line 182.
@@ -3398,7 +3416,7 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 186.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 [90]
-<Imagenes/imp_IA2.png, id=1393, 433.62pt x 163.812pt>
+<Imagenes/imp_IA2.png, id=1666, 433.62pt x 163.812pt>
 File: Imagenes/imp_IA2.png Graphic file (type png)
 <use Imagenes/imp_IA2.png>
 Package pdftex.def Info: Imagenes/imp_IA2.png  used on input line 189.
@@ -3416,18 +3434,18 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 204.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
 [91 <./Imagenes/imp_IA1.png> <./Imagenes/imp_IA2.png>]
-<Imagenes/pdf_generado_cu5.png, id=1400, 1431.3475pt x 1106.1325pt>
+<Imagenes/pdf_generado_cu5.png, id=1673, 1431.3475pt x 1106.1325pt>
 File: Imagenes/pdf_generado_cu5.png Graphic file (type png)
 <use Imagenes/pdf_generado_cu5.png>
 Package pdftex.def Info: Imagenes/pdf_generado_cu5.png  used on input line 212.
 
 (pdftex.def)             Requested size: 200.59245pt x 155.0094pt.
-<Imagenes/pdf_generado_ew.png, id=1401, 1431.3475pt x 1106.1325pt>
+<Imagenes/pdf_generado_ew.png, id=1674, 1431.3475pt x 1106.1325pt>
 File: Imagenes/pdf_generado_ew.png Graphic file (type png)
 <use Imagenes/pdf_generado_ew.png>
 Package pdftex.def Info: Imagenes/pdf_generado_ew.png  used on input line 220.
 (pdftex.def)             Requested size: 200.59245pt x 155.0094pt.
-<Imagenes/imp_translation.png, id=1402, 398.6895pt x 269.808pt>
+<Imagenes/imp_translation.png, id=1675, 398.6895pt x 269.808pt>
 File: Imagenes/imp_translation.png Graphic file (type png)
 <use Imagenes/imp_translation.png>
 Package pdftex.def Info: Imagenes/imp_translation.png  used on input line 239.
@@ -4068,17 +4086,310 @@ Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 253.
 
 ]
 Anexo A.
-(Unidades/Apéndice/manual_de_usuario.tex)
+(Unidades/Apéndice/manual_de_usuario.tex
+LaTeX Info: Redefining \. on input line 36.
+LaTeX Info: Redefining \% on input line 36.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 36.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [120
+
+
+]
+Underfull \hbox (badness 1286) in paragraph at lines 50--51
+[]\OT1/cmtt/m/n/10.95 requests==2.32.3\OT1/cmr/m/n/10.95 , uti-li-za-da pa-ra l
+a co-mu-ni-ca-ci^^Son con el ser-vi-dor lo-cal de
+ []
+
+<Imagenes/Git.png, id=1823, 374.5995pt x 257.16075pt>
+File: Imagenes/Git.png Graphic file (type png)
+<use Imagenes/Git.png>
+Package pdftex.def Info: Imagenes/Git.png  used on input line 64.
+(pdftex.def)             Requested size: 277.41176pt x 190.44115pt.
+LaTeX Info: Redefining \. on input line 68.
+LaTeX Info: Redefining \% on input line 68.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 68.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+[121]
+LaTeX Info: Redefining \. on input line 84.
+LaTeX Info: Redefining \% on input line 84.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 84.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [122 <./Imagenes/Git.png>]
+LaTeX Info: Redefining \. on input line 127.
+LaTeX Info: Redefining \% on input line 127.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 127.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [123]
+LaTeX Info: Redefining \. on input line 148.
+LaTeX Info: Redefining \% on input line 148.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 148.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [124]
+File: Imagenes/home.png Graphic file (type png)
+<use Imagenes/home.png>
+Package pdftex.def Info: Imagenes/home.png  used on input line 151.
+(pdftex.def)             Requested size: 384.1096pt x 183.85481pt.
+LaTeX Info: Redefining \. on input line 167.
+LaTeX Info: Redefining \% on input line 167.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 167.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [125]
+File: Imagenes/archivo_bruto.png Graphic file (type png)
+<use Imagenes/archivo_bruto.png>
+Package pdftex.def Info: Imagenes/archivo_bruto.png  used on input line 172.
+(pdftex.def)             Requested size: 384.1096pt x 184.16925pt.
+File: Imagenes/botonYaLimpio.png Graphic file (type png)
+<use Imagenes/botonYaLimpio.png>
+Package pdftex.def Info: Imagenes/botonYaLimpio.png  used on input line 185.
+(pdftex.def)             Requested size: 234.73654pt x 63.4021pt.
+LaTeX Info: Redefining \. on input line 189.
+LaTeX Info: Redefining \% on input line 189.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 189.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [126]
+Underfull \hbox (badness 1122) in paragraph at lines 212--213
+[] [][] \OT1/cmr/m/n/10.95 La con-sul-ta del da-ta-set car-ga-do per-mi-te com-
+pro-bar que el ar-chi-vo ori-gi-nal se
+ []
+
+LaTeX Info: Redefining \. on input line 213.
+LaTeX Info: Redefining \% on input line 213.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 213.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+[127]
+File: Imagenes/ver1.png Graphic file (type png)
+<use Imagenes/ver1.png>
+Package pdftex.def Info: Imagenes/ver1.png  used on input line 224.
+(pdftex.def)             Requested size: 384.1096pt x 178.8807pt.
+File: Imagenes/ver2.png Graphic file (type png)
+<use Imagenes/ver2.png>
+Package pdftex.def Info: Imagenes/ver2.png  used on input line 231.
+(pdftex.def)             Requested size: 384.1096pt x 112.29854pt.
+LaTeX Info: Redefining \. on input line 235.
+LaTeX Info: Redefining \% on input line 235.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 235.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [128]
+File: Imagenes/analisis_covariables.png Graphic file (type png)
+<use Imagenes/analisis_covariables.png>
+Package pdftex.def Info: Imagenes/analisis_covariables.png  used on input line 
+248.
+(pdftex.def)             Requested size: 384.1096pt x 184.92285pt.
+LaTeX Info: Redefining \. on input line 252.
+LaTeX Info: Redefining \% on input line 252.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 252.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [129]
+File: Imagenes/analisis_superv.png Graphic file (type png)
+<use Imagenes/analisis_superv.png>
+Package pdftex.def Info: Imagenes/analisis_superv.png  used on input line 265.
+(pdftex.def)             Requested size: 384.1096pt x 185.23795pt.
 LaTeX Info: Redefining \. on input line 269.
 LaTeX Info: Redefining \% on input line 269.
 File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 269.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [120
+ [130]
+File: Imagenes/curva_kp.png Graphic file (type png)
+<use Imagenes/curva_kp.png>
+Package pdftex.def Info: Imagenes/curva_kp.png  used on input line 280.
+(pdftex.def)             Requested size: 384.1096pt x 146.80138pt.
+LaTeX Info: Redefining \. on input line 284.
+LaTeX Info: Redefining \% on input line 284.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 284.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [131]
+File: Imagenes/graficaCox.png Graphic file (type png)
+<use Imagenes/graficaCox.png>
+Package pdftex.def Info: Imagenes/graficaCox.png  used on input line 293.
+(pdftex.def)             Requested size: 362.77525pt x 172.80742pt.
+LaTeX Info: Redefining \. on input line 299.
+LaTeX Info: Redefining \% on input line 299.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 299.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [132]
+File: Imagenes/ejemploLogRank.png Graphic file (type png)
+<use Imagenes/ejemploLogRank.png>
+Package pdftex.def Info: Imagenes/ejemploLogRank.png  used on input line 308.
+(pdftex.def)             Requested size: 384.1096pt x 181.02043pt.
+LaTeX Info: Redefining \. on input line 318.
+LaTeX Info: Redefining \% on input line 318.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 318.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [133]
+File: Imagenes/weibull2.png Graphic file (type png)
+<use Imagenes/weibull2.png>
+Package pdftex.def Info: Imagenes/weibull2.png  used on input line 323.
+(pdftex.def)             Requested size: 384.1096pt x 131.37479pt.
+File: Imagenes/exponencial2.png Graphic file (type png)
+<use Imagenes/exponencial2.png>
+Package pdftex.def Info: Imagenes/exponencial2.png  used on input line 336.
+(pdftex.def)             Requested size: 384.1096pt x 182.73782pt.
+LaTeX Info: Redefining \. on input line 340.
+LaTeX Info: Redefining \% on input line 340.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 340.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [134]
+File: Imagenes/rsf2.png Graphic file (type png)
+<use Imagenes/rsf2.png>
+Package pdftex.def Info: Imagenes/rsf2.png  used on input line 349.
+(pdftex.def)             Requested size: 384.1096pt x 174.68675pt.
+LaTeX Info: Redefining \. on input line 353.
+LaTeX Info: Redefining \% on input line 353.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 353.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [135]
+File: Imagenes/comparar1.png Graphic file (type png)
+<use Imagenes/comparar1.png>
+Package pdftex.def Info: Imagenes/comparar1.png  used on input line 364.
+(pdftex.def)             Requested size: 384.1096pt x 121.65057pt.
+LaTeX Info: Redefining \. on input line 368.
+LaTeX Info: Redefining \% on input line 368.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 368.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [136]
+LaTeX Info: Redefining \. on input line 388.
+LaTeX Info: Redefining \% on input line 388.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 388.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [137]
+File: Imagenes/botonIA.png Graphic file (type png)
+<use Imagenes/botonIA.png>
+Package pdftex.def Info: Imagenes/botonIA.png  used on input line 391.
+(pdftex.def)             Requested size: 362.77525pt x 75.42174pt.
+File: Imagenes/imp_IA1.png Graphic file (type png)
+<use Imagenes/imp_IA1.png>
+Package pdftex.def Info: Imagenes/imp_IA1.png  used on input line 400.
+(pdftex.def)             Requested size: 384.1096pt x 110.75049pt.
+LaTeX Info: Redefining \. on input line 414.
+LaTeX Info: Redefining \% on input line 414.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 414.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [138]
+File: Imagenes/botonExportar.png Graphic file (type png)
+<use Imagenes/botonExportar.png>
+Package pdftex.def Info: Imagenes/botonExportar.png  used on input line 421.
+(pdftex.def)             Requested size: 362.77525pt x 132.87704pt.
+<Imagenes/generarPDF.png, id=1900, 278.2395pt x 246.9225pt>
+File: Imagenes/generarPDF.png Graphic file (type png)
+<use Imagenes/generarPDF.png>
+Package pdftex.def Info: Imagenes/generarPDF.png  used on input line 428.
+(pdftex.def)             Requested size: 341.43437pt x 303.02335pt.
+LaTeX Info: Redefining \. on input line 432.
+LaTeX Info: Redefining \% on input line 432.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 432.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+
+[139]
+File: Imagenes/pdf_generado_cu5.png Graphic file (type png)
+<use Imagenes/pdf_generado_cu5.png>
+Package pdftex.def Info: Imagenes/pdf_generado_cu5.png  used on input line 443.
+
+(pdftex.def)             Requested size: 384.1096pt x 296.82004pt.
+LaTeX Info: Redefining \. on input line 447.
+LaTeX Info: Redefining \% on input line 447.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 447.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [140 <./Imagenes/generarPDF.png>]
+LaTeX Info: Redefining \. on input line 458.
+LaTeX Info: Redefining \% on input line 458.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 458.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [141]
+<Imagenes/error2.png, id=1914, 407.72325pt x 166.221pt>
+File: Imagenes/error2.png Graphic file (type png)
+<use Imagenes/error2.png>
+Package pdftex.def Info: Imagenes/error2.png  used on input line 464.
+(pdftex.def)             Requested size: 362.77525pt x 147.89561pt.
+<Imagenes/error1.png, id=1915, 552.8655pt x 214.401pt>
+File: Imagenes/error1.png Graphic file (type png)
+<use Imagenes/error1.png>
+Package pdftex.def Info: Imagenes/error1.png  used on input line 477.
+(pdftex.def)             Requested size: 384.1096pt x 148.96082pt.
+LaTeX Info: Redefining \. on input line 481.
+LaTeX Info: Redefining \% on input line 481.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 481.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [142 <./Imagenes/error2.png>]
+LaTeX Info: Redefining \. on input line 499.
+LaTeX Info: Redefining \% on input line 499.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 499.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+
+[143 <./Imagenes/error1.png>]
+Underfull \hbox (badness 5260) in paragraph at lines 500--501
+[] [][] \OT1/cmr/m/n/10.95 Tam-bi^^Sen de-be com-pro-bar-se que exis-ten el mo-
+de-lo GGUF y el eje-cu-ta-ble
+ []
 
 
-] [121
+Underfull \hbox (badness 1348) in paragraph at lines 500--501
+\OT1/cmtt/m/n/10.95 llama-server.exe \OT1/cmr/m/n/10.95 en las ru-tas con-fi-gu
+-ra-das. Si el usua-rio uti-li-za ru-tas pro-pias,
+ []
+
+)
+LaTeX Info: Redefining \. on input line 269.
+LaTeX Info: Redefining \% on input line 269.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 269.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [144]
+LaTeX Info: Redefining \. on input line 269.
+LaTeX Info: Redefining \% on input line 269.
+File: Imagenes/logo_uco.png Graphic file (type png)
+<use Imagenes/logo_uco.png>
+Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 269.
+(pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
+ [145] [146
 
 ]
 Anexo B.
@@ -4089,11 +4400,11 @@ File: Imagenes/logo_uco.png Graphic file (type png)
 <use Imagenes/logo_uco.png>
 Package pdftex.def Info: Imagenes/logo_uco.png  used on input line 283.
 (pdftex.def)             Requested size: 97.56117pt x 51.21504pt.
- [122
+ [147
 
 
 ]
-runsystem(latexminted cleantemp  --timestamp 20260506092650 9D64E7D748A010CDED0
+runsystem(latexminted cleantemp  --timestamp 20260506133351 9D64E7D748A010CDED0
 5CAC6515B5A9F)...executed.
 
  (__memoria.aux
@@ -4105,13 +4416,13 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
 Package rerunfilecheck Info: File `__memoria.out' has not changed.
-(rerunfilecheck)             Checksum: 4251987D9C21E4BA0C71D412169C93D8;17549.
+(rerunfilecheck)             Checksum: E0D2ADDC33323FFFA68973FF40554EAB;27202.
  ) 
 Here is how much of TeX's memory you used:
- 48103 strings out of 467871
- 1030704 string characters out of 5417892
- 1695521 words of memory out of 5000000
- 75743 multiletter control sequences out of 15000+600000
+ 48301 strings out of 467871
+ 1034652 string characters out of 5417892
+ 1698639 words of memory out of 5000000
+ 75840 multiletter control sequences out of 15000+600000
  640673 words of font info for 88 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  80i,16n,94p,2496b,915s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -4130,9 +4441,9 @@ sers/LENOVO/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10
 c/amsfonts/cm/cmti12.pfb><C:/Users/LENOVO/AppData/Local/Programs/MiKTeX/fonts/t
 ype1/public/amsfonts/cm/cmtt10.pfb><C:/Users/LENOVO/AppData/Local/Programs/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on __memoria.pdf (142 pages, 3656742 bytes).
+Output written on __memoria.pdf (168 pages, 3823786 bytes).
 PDF statistics:
- 1701 PDF objects out of 1728 (max. 8388607)
- 403 named destinations out of 1000 (max. 500000)
- 1174 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2115 PDF objects out of 2487 (max. 8388607)
+ 504 named destinations out of 1000 (max. 500000)
+ 1546 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,6 +1,6 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {chapter}{\'{I}ndice de figuras}{IX}{chapter*.3}%
-\contentsline {chapter}{\'{I}ndice de tablas}{XIII}{chapter*.4}%
+\contentsline {chapter}{\'{I}ndice de figuras}{X}{chapter*.3}%
+\contentsline {chapter}{\'{I}ndice de tablas}{XIV}{chapter*.4}%
 \contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Objetivos}{3}{chapter.2}%
 \contentsline {chapter}{\numberline {3}Antecedentes}{5}{chapter.3}%
@@ -87,5 +87,49 @@
 \contentsline {section}{\numberline {12.3}Conclusiones y posibles mejoras}{115}{section.12.3}%
 \contentsline {chapter}{Bibliograf\'{\i }a}{117}{chapter*.76}%
 \contentsline {chapter}{\numberline {A}Anexo del Manual de Usuario}{120}{appendix.Alph1}%
-\contentsline {chapter}{\numberline {B}Anexo del Manual de código fuente}{122}{appendix.Alph2}%
-\contentsline {section}{\numberline {B.1}Introducción}{122}{section.Alph2.1}%
+\contentsline {section}{\numberline {A.1}Introducción}{120}{section.Alph1.1}%
+\contentsline {section}{\numberline {A.2}Instalación}{120}{section.Alph1.2}%
+\contentsline {subsection}{\numberline {A.2.1}Requisitos previos}{120}{subsection.Alph1.2.1}%
+\contentsline {subsection}{\numberline {A.2.2}Descarga del código}{121}{subsection.Alph1.2.2}%
+\contentsline {subsection}{\numberline {A.2.3}Instalación de las librerías de Python requeridas}{122}{subsection.Alph1.2.3}%
+\contentsline {subsection}{\numberline {A.2.4}Ejecución de la aplicación}{123}{subsection.Alph1.2.4}%
+\contentsline {subsection}{\numberline {A.2.5}Ejecución del módulo de inteligencia artificial}{123}{subsection.Alph1.2.5}%
+\contentsline {subsection}{\numberline {A.2.6}Desinstalación del proyecto}{124}{subsection.Alph1.2.6}%
+\contentsline {section}{\numberline {A.3}Interfaz de usuario}{124}{section.Alph1.3}%
+\contentsline {subsection}{\numberline {A.3.1}Pantalla principal}{125}{subsection.Alph1.3.1}%
+\contentsline {subsection}{\numberline {A.3.2}Selector de idioma}{125}{subsection.Alph1.3.2}%
+\contentsline {subsection}{\numberline {A.3.3}Carga del dataset}{126}{subsection.Alph1.3.3}%
+\contentsline {subsection}{\numberline {A.3.4}Preprocesamiento del dataset}{126}{subsection.Alph1.3.4}%
+\contentsline {subsection}{\numberline {A.3.5}Navegación entre módulos}{127}{subsection.Alph1.3.5}%
+\contentsline {section}{\numberline {A.4}Visualización del dataset}{127}{section.Alph1.4}%
+\contentsline {subsection}{\numberline {A.4.1}Consulta del dataset cargado}{128}{subsection.Alph1.4.1}%
+\contentsline {subsection}{\numberline {A.4.2}Consulta del dataset preprocesado}{128}{subsection.Alph1.4.2}%
+\contentsline {section}{\numberline {A.5}Análisis de covariables}{129}{section.Alph1.5}%
+\contentsline {subsection}{\numberline {A.5.1}Selección de covariables}{129}{subsection.Alph1.5.1}%
+\contentsline {subsection}{\numberline {A.5.2}Interpretación de tablas y gráficas}{130}{subsection.Alph1.5.2}%
+\contentsline {section}{\numberline {A.6}Técnicas de análisis de supervivencia}{130}{section.Alph1.6}%
+\contentsline {subsection}{\numberline {A.6.1}Kaplan-Meier}{131}{subsection.Alph1.6.1}%
+\contentsline {subsection}{\numberline {A.6.2}Regresión de Cox}{132}{subsection.Alph1.6.2}%
+\contentsline {subsection}{\numberline {A.6.3}Test Log-Rank}{133}{subsection.Alph1.6.3}%
+\contentsline {subsection}{\numberline {A.6.4}Modelo Weibull}{134}{subsection.Alph1.6.4}%
+\contentsline {subsection}{\numberline {A.6.5}Modelo Exponencial}{134}{subsection.Alph1.6.5}%
+\contentsline {subsection}{\numberline {A.6.6}Random Survival Forest}{135}{subsection.Alph1.6.6}%
+\contentsline {subsection}{\numberline {A.6.7}Comparación de técnicas}{136}{subsection.Alph1.6.7}%
+\contentsline {section}{\numberline {A.7}Interpretación con inteligencia artificial}{137}{section.Alph1.7}%
+\contentsline {subsection}{\numberline {A.7.1}Arranque del servidor local de IA}{137}{subsection.Alph1.7.1}%
+\contentsline {subsection}{\numberline {A.7.2}Generación de explicaciones automáticas}{137}{subsection.Alph1.7.2}%
+\contentsline {subsection}{\numberline {A.7.3}Limitaciones de las interpretaciones generadas}{138}{subsection.Alph1.7.3}%
+\contentsline {section}{\numberline {A.8}Exportación de informes PDF}{139}{section.Alph1.8}%
+\contentsline {subsection}{\numberline {A.8.1}Selección de contenido del informe}{139}{subsection.Alph1.8.1}%
+\contentsline {subsection}{\numberline {A.8.2}Generación y descarga del PDF}{140}{subsection.Alph1.8.2}%
+\contentsline {subsection}{\numberline {A.8.3}Ubicación de los informes generados}{141}{subsection.Alph1.8.3}%
+\contentsline {section}{\numberline {A.9}Errores frecuentes}{141}{section.Alph1.9}%
+\contentsline {subsection}{\numberline {A.9.1}Problemas al cargar el dataset}{142}{subsection.Alph1.9.1}%
+\contentsline {subsection}{\numberline {A.9.2}Problemas al acceder a módulos sin preprocesar}{142}{subsection.Alph1.9.2}%
+\contentsline {subsection}{\numberline {A.9.3}Problemas durante la instalación de dependencias}{143}{subsection.Alph1.9.3}%
+\contentsline {subsection}{\numberline {A.9.4}Problemas al arrancar la aplicación}{143}{subsection.Alph1.9.4}%
+\contentsline {subsection}{\numberline {A.9.5}Problemas con el módulo de inteligencia artificial}{144}{subsection.Alph1.9.5}%
+\contentsline {subsection}{\numberline {A.9.6}Problemas al generar informes PDF}{144}{subsection.Alph1.9.6}%
+\contentsline {section}{\numberline {A.10}Flujo completo recomendado}{144}{section.Alph1.10}%
+\contentsline {chapter}{\numberline {B}Anexo del Manual de código fuente}{147}{appendix.Alph2}%
+\contentsline {section}{\numberline {B.1}Introducción}{147}{section.Alph2.1}%

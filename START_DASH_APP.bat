@@ -1,6 +1,9 @@
 @echo off
-REM Script para iniciar la aplicacion Dash (Survival Analysis)
-REM =========================================================
+REM Script para iniciar la aplicacion Dash desde la carpeta del proyecto.
+REM No usa rutas absolutas del equipo.
+
+setlocal
+set "PROJECT_DIR=%~dp0"
 
 echo.
 echo ========================================
@@ -8,25 +11,16 @@ echo   INICIANDO SURVIVAL ANALYSIS DASHBOARD
 echo ========================================
 echo.
 
-REM Cambiar a la carpeta del proyecto
-cd /d C:\Users\LENOVO\Desktop\TFG\TFG
+cd /d "%PROJECT_DIR%"
 
-REM Verificar que está en la carpeta correcta
 if not exist "cargaDataset.py" (
-    echo ERROR: No se encontro cargaDataset.py
-    echo Por favor verifica la ruta del proyecto
+    echo ERROR: No se encontro cargaDataset.py en:
+    echo %PROJECT_DIR%
     pause
     exit /b 1
 )
 
-echo [✓] Proyecto encontrado
-echo.
-echo Verificando que llama-server está en ejecución...
-echo.
-
-REM Intentar conectar a llama-server
-timeout /t 2 /nobreak
-
+echo [OK] Proyecto encontrado: %PROJECT_DIR%
 echo.
 echo ========================================
 echo   INICIANDO SERVIDOR DASH
@@ -37,7 +31,6 @@ echo.
 echo Para detener: Presiona Ctrl+C
 echo.
 
-REM Ejecutar la aplicación Dash (sin buffer para ver logs de arranque al instante)
 python -u cargaDataset.py
 
 pause

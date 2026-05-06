@@ -6,8 +6,10 @@ import pandas as pd
 from config import LLAMA_SERVER_URL, MODEL_NAME
 
 DEFAULT_TEMPERATURE = 0.15
+DEFAULT_TOP_P = 0.85
 PDF_MAX_TOKENS = 480
 EXPLAIN_MAX_TOKENS = 260
+QUESTION_MAX_TOKENS = 320
 REQUEST_TIMEOUT_S = 240
 
 
@@ -55,6 +57,7 @@ def _rewrite_to_prose_if_needed(content, max_tokens, language='es', timeout=REQU
             },
         ],
         "temperature": 0.1,
+        "top_p": DEFAULT_TOP_P,
         "max_tokens": max_tokens,
         "stream": False,
     }
@@ -74,6 +77,7 @@ def _call_llm(prompt, max_tokens, temperature=DEFAULT_TEMPERATURE, timeout=REQUE
             {"role": "user", "content": prompt}
         ],
         "temperature": temperature,
+        "top_p": DEFAULT_TOP_P,
         "max_tokens": max_tokens,
         "stream": False,
     }
@@ -82,6 +86,25 @@ def _call_llm(prompt, max_tokens, temperature=DEFAULT_TEMPERATURE, timeout=REQUE
     result = response.json()
     content = result['choices'][0]['message']['content'].strip()
     return _rewrite_to_prose_if_needed(content, max_tokens=max_tokens, language=language, timeout=timeout)
+
+
+def responder_pregunta_con_llama3(pregunta: str, language: str = 'es') -> str:
+    """Interfaz común para las explicaciones IA solicitadas desde el dashboard."""
+    try:
+        return _call_llm(
+            pregunta,
+            max_tokens=QUESTION_MAX_TOKENS,
+            timeout=REQUEST_TIMEOUT_S,
+            language=language,
+        )
+    except requests.exceptions.ConnectionError:
+        return ""
+    except requests.exceptions.Timeout:
+        return ""
+    except Exception as e:
+        print(f"Error consultando el modelo IA: {e}")
+        return ""
+
 
 def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data=None, language='es'):
     """
@@ -129,6 +152,7 @@ def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data
 
 def _build_km_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Kaplan-Meier"""
+    data_summary = data_summary or {}
     km_lines = []
     if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
         try:
@@ -154,7 +178,7 @@ Provide a concise interpretation (max 140 words) of this Kaplan-Meier analysis.
 Use only the information provided and do not invent values.
 
 STUDY DATA:
-- Number of patients: {data_summary.get('n_patients', 0)}
+- Number of students/observations: {data_summary.get('n_patients', 0)}
 - Number of events: {data_summary.get('n_events', 0)}
 - Analyzed variable: {data_summary.get('variable_name', 'General')}
 - Mean follow-up: {data_summary.get('follow_up_mean', 0):.1f} months
@@ -175,7 +199,7 @@ Da una interpretación concisa (máximo 140 palabras) del análisis Kaplan-Meier
 Usa solo los datos disponibles y no inventes valores.
 
 DATOS DEL ESTUDIO:
-- Número de pacientes: {data_summary.get('n_patients', 0)}
+- Número de estudiantes/observaciones: {data_summary.get('n_patients', 0)}
 - Número de eventos: {data_summary.get('n_events', 0)}
 - Variable analizada: {data_summary.get('variable_name', 'General')}
 - Follow-up medio: {data_summary.get('follow_up_mean', 0):.1f} meses
@@ -194,6 +218,7 @@ Devuelve exactamente 3 párrafos cortos:
 
 def _build_cox_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Cox Regression"""
+    data_summary = data_summary or {}
     
     # Crear tabla en texto para el prompt
     table_text = ""
@@ -229,7 +254,7 @@ You are an expert statistician in multivariate survival analysis.
 Provide a professional, direct, and concise interpretation of the Cox regression analysis (2-3 paragraphs):
 
 GENERAL DATA:
-- Total number of patients: {data_summary.get('n_patients', 0)}
+- Total number of students/observations: {data_summary.get('n_patients', 0)}
 - Documented events: {data_summary.get('n_events', 0)}
 - Included variables: {data_summary.get('variable_name', 'multiple')}
 
@@ -239,7 +264,7 @@ MODEL RESULTS:
 Please:
 1. Explain what each Hazard Ratio means
 2. Identify the significant variables (p < 0.05)
-3. Interpret relative risk in clinical terms
+3. Interpret relative risk in academic dropout terms
 4. Mention the Cox model assumptions and limitations concisely
 """
     else:
@@ -248,7 +273,7 @@ Eres un experto estadístico en análisis de supervivencia multivariado.
 Proporciona una interpretación profesional, directa y breve del análisis de regresión de Cox (2-3 párrafos):
 
 DATOS GENERALES:
-- Número total de pacientes: {data_summary.get('n_patients', 0)}
+- Número total de estudiantes/observaciones: {data_summary.get('n_patients', 0)}
 - Eventos documentados: {data_summary.get('n_events', 0)}
 - Variables incluidas: {data_summary.get('variable_name', 'múltiples')}
 
@@ -258,7 +283,7 @@ RESULTADOS DEL MODELO:
 Por favor:
 1. Explica qué significa cada Hazard Ratio
 2. Identifica las variables significativas (p < 0.05)
-3. Interpreta el riesgo relativo en términos clínicos
+3. Interpreta el riesgo relativo en términos de abandono académico
 4. Menciona supuestos y limitaciones del modelo Cox de forma concisa
 """
     return prompt
@@ -266,6 +291,7 @@ Por favor:
 
 def _build_logrank_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Log-Rank Test"""
+    data_summary = data_summary or {}
     logrank_text = "- No hay tabla de Log-Rank disponible"
     if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
         try:
@@ -286,7 +312,7 @@ Provide a concise interpretation of this log-rank test (max 130 words).
 Do not invent any values.
 
 CONTEXT:
-- Number of patients: {data_summary.get('n_patients', 0)}
+- Number of students/observations: {data_summary.get('n_patients', 0)}
 - Total events: {data_summary.get('n_events', 0)}
 - Compared variable: {data_summary.get('variable_name', 'unknown')}
 
@@ -304,7 +330,7 @@ Da una interpretación breve del test Log-Rank (máximo 130 palabras).
 No inventes datos.
 
 CONTEXTO:
-- Número de pacientes: {data_summary.get('n_patients', 0)}
+- Número de estudiantes/observaciones: {data_summary.get('n_patients', 0)}
 - Eventos totales: {data_summary.get('n_events', 0)}
 - Variable comparada: {data_summary.get('variable_name', 'desconocida')}
 
@@ -320,6 +346,7 @@ Devuelve exactamente 2 párrafos:
 
 def _build_weibull_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Weibull"""
+    data_summary = data_summary or {}
     table_text = ""
     if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
         try:
@@ -375,6 +402,7 @@ Por favor:
 
 def _build_exponential_prompt(data_summary, table_data, language='es'):
     """Construye prompt para Exponential Survival."""
+    data_summary = data_summary or {}
     table_text = ""
     if table_data is not None and isinstance(table_data, pd.DataFrame) and len(table_data) > 0:
         try:
@@ -426,29 +454,79 @@ Devuelve exactamente 3 párrafos cortos:
 3) una implicación práctica y una limitación
 """
 
+def _format_context_for_prompt(context_data, max_chars=3500):
+    """Convierte datos de gráfica/tabla en texto compacto para el prompt."""
+    if context_data is None:
+        return "No se proporcionaron datos numéricos adicionales."
+    if isinstance(context_data, str) and not context_data.strip():
+        return "No se proporcionaron datos numéricos adicionales."
 
-def generate_explanation(graph_data, model_type):
+    try:
+        if isinstance(context_data, pd.DataFrame):
+            text = context_data.head(20).to_string(index=False)
+        elif isinstance(context_data, dict):
+            text = json.dumps(context_data, ensure_ascii=False, default=str, indent=2)
+        elif isinstance(context_data, (list, tuple)):
+            if context_data and all(isinstance(item, dict) for item in context_data):
+                text = pd.DataFrame(context_data).head(20).to_string(index=False)
+            else:
+                text = json.dumps(context_data, ensure_ascii=False, default=str, indent=2)
+        else:
+            text = str(context_data)
+    except Exception:
+        text = str(context_data)
+
+    return text[:max_chars]
+
+
+def generate_explanation(graph_data, model_type, language='es'):
     """
     Genera explicaciones usando llama.cpp (llama-server) con Qwen2.5-1.5B-Instruct.
     Endpoint local sin dependencias externas.
-    Tiempo ilimitado para que el modelo piense.
+    Usa el timeout configurado para evitar bloquear la interfaz.
     """
-    
-    # Construir el prompt según el tipo de gráfico o modelo
-    if model_type == 'kaplan-meier':
-        prompt = f"Analiza en español los resultados de Kaplan-Meier y resume los puntos clave en 3-4 frases, basándote solo en la curva y la tabla mostradas."
-    elif model_type == 'log-rank':
-        prompt = f"Da una conclusión breve de la prueba Log-Rank en 3-4 frases, basándote solo en los grupos, la tabla y la gráfica mostradas."
-    elif model_type == 'cox-regression':
-        prompt = f"Explica los resultados principales de la regresión de Cox en 3-4 frases, basándote solo en la tabla y el forest plot mostrados."
+    context_text = _format_context_for_prompt(graph_data)
+
+    if language == 'en':
+        prompt_map = {
+            'kaplan-meier': "Interpret the Kaplan-Meier results using only the data below.",
+            'log-rank': "Interpret the Log-Rank test using only the data below.",
+            'cox-regression': "Interpret the Cox regression using only the data below.",
+            'weibull': "Interpret the Weibull survival model using only the data below.",
+            'exponential': "Interpret the Exponential survival model using only the data below.",
+            'rsf': "Interpret the Random Survival Forest results using only the data below.",
+        }
+        task = prompt_map.get(model_type, "Interpret these survival-analysis results using only the data below.")
+        prompt = f"""{task}
+
+DATA:
+{context_text}
+
+Return 2 short academic paragraphs. Mention concrete values when present, do not invent values, and include one limitation."""
+    else:
+        prompt_map = {
+            'kaplan-meier': "Interpreta los resultados de Kaplan-Meier usando solo los datos siguientes.",
+            'log-rank': "Interpreta el test Log-Rank usando solo los datos siguientes.",
+            'cox-regression': "Interpreta la regresión de Cox usando solo los datos siguientes.",
+            'weibull': "Interpreta el modelo Weibull de supervivencia usando solo los datos siguientes.",
+            'exponential': "Interpreta el modelo Exponencial de supervivencia usando solo los datos siguientes.",
+            'rsf': "Interpreta los resultados del Random Survival Forest usando solo los datos siguientes.",
+        }
+        task = prompt_map.get(model_type, "Interpreta estos resultados de supervivencia usando solo los datos siguientes.")
+        prompt = f"""{task}
+
+DATOS:
+{context_text}
+
+Devuelve 2 párrafos académicos breves. Cita valores concretos cuando existan, no inventes valores e incluye una limitación."""
 
     try:
         # Registro de inicio
         inicio = time.time()
         print(f"\n⏳ Enviando solicitud al LLM...")
-        print(f"🔄 Esperando respuesta (sin límite de tiempo)...\n")
+        print(f"🔄 Esperando respuesta...\n")
         sys.stdout.flush()
-        explanation = _call_llm(prompt, max_tokens=EXPLAIN_MAX_TOKENS, timeout=REQUEST_TIMEOUT_S, language='es')
+        explanation = _call_llm(prompt, max_tokens=EXPLAIN_MAX_TOKENS, timeout=REQUEST_TIMEOUT_S, language=language)
         
         # Calcular tiempo de respuesta
         tiempo_respuesta = time.time() - inicio

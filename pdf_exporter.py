@@ -22,7 +22,7 @@ from translations import get_translation
 
 
 BASE_DIR = Path(__file__).resolve().parent
-LOGO_PATH = BASE_DIR / "assets" / "logo_uco.png"
+LOGO_PATH = BASE_DIR / "assets" / "uco_escudo_old.jpg"
 LOGO_RIGHT_PATH = BASE_DIR / "assets" / "logo_espc.png"
 
 
@@ -276,7 +276,7 @@ class SurvivalAnalysisPDFExporter:
         
         summary_data = [
             ["Metric" if self._is_english() else "Métrica", "Value" if self._is_english() else "Valor"],
-            ["Number of patients" if self._is_english() else "Número de pacientes", str(n_patients)],
+            ["Number of students" if self._is_english() else "Número de estudiantes", str(n_patients)],
             ["Number of events" if self._is_english() else "Número de eventos", str(n_events)],
             ["Event rate (%)" if self._is_english() else "Tasa de eventos (%)", f"{(n_events/n_patients*100):.1f}%" if n_patients > 0 else "N/A"],
             ["Average follow-up (months)" if self._is_english() else "Follow-up medio (meses)", f"{follow_up_mean:.2f}" if follow_up_mean > 0 else "N/A"],
@@ -305,6 +305,19 @@ class SurvivalAnalysisPDFExporter:
         ]))
 
         self.elements.append(table)
+        self.elements.append(Spacer(1, 0.18*inch))
+
+        event_rate = f"{(n_events/n_patients*100):.1f}%" if n_patients > 0 else "N/A"
+        summary_note = (
+            f"This page summarizes the academic cohort used in the exported analysis: {n_patients} students, "
+            f"{n_events} observed events and an event rate of {event_rate}. Each selected export option is kept "
+            "on a separate page to make the report easier to review and share."
+            if self._is_english() else
+            f"Esta página resume la cohorte académica utilizada en el análisis exportado: {n_patients} estudiantes, "
+            f"{n_events} eventos observados y una tasa de eventos del {event_rate}. Cada opción seleccionada se "
+            "mantiene en una página independiente para facilitar la revisión y la lectura del informe."
+        )
+        self.elements.append(Paragraph(summary_note, self.styles['DescriptionText']))
         self.elements.append(Spacer(1, 0.3*inch))
     
     def add_kaplan_meier_section(self, variable_name="", survival_table_data=None):
@@ -764,7 +777,6 @@ class SurvivalAnalysisPDFExporter:
     
     def add_graph_section(self, title="3. GRÁFICA"):
         """Inicia sección de gráfica"""
-        self.elements.append(Spacer(1, 0.2*inch))
         self._add_section_title(title)
         self.elements.append(Spacer(1, 0.2*inch))
     
@@ -910,7 +922,7 @@ class SurvivalAnalysisPDFExporter:
             canvas_obj.restoreState()
 
         doc.build(self.elements, onFirstPage=_draw_page_decorations, onLaterPages=_draw_page_decorations)
-        print(f"✓ PDF generado exitosamente: {self.filename}")
+        print(f"[OK] PDF generado exitosamente: {self.filename}")
 
 
 # Función utilitaria para exporte rápido

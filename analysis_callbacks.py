@@ -40,13 +40,12 @@ from exponential import build_exponential_analysis
 from rsf import build_rsf_analysis, build_rsf_profile_analysis
 import matplotlib.pyplot as plt
 import requests
-from ollama_AI import generate_explanation, generate_interpretation_for_pdf
+from ollama_AI import generate_interpretation_for_pdf, responder_pregunta_con_llama3
 import plotly.graph_objs as go
 from dash import callback_context
 from dash.exceptions import PreventUpdate
 from translations import get_translation
 from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
-from config import LLAMA_SERVER_URL, MODEL_NAME
 
 # Inicializar la aplicación Dash
 
@@ -101,126 +100,11 @@ def _humanize_label(value):
     return text.strip()
 
 
-def _looks_like_list_output(text):
-    """Detecta respuestas tipo lista para relanzar reescritura en prosa."""
-    if not text:
-        return False
-    stripped = text.strip()
-    if stripped.startswith('-') or stripped.startswith('*'):
-        return True
-    list_markers = ('1)', '2)', '3)', '1.', '2.', '3.')
-    return any(marker in stripped for marker in list_markers)
-
-
 def _dataset_signature_from_json(df_json):
     """Genera una firma estable para detectar cambios de dataset en el flujo."""
     if not df_json:
         return ""
     return str(hash(df_json))
-
-# ==================== FUNCIÓN DE IA ====================
-def responder_pregunta_con_llama3(pregunta: str, language: str = 'es') -> str:
-    """
-    Envía la pregunta a llama-server (compatibilidad OpenAI API).
-    Si el servidor no está disponible, devuelve un mensaje amigable.
-    """
-    import time
-    
-    try:
-        # Payload compatible con OpenAI API (formato que usa llama-server)
-        system_prompt = (
-            "You are a statistical analyst for a survival-analysis bachelor's thesis. "
-            "Write in clear and professional academic style, in 2-3 short paragraphs, "
-            "without numbered lists or bullet points. "
-            "Do not invent data; use only the provided results. "
-            "Write strictly in English."
-            if language == 'en' else
-            "Eres un analista estadístico para un TFG de supervivencia. "
-            "Redacta en estilo académico claro y profesional, en 2-3 párrafos breves, "
-            "sin listas numeradas ni viñetas. "
-            "No inventes datos; usa solo los resultados proporcionados. "
-            "Escribe estrictamente en español."
-        )
-
-        payload = {
-            "model": MODEL_NAME,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {"role": "user", "content": pregunta}
-            ],
-            "temperature": 0.15,
-            "max_tokens": 320
-        }
-        
-        # Registro de inicio
-        inicio = time.time()
-        
-        # Realiza la solicitud HTTP al servidor llama-server (timeout de 10 minutos para permitir procesamiento)
-        response = requests.post(LLAMA_SERVER_URL, json=payload, timeout=600)
-        response.raise_for_status()
-        
-        # Calcular tiempo de respuesta
-        tiempo_respuesta = time.time() - inicio
-        
-        # Extrae la respuesta generada (formato OpenAI)
-        result = response.json()
-        content = result['choices'][0]['message']['content'].strip()
-
-        if _looks_like_list_output(content):
-            rewrite_system_prompt = (
-                "Rewrite in bachelor's-thesis academic style, in prose, 2 short paragraphs, "
-                "without numbered lists or bullet points. Keep exactly the same factual content. "
-                "Write strictly in English."
-                if language == 'en' else
-                "Reescribe en estilo académico de TFG, en prosa, 2 párrafos breves, "
-                "sin listas numeradas ni viñetas. Mantén exactamente el contenido factual. "
-                "Escribe estrictamente en español."
-            )
-
-            rewrite_user_prompt = (
-                f"Rewrite this text in academic prose without lists:\n\n{content}"
-                if language == 'en' else
-                f"Reescribe en prosa académica este texto sin listas:\n\n{content}"
-            )
-
-            rewrite_payload = {
-                "model": MODEL_NAME,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": rewrite_system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": rewrite_user_prompt
-                    }
-                ],
-                "temperature": 0.1,
-                "max_tokens": 320,
-                "stream": False
-            }
-            rewrite_response = requests.post(LLAMA_SERVER_URL, json=rewrite_payload, timeout=600)
-            rewrite_response.raise_for_status()
-            rewrite_result = rewrite_response.json()
-            rewritten = rewrite_result['choices'][0]['message']['content'].strip()
-            if rewritten:
-                content = rewritten
-        
-        if not content:
-            raise ValueError("No se recibió una respuesta válida del modelo.")
-        
-        return content
-        
-    except requests.exceptions.ConnectionError:
-        return ""
-    except requests.exceptions.Timeout:
-        return ""
-    except Exception as e:
-        print(f"Error consultando Qwen2.5: {e}")
-        return ""
 
 
 def _build_km_interpretation_context(df, variable_actual):

@@ -83,4 +83,26 @@
 \contentsline {figure}{\numberline {71}{\ignorespaces Evidencia de visualización ampliada del CU-9: AmpliarVisualizacionesCoxTestLogRank}}{111}{figure.caption.75}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {72}{\ignorespaces Descarga del proyecto desde GitHub como archivo ZIP}}{122}{figure.caption.77}%
+\contentsline {figure}{\numberline {73}{\ignorespaces Pantalla principal de la aplicación}}{125}{figure.caption.78}%
+\contentsline {figure}{\numberline {74}{\ignorespaces Archivo CSV cargado antes de iniciar el preprocesamiento}}{126}{figure.caption.79}%
+\contentsline {figure}{\numberline {75}{\ignorespaces Confirmación del dataset preprocesado}}{127}{figure.caption.80}%
+\contentsline {figure}{\numberline {76}{\ignorespaces Consulta del dataset limpio desde la sección de visualización}}{128}{figure.caption.81}%
+\contentsline {figure}{\numberline {77}{\ignorespaces Descripción de variables disponible para interpretar el dataset}}{129}{figure.caption.82}%
+\contentsline {figure}{\numberline {78}{\ignorespaces Selección de covariables para la exploración descriptiva}}{130}{figure.caption.83}%
+\contentsline {figure}{\numberline {79}{\ignorespaces Página de acceso a las técnicas de análisis de supervivencia}}{131}{figure.caption.84}%
+\contentsline {figure}{\numberline {80}{\ignorespaces Resultado esperado al generar una curva Kaplan-Meier estratificada}}{132}{figure.caption.85}%
+\contentsline {figure}{\numberline {81}{\ignorespaces Visualización de los efectos obtenidos tras ejecutar la regresión de Cox}}{132}{figure.caption.86}%
+\contentsline {figure}{\numberline {82}{\ignorespaces Resultado mostrado al comparar grupos mediante el Test Log-Rank}}{133}{figure.caption.87}%
+\contentsline {figure}{\numberline {83}{\ignorespaces Resultados que debe revisar el usuario tras ejecutar el modelo Weibull}}{134}{figure.caption.88}%
+\contentsline {figure}{\numberline {84}{\ignorespaces Resultados que debe revisar el usuario tras ejecutar el modelo Exponencial}}{135}{figure.caption.89}%
+\contentsline {figure}{\numberline {85}{\ignorespaces Curvas y métricas generadas por Random Survival Forest}}{136}{figure.caption.90}%
+\contentsline {figure}{\numberline {86}{\ignorespaces Vista utilizada para consultar la comparación entre técnicas disponibles}}{137}{figure.caption.91}%
+\contentsline {figure}{\numberline {87}{\ignorespaces Botón de interpretación mediante inteligencia artificial}}{138}{figure.caption.92}%
+\contentsline {figure}{\numberline {88}{\ignorespaces Ejemplo de explicación generada para apoyar la interpretación de resultados}}{138}{figure.caption.93}%
+\contentsline {figure}{\numberline {89}{\ignorespaces Botón que inicia la exportación desde un módulo de análisis}}{139}{figure.caption.94}%
+\contentsline {figure}{\numberline {90}{\ignorespaces Opciones de contenido para el informe PDF}}{140}{figure.caption.95}%
+\contentsline {figure}{\numberline {91}{\ignorespaces Ejemplo de informe PDF generado a partir de los resultados seleccionados}}{141}{figure.caption.96}%
+\contentsline {figure}{\numberline {92}{\ignorespaces Mensaje mostrado cuando el archivo cargado no corresponde al dataset esperado}}{142}{figure.caption.97}%
+\contentsline {figure}{\numberline {93}{\ignorespaces Aviso mostrado al acceder a una sección que requiere el dataset preprocesado}}{143}{figure.caption.98}%
 \addvspace {10\p@ }
