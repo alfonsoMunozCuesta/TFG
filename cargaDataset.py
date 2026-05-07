@@ -274,4 +274,7 @@ if __name__ == '__main__':
     debug_mode = os.environ.get('DASH_DEBUG', '0').lower() in ('1', 'true', 'yes', 'on')
 
     print(f'[BOOT] Iniciando Dash en http://{host}:{port} (debug={debug_mode}, reloader=False)', flush=True)
-    app.run_server(host=host, port=port, debug=debug_mode, use_reloader=False)
+    if hasattr(app, 'run'):
+        app.run(host=host, port=port, debug=debug_mode, use_reloader=False)
+    else:
+        app.run_server(host=host, port=port, debug=debug_mode, use_reloader=False)

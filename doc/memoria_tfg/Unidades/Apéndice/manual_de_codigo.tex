@@ -1,6 +1,215 @@
+\section{Finalidad del manual de código fuente}
 
-\section{Introducción}
+\paragraph*{}Este anexo tiene como finalidad facilitar la lectura, comprensión y mantenimiento del código fuente de la aplicación. A diferencia del manual de usuario, no explica cómo utilizar el dashboard desde la interfaz, sino cómo está organizado internamente el proyecto y qué papel cumplen sus principales variables, funciones y módulos. La idea es sencilla: que una persona distinta del autor pueda abrir el repositorio, orientarse sin demasiada fricción y saber dónde mirar antes de modificar cualquier parte del sistema.
 
-\paragraph*{}Este anexo corresponde al manual de código fuente de la aplicación...
+\paragraph*{}El manual está pensado como una guía de apoyo para desarrolladores o futuros estudiantes que necesiten revisar, corregir o ampliar la aplicación. Por ello, no se documenta cada línea de código de forma exhaustiva. Eso haría el documento demasiado pesado y, además, poco práctico. En su lugar, se recogen las variables más importantes, las responsabilidades generales de los archivos principales y algunos fragmentos representativos de las funciones más delicadas.
 
+\paragraph*{}Las capturas incluidas no pretenden mostrar todo el código fuente. Se han seleccionado únicamente aquellas partes que ayudan a entender mejor el funcionamiento interno del sistema: el preprocesamiento del dataset, el ajuste de un modelo más complejo como Random Survival Forest y la comunicación con el servidor local de inteligencia artificial. La verdad es que, en un proyecto con varios módulos de análisis, callbacks, exportación PDF e IA, esta selección resulta más útil que llenar el anexo con capturas de funciones repetitivas o demasiado sencillas.
 
+\section{Criterios de organización del código}
+
+\paragraph*{}El código se ha organizado intentando mantener una separación clara entre responsabilidades. La aplicación combina interfaz web, procesamiento de datos, modelos estadísticos, generación de gráficas, exportación de informes, traducciones e interpretación mediante inteligencia artificial. Si toda esa lógica estuviera mezclada en un único archivo, cualquier cambio pequeño sería mucho más difícil de controlar. Por eso, cada bloque funcional se sitúa en archivos específicos.
+
+\paragraph*{}Como criterio general, los archivos tienen nombres descriptivos y agrupan una responsabilidad principal. Por ejemplo, los modelos estadísticos se separan en módulos propios, los callbacks se concentran en archivos específicos y los textos traducibles se mantienen en \texttt{translations.py}. Esta división ayuda a localizar mejor cada parte del sistema y evita que la interfaz, el análisis y la exportación queden mezclados sin control.
+
+\paragraph*{}Los comentarios del código se utilizan especialmente en bloques donde la lectura puede resultar menos evidente: carga diferida de datasets, tratamiento de variables no binarias, llamadas al servidor local de inteligencia artificial, generación de informes PDF o recuperación ante errores de convergencia. No se comentan operaciones triviales, porque eso puede generar ruido. Se priorizan comentarios que expliquen decisiones, no instrucciones obvias.
+
+\paragraph*{}Cualquier ampliación futura debería respetar esta estructura. Si se añade una nueva técnica de análisis, lo más adecuado no sería insertar toda la lógica dentro de un callback, sino crear un módulo propio, devolver resultados en un formato reutilizable y conectar después esa salida con la interfaz, la exportación y las traducciones necesarias. Es una forma de trabajar más ordenada y, sobre todo, más segura.
+
+\section{Diccionario de variables principales}
+
+\paragraph*{}En esta sección se recogen las variables más relevantes para entender el funcionamiento del sistema. Algunas proceden directamente del dataset académico y otras son variables internas utilizadas por la aplicación. No se incluyen todas las variables temporales o auxiliares del código, sino aquellas que aparecen de forma recurrente y que ayudan a comprender el flujo general de datos.
+
+\subsection{Variables principales del dataset}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.26\textwidth}|p{0.34\textwidth}|X|}
+\hline
+\textbf{Variable} & \textbf{Significado} & \textbf{Uso dentro de la aplicación} \\ \hline
+\texttt{id\_student} & Identificador único del estudiante. & Permite agrupar registros y seleccionar una fila representativa por estudiante durante el preprocesamiento. \\ \hline
+\texttt{date} & Tiempo o momento observado dentro del seguimiento académico. & Se utiliza como variable temporal en los modelos de supervivencia. \\ \hline
+\texttt{final\_result} & Resultado final asociado al estudiante. & Se transforma en indicador del evento de abandono o permanencia según el criterio definido en el preprocesamiento. \\ \hline
+\texttt{gender\_F} & Variable binaria asociada al género. & Se usa como covariable personal en análisis comparativos y modelos estadísticos. \\ \hline
+\texttt{disability\_N} & Variable binaria asociada a la existencia o no de discapacidad registrada. & Permite estudiar diferencias de supervivencia o riesgo según esta característica. \\ \hline
+\texttt{age\_band} & Conjunto de columnas que representan tramos de edad. & Permite incorporar la edad como variable categórica codificada en varias columnas. \\ \hline
+\texttt{highest\_education} & Conjunto de columnas asociadas al nivel educativo previo. & Se utiliza para estudiar si la formación previa está relacionada con la permanencia o el abandono. \\ \hline
+\texttt{studied\_credits} & Número de créditos estudiados por el estudiante. & Es una variable numérica no binaria; puede requerir agrupación por intervalos o cuantiles según la técnica aplicada. \\ \hline
+\end{tabularx}
+\caption{Variables principales procedentes del dataset académico}
+\label{tab:manual_codigo_variables_dataset}
+\normalsize
+\end{table}
+
+\paragraph*{}Estas variables son especialmente importantes porque alimentan los modelos de supervivencia. Si alguna de ellas falta, contiene valores inesperados o se transforma de manera incorrecta, los resultados pueden dejar de ser fiables. Por ese motivo, el preprocesamiento valida la existencia de columnas críticas y controla los casos en los que los datos no son suficientes para continuar.
+
+\subsection{Variables internas de la aplicación}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.26\textwidth}|p{0.34\textwidth}|X|}
+\hline
+\textbf{Variable} & \textbf{Significado} & \textbf{Uso dentro del código} \\ \hline
+\texttt{df} & DataFrame con datos cargados o datos base. & Se utiliza como estructura principal para almacenar el dataset antes o durante distintos procesos de análisis. \\ \hline
+\texttt{df\_limpio} & DataFrame tras aplicar el preprocesamiento. & Es la versión preparada para ejecutar los modelos estadísticos y mostrar datos ya validados. \\ \hline
+\texttt{df\_json} & Representación serializada del dataset. & Permite guardar y recuperar el dataset en componentes \texttt{dcc.Store} de Dash entre callbacks. \\ \hline
+\texttt{language} & Idioma activo de la interfaz. & Controla si los textos, mensajes, etiquetas e informes se generan en castellano o inglés. \\ \hline
+\texttt{contents} & Contenido del archivo cargado desde la interfaz. & Se utiliza durante la carga del CSV para leer el archivo subido por el usuario. \\ \hline
+\texttt{summary\_df} & Tabla resumen generada por un análisis. & Recoge métricas o resultados principales para mostrarlos en pantalla o exportarlos a PDF. \\ \hline
+\texttt{figure} & Figura generada por Plotly. & Representa gráficas de supervivencia, importancia de variables, comparaciones o curvas de modelos. \\ \hline
+\texttt{analysis} & Estructura con resultados de un análisis. & Suele agrupar figura, tabla, métricas e interpretación para reutilizar la salida en distintos puntos del sistema. \\ \hline
+\texttt{store\_data} & Datos almacenados temporalmente en componentes de Dash. & Permite conservar resultados entre interacciones sin recalcular todo desde cero. \\ \hline
+\texttt{LLAMA\_SERVER\_URL} & Dirección del servidor local de inteligencia artificial. & Indica el endpoint al que se envían las peticiones para generar interpretaciones automáticas. \\ \hline
+\texttt{MODEL\_NAME} & Nombre del modelo de lenguaje configurado. & Identifica el modelo Qwen utilizado por el servidor local para generar explicaciones. \\ \hline
+\end{tabularx}
+\caption{Variables internas más relevantes para entender el flujo de la aplicación}
+\label{tab:manual_codigo_variables_internas}
+\normalsize
+\end{table}
+
+\paragraph*{}La distinción entre variables del dataset y variables internas es importante. Las primeras representan información académica sobre los estudiantes. Las segundas permiten que la aplicación mueva esa información entre carga, preprocesamiento, análisis, visualización, IA y exportación. Dicho de forma sencilla: unas describen los datos; las otras ayudan a que el sistema funcione.
+
+\section{Funciones principales por archivo}
+
+\paragraph*{}En este apartado se muestran algunas funciones representativas del código fuente. No se incluyen capturas de todos los archivos, ya que el objetivo del manual no es reproducir el código completo, sino señalar los puntos más importantes para comprender el funcionamiento interno de la aplicación. Las imágenes seleccionadas corresponden a fases clave: preparación del dataset, ajuste del modelo Random Survival Forest y comunicación con el módulo local de inteligencia artificial.
+
+\subsection{Preprocesamiento del dataset}
+
+\paragraph*{}La función de preprocesamiento se encuentra en \texttt{preprocesamiento.py}. Su responsabilidad principal es preparar el dataset antes de ejecutar los modelos. Para ello, valida que existan las columnas necesarias, transforma el resultado final en una variable interpretable por los modelos de supervivencia, ordena los registros por estudiante y fecha, y genera una versión limpia de los datos. Esta función es especialmente importante porque todos los análisis posteriores dependen de que la información llegue en un formato coherente.
+
+\paragraph*{}Además, esta función actúa como una primera barrera de control. Si el dataset está vacío, si faltan columnas críticas o si los registros no permiten construir una observación válida por estudiante, el sistema evita continuar como si todo estuviera correcto. Dicho de forma sencilla: antes de calcular, el código intenta asegurarse de que los datos tienen sentido.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.43\textheight,keepaspectratio]{Imagenes/preprocess1.png}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.43\textheight,keepaspectratio]{Imagenes/preprocess2.png}
+    \end{minipage}
+    \caption{Fragmentos de la función de preprocesamiento del dataset}
+    \label{fig:manual_codigo_preprocesamiento}
+\end{figure}
+
+\subsection{Ajuste de Random Survival Forest}
+
+\paragraph*{}El ajuste de Random Survival Forest se implementa en \texttt{rsf.py}. Esta parte del código construye el objeto de supervivencia, entrena el modelo y obtiene métricas asociadas a su rendimiento. Es una de las funciones más relevantes del proyecto porque introduce una técnica basada en aprendizaje automático y requiere preparar los datos de una forma más específica que los modelos paramétricos.
+
+\paragraph*{}A diferencia de Weibull o Exponencial, Random Survival Forest necesita una matriz de características y una estructura especial para representar el tiempo y el evento. Por eso, el código no solo llama al modelo, sino que prepara las entradas, ajusta el bosque, calcula puntuaciones de riesgo y conserva métricas como el índice de concordancia o la puntuación \textit{out-of-bag} cuando está disponible.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{Imagenes/fit_rsf.png}
+    \caption{Fragmento de código encargado del ajuste de Random Survival Forest}
+    \label{fig:manual_codigo_fit_rsf}
+\end{figure}
+
+\subsection{Llamada al servidor local de inteligencia artificial}
+
+\paragraph*{}La comunicación con el modelo de inteligencia artificial se gestiona en \texttt{ollama\_AI.py}. La función mostrada prepara la petición HTTP, envía el prompt al servidor local y procesa la respuesta recibida. Este bloque es importante porque conecta la aplicación Dash con \texttt{llama-server}, por lo que también debe controlar posibles errores de conexión o falta de disponibilidad del servidor.
+
+\paragraph*{}La función recibe el texto que debe interpretar el modelo, construye el cuerpo de la petición con el nombre del modelo, los mensajes y los parámetros de generación, y después espera la respuesta del servidor local. Si la comunicación falla, la aplicación debe responder de forma controlada, ya que la IA es una ayuda interpretativa, pero no debe bloquear el resto del dashboard.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{Imagenes/call_ia.png}
+    \caption{Fragmento de código utilizado para llamar al servidor local de inteligencia artificial}
+    \label{fig:manual_codigo_call_ia}
+\end{figure}
+
+\section{Resumen de archivos principales}
+
+\paragraph*{}Los archivos principales del proyecto ya se han mencionado anteriormente en la memoria. En concreto, aparecen en el capítulo de \textbf{Diseño del sistema}, dentro de la descripción de la arquitectura y de la vista de clases y componentes, y también en el capítulo de \textbf{Implementación}, especialmente en los apartados dedicados a la estructura del código fuente, la integración con callbacks, los modelos, la inteligencia artificial y la exportación de informes. Por tanto, este apartado no pretende repetir toda esa explicación, sino reunir los archivos en una vista rápida orientada al mantenimiento del código.
+
+\paragraph*{}A continuación se resume la responsabilidad de los archivos más importantes del proyecto. Esta tabla no sustituye a la lectura del código, pero ayuda a localizar rápidamente dónde se encuentra cada parte de la aplicación. Es especialmente útil cuando se quiere modificar una funcionalidad concreta sin revisar todo el repositorio desde cero.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.28\textwidth}|p{0.34\textwidth}|X|}
+\hline
+\textbf{Archivo} & \textbf{Responsabilidad} & \textbf{Funciones o elementos relevantes} \\ \hline
+\texttt{cargaDataset.py} & Punto de entrada de la aplicación Dash. & Inicialización de la app, navegación, componentes \texttt{dcc.Store} y arranque del servidor local. \\ \hline
+\texttt{layout.py} & Definición visual de las páginas. & Construcción de pantallas, botones, modales, secciones de análisis y componentes de interfaz. \\ \hline
+\texttt{analysis\_callbacks.py} & Conexión entre interfaz y lógica de análisis. & Registro de callbacks, carga de datos, ejecución de modelos y actualización de resultados. \\ \hline
+\texttt{preprocesamiento.py} & Preparación del dataset. & \texttt{load\_dataset} y \texttt{preprocess\_data}. \\ \hline
+\texttt{exponential.py} & Modelo Exponencial. & \texttt{build\_exponential\_analysis}. \\ \hline
+\texttt{weibull.py} & Modelo de Weibull. & \texttt{build\_weibull\_analysis}. \\ \hline
+\texttt{rsf.py} & Random Survival Forest. & \texttt{build\_rsf\_analysis}, \texttt{\_fit\_rsf\_model} y \texttt{build\_rsf\_profile\_analysis}. \\ \hline
+\texttt{survival\_plots.py} & Gráficas complementarias. & Curvas comparativas, forest plots y visualizaciones de apoyo. \\ \hline
+\texttt{ollama\_AI.py} & Interpretación mediante IA local. & Construcción de prompts y llamadas al servidor \texttt{llama-server}. \\ \hline
+\texttt{pdf\_callbacks.py} & Gestión de exportación desde Dash. & Apertura de modales, validación de opciones y descarga de informes. \\ \hline
+\texttt{pdf\_exporter.py} & Construcción de informes PDF. & \texttt{SurvivalAnalysisPDFExporter} y funciones de exportación. \\ \hline
+\texttt{translations.py} & Internacionalización. & Diccionario de traducciones y función \texttt{get\_translation}. \\ \hline
+\texttt{config.py} & Configuración general. & Rutas, servidor de IA, nombre del modelo y carga diferida de datasets. \\ \hline
+\end{tabularx}
+\caption{Resumen de archivos principales del código fuente}
+\label{tab:manual_codigo_archivos}
+\normalsize
+\end{table}
+
+\section{Flujo interno de ejecución}
+
+\paragraph*{}El funcionamiento interno de la aplicación sigue un flujo bastante claro. Primero se inicia la aplicación Dash desde el archivo principal. Después, el usuario carga y preprocesa el dataset desde la interfaz. A partir de ese momento, los callbacks recuperan los datos almacenados, llaman al módulo de análisis correspondiente y devuelven a la pantalla tablas, gráficas o mensajes. Si el usuario lo solicita, esos mismos resultados pueden enviarse al módulo de IA o al generador de informes PDF.
+
+\begin{enumerate}
+    \item \texttt{cargaDataset.py} inicializa la aplicación Dash y registra los callbacks principales.
+    \item El usuario carga un archivo CSV desde la interfaz definida en \texttt{layout.py}.
+    \item El callback de carga recibe el archivo, lo valida y lo almacena temporalmente.
+    \item \texttt{preprocesamiento.py} genera el dataset limpio que utilizarán los modelos.
+    \item El usuario selecciona una técnica de análisis desde la interfaz.
+    \item \texttt{analysis\_callbacks.py} recupera el dataset y llama al módulo correspondiente.
+    \item El módulo estadístico devuelve una estructura con tabla, figura, métricas o interpretación.
+    \item Dash actualiza la página con los resultados generados.
+    \item Si procede, \texttt{ollama\_AI.py} genera una explicación textual mediante el servidor local de IA.
+    \item Si el usuario exporta, \texttt{pdf\_callbacks.py} y \texttt{pdf\_exporter.py} construyen el informe PDF.
+\end{enumerate}
+
+\paragraph*{}Este flujo explica por qué es importante mantener separadas las responsabilidades. Los callbacks actúan como puente, pero no deberían concentrar toda la lógica estadística. Del mismo modo, los modelos no deberían encargarse directamente de construir la interfaz ni de generar el informe completo. Cada parte tiene su papel, y esa separación facilita que el proyecto pueda crecer sin volverse inmanejable.
+
+\section{Criterios para ampliar el código}
+
+\paragraph*{}Si en el futuro se quisiera añadir una nueva técnica de análisis, lo más recomendable sería seguir el patrón ya utilizado en los modelos incorporados. Primero se debería crear un archivo propio para la técnica, con una función principal que reciba el dataset limpio y devuelva resultados reutilizables. Después habría que añadir la vista correspondiente en la interfaz, registrar los callbacks necesarios, incluir traducciones y, si procede, preparar la exportación PDF.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|X|}
+\hline
+\textbf{Paso} & \textbf{Acción recomendada} \\ \hline
+Crear módulo de análisis & Añadir un archivo propio, por ejemplo \texttt{nuevo\_modelo.py}, con funciones centradas en la técnica. \\ \hline
+Validar entradas & Comprobar que existen columnas necesarias, datos suficientes y tipos compatibles antes de ajustar el modelo. \\ \hline
+Devolver resultados reutilizables & Preparar una salida con figura, tabla resumen, métricas e interpretación si corresponde. \\ \hline
+Actualizar interfaz & Añadir la nueva pantalla o sección en \texttt{layout.py}. \\ \hline
+Registrar callbacks & Conectar los botones y controles con la función de análisis desde \texttt{analysis\_callbacks.py}. \\ \hline
+Añadir traducciones & Incluir las nuevas etiquetas y mensajes en \texttt{translations.py}, tanto en castellano como en inglés. \\ \hline
+Actualizar exportación & Si el modelo genera informes, ampliar \texttt{pdf\_callbacks.py} y \texttt{pdf\_exporter.py}. \\ \hline
+Probar casos válidos y erróneos & Verificar que la técnica funciona con datos correctos y que responde bien cuando faltan datos o parámetros. \\ \hline
+\end{tabularx}
+\caption{Pasos recomendados para incorporar una nueva funcionalidad}
+\label{tab:manual_codigo_ampliacion}
+\normalsize
+\end{table}
+
+\paragraph*{}La clave está en no mezclar responsabilidades. Si una nueva funcionalidad empieza a crecer demasiado dentro de un callback, probablemente convenga mover parte de esa lógica a un módulo independiente. Es una pequeña decisión de diseño, pero evita que el código se vuelva difícil de seguir con el tiempo.
+
+\section{Puntos delicados para el mantenimiento}
+
+\paragraph*{}Algunas partes del proyecto requieren especial atención cuando se modifica el código. No son errores necesariamente, pero sí zonas donde un pequeño cambio puede tener efectos en cadena. Por eso conviene revisarlas con más cuidado.
+
+\begin{itemize}
+    \item \textbf{Dataset bruto y dataset limpio:} no deben confundirse. Los modelos deben trabajar con los datos preprocesados.
+    \item \textbf{Identificadores de Dash:} si se cambia el \texttt{id} de un componente en \texttt{layout.py}, también deben actualizarse los callbacks que lo usan.
+    \item \textbf{Traducciones:} cualquier texto nuevo de interfaz debería añadirse en castellano e inglés dentro de \texttt{translations.py}.
+    \item \textbf{Servidor de IA:} las funciones de IA dependen de que \texttt{llama-server} esté activo y escuchando en la URL configurada.
+    \item \textbf{Exportación de gráficas:} las figuras de Plotly deben poder convertirse correctamente para insertarse en PDF mediante \texttt{Kaleido}.
+    \item \textbf{Modelos estadísticos:} antes de ajustar un modelo conviene validar que existen datos suficientes y que las columnas necesarias no contienen valores incompatibles.
+    \item \textbf{Random Survival Forest:} requiere una matriz de características consistente entre entrenamiento, visualización y simulación de perfiles.
+\end{itemize}
+
+\paragraph*{}Tener presentes estos puntos ayuda a evitar errores difíciles de detectar. Muchas veces la aplicación no falla por una gran modificación, sino por un detalle pequeño: un identificador mal escrito, una traducción inexistente, una columna que cambia de nombre o un servidor local que no está iniciado. Por eso, antes de tocar una funcionalidad, conviene localizar qué módulos participan en ella y revisar el flujo completo.

@@ -15,6 +15,24 @@
 \renewcommand*\l@subsubsection{\@dottedtocline{3}{7.0em}{5.2em}}
 \makeatother
 
+\lstnewenvironment{bloquecomando}{
+    \lstset{
+        basicstyle=\ttfamily\small,
+        backgroundcolor=\color{black!5},
+        frame=single,
+        rulecolor=\color{black!25},
+        framerule=0.3pt,
+        framesep=6pt,
+        xleftmargin=0.02\textwidth,
+        xrightmargin=0.02\textwidth,
+        breaklines=true,
+        columns=fullflexible,
+        keepspaces=true,
+        showstringspaces=false,
+        literate={"}{{\char34}}1
+    }
+}{}
+
 \section{Introducción}
 
 \paragraph*{}Este manual recoge, paso a paso, el proceso de instalación, puesta en marcha y uso de la aplicación desarrollada para el análisis de supervivencia aplicado al abandono académico universitario. La idea es que cualquier usuario pueda arrancarla sin perderse entre archivos, comandos o pantallas intermedias.
@@ -41,7 +59,7 @@
 \paragraph*{}Las librerías necesarias se encuentran recogidas en el archivo \texttt{requirements.txt}. Entre las dependencias principales se incluyen:
 
 \begin{itemize}
-    \item \texttt{dash==2.0.0} y \texttt{dash-daq==0.6.0}, utilizadas para construir la interfaz web.
+    \item \texttt{dash==3.1.0} y \texttt{dash-daq==0.6.0}, utilizadas para construir la interfaz web.
     \item \texttt{pandas==2.2.3} y \texttt{numpy==2.2.3}, utilizadas para la carga y transformación de datos.
     \item \texttt{plotly==6.2.0} y \texttt{matplotlib==3.10.1}, utilizadas para la generación de gráficas.
     \item \texttt{lifelines==0.30.0}, utilizada para Kaplan-Meier, Cox, Weibull y Exponencial.
@@ -50,6 +68,8 @@
     \item \texttt{requests==2.32.3}, utilizada para la comunicación con el servidor local de inteligencia artificial.
     \item \texttt{Pillow==11.1.0}, utilizada como soporte para el tratamiento de imágenes.
 \end{itemize}
+
+\paragraph*{}La versión recomendada de Dash para una instalación nueva es \texttt{dash==3.1.0}. Aun así, el arranque de la aplicación se ha preparado de forma compatible con instalaciones que todavía tengan Dash 2, utilizando el método de ejecución disponible en cada caso. Esto no cambia la instalación recomendada, pero da un pequeño margen si el usuario está probando el proyecto en un equipo donde ya existía un entorno virtual anterior.
 
 \paragraph*{}Para utilizar el módulo de inteligencia artificial se requiere, además, disponer de \texttt{llama-server.exe} y de un modelo en formato \texttt{GGUF}. En la configuración actual se utiliza un modelo Qwen2.5 Instruct cuantizado. La verdad es que esta parte puede parecer la más delicada de la instalación, pero solo afecta a las explicaciones automáticas: el resto del dashboard puede usarse sin tener activa la IA.
 
@@ -68,9 +88,9 @@
 
 \paragraph*{}\textbf{Opción 2: clonación del repositorio mediante Git.} La segunda opción consiste en clonar el repositorio mediante Git. Para ello, el usuario debe tener Git instalado y ejecutar desde una terminal el siguiente comando:
 
-\begin{verbatim}
+\begin{bloquecomando}
 git clone https://github.com/alfonsoMunozCuesta/TFG.git
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}Esta alternativa es recomendable si se desea mantener el proyecto vinculado a GitHub, actualizarlo posteriormente o trabajar con control de versiones. Además, resulta especialmente útil si el proyecto va a revisarse o ampliarse más adelante.
 
@@ -80,12 +100,13 @@ git clone https://github.com/alfonsoMunozCuesta/TFG.git
 
 \paragraph*{}Se recomienda instalar las dependencias dentro de un entorno virtual para no mezclar las librerías del proyecto con las del sistema. Es una pequeña precaución, pero ayuda bastante a mantener el entorno limpio. Desde la carpeta raíz del proyecto, se pueden ejecutar los siguientes comandos en PowerShell:
 
-\begin{verbatim}
+\begin{bloquecomando}
+cd TFG
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. La verdad es que esta parte conviene hacerla con un poco de cuidado, porque \texttt{scikit-survival} es una dependencia más sensible que otras librerías habituales. En este proyecto se ha fijado la versión \texttt{0.27.0}, que es la utilizada durante las pruebas con Python 3.13.2.
 
@@ -93,21 +114,21 @@ python -m pip install -r requirements.txt
 
 \paragraph*{}Una vez instaladas las dependencias, la aplicación puede iniciarse desde la carpeta raíz del proyecto mediante:
 
-\begin{verbatim}
-python cargaDataset.py
-\end{verbatim}
+\begin{bloquecomando}
+python .\cargaDataset.py
+\end{bloquecomando}
 
 \paragraph*{}También puede utilizarse el script de arranque preparado para Windows:
 
-\begin{verbatim}
+\begin{bloquecomando}
 .\START_DASH_APP.bat
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}Ambas opciones arrancan el servidor local de Dash. Cuando el proceso se inicia correctamente, la aplicación queda disponible en el navegador a través de la siguiente dirección. Es, por así decirlo, la puerta de entrada al dashboard:
 
-\begin{verbatim}
+\begin{bloquecomando}
 http://127.0.0.1:8050
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}Para detener la aplicación basta con volver a la terminal donde se está ejecutando y pulsar \texttt{Ctrl+C}. Si se utiliza el archivo \texttt{START\_DASH\_APP.bat}, la ventana mostrará también un mensaje final antes de cerrarse.
 
@@ -115,9 +136,9 @@ http://127.0.0.1:8050
 
 \paragraph*{}El módulo de inteligencia artificial se ejecuta de forma independiente al dashboard. Para utilizarlo, debe abrirse una terminal adicional en la carpeta raíz del proyecto y ejecutar:
 
-\begin{verbatim}
+\begin{bloquecomando}
 .\START_LLAMA_SERVER.bat
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}Este script inicia \texttt{llama-server} en la dirección local \texttt{http://127.0.0.1:8000}. La aplicación Dash se comunica con ese servidor cuando el usuario solicita una interpretación automática desde la interfaz o al generar un informe PDF con explicación de IA. Por eso, si se quiere usar esta parte, ambas ventanas deben permanecer abiertas.
 
@@ -389,9 +410,9 @@ http://127.0.0.1:8050
 
 \paragraph*{}Para utilizar la interpretación automática, el servidor local de IA debe estar iniciado antes de solicitar una explicación desde el dashboard. Para ello, se abre una terminal en la carpeta raíz del proyecto y se ejecuta:
 
-\begin{verbatim}
+\begin{bloquecomando}
 .\START_LLAMA_SERVER.bat
-\end{verbatim}
+\end{bloquecomando}
 
 \paragraph*{}Este servidor se ejecuta de forma independiente a la aplicación Dash. Por tanto, si se desea usar la IA, deben mantenerse abiertas dos terminales: una con \texttt{llama-server} y otra con la aplicación Dash iniciada mediante \texttt{python cargaDataset.py} o mediante \texttt{START\_DASH\_APP.bat}. Puede parecer un detalle menor, pero si una de las dos se cierra, la parte de IA dejará de responder.
 
@@ -433,7 +454,7 @@ http://127.0.0.1:8050
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{Imagenes/botonExportar.png}
+    \includegraphics[width=0.55\textwidth]{Imagenes/botonExportar.png}
     \caption{Botón que inicia la exportación desde un módulo de análisis}
     \label{fig:manual_usuario_boton_exportar}
 \end{figure}
@@ -502,9 +523,43 @@ http://127.0.0.1:8050
 
 \paragraph*{}También se recomienda actualizar \texttt{pip} antes de instalar las dependencias y utilizar un entorno virtual limpio. Muchas instalaciones fallidas se solucionan simplemente empezando desde un entorno sin librerías mezcladas.
 
+\paragraph*{}Si el entorno virtual se ha creado sobre una instalación previa o se han actualizado paquetes manualmente, pueden aparecer conflictos entre dependencias. En ese caso, una solución bastante fiable consiste en recrear el entorno desde cero y volver a instalar el archivo \texttt{requirements.txt}:
+
+\begin{bloquecomando}
+Remove-Item -Recurse -Force .venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+\end{bloquecomando}
+
 \subsection{Problemas al arrancar la aplicación}
 
 \paragraph*{}Si la aplicación no arranca, se debe comprobar que la terminal está situada en la carpeta raíz del proyecto y que las dependencias se han instalado correctamente. También debe verificarse que el archivo \texttt{cargaDataset.py} existe en esa carpeta. Es un error frecuente abrir la terminal en una ruta distinta y ejecutar el comando desde ahí.
+
+\paragraph*{}Un error que puede aparecer en algunos equipos está relacionado con la importación de \texttt{get\_current\_traceback} desde \texttt{werkzeug.debug.tbtools}. Este problema no suele venir del código de la aplicación, sino de una instalación antigua de \texttt{Dash} combinada con versiones más recientes de \texttt{Flask} o \texttt{Werkzeug}. Es una de esas incompatibilidades algo frustrantes: el proyecto está bien, pero el entorno mezcla piezas que ya no encajan entre sí. El mensaje suele tener una forma parecida a:
+
+\begin{bloquecomando}
+ImportError: cannot import name 'get_current_traceback'
+from 'werkzeug.debug.tbtools'
+\end{bloquecomando}
+
+\paragraph*{}La solución recomendada es instalar la versión de \texttt{Dash} indicada para este proyecto y volver a ejecutar el programa:
+
+\begin{bloquecomando}
+python -m pip install "dash==3.1.0"
+python .\cargaDataset.py
+\end{bloquecomando}
+
+\paragraph*{}El código de arranque contempla tanto instalaciones actuales de Dash como entornos antiguos donde todavía exista Dash 2. En concreto, si la versión instalada dispone de \texttt{app.run}, se utiliza ese método; si no, se recurre a \texttt{app.run\_server}. La verdad es que esto ayuda bastante cuando el proyecto se prueba en varios equipos, porque evita que una diferencia menor de versión impida abrir el dashboard.
+
+\paragraph*{}Si el problema persiste porque el entorno virtual arrastra librerías de una instalación anterior, lo más limpio es reinstalar las dependencias desde el archivo \texttt{requirements.txt}. Así se evita ir corrigiendo paquetes uno a uno:
+
+\begin{bloquecomando}
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python .\cargaDataset.py
+\end{bloquecomando}
 
 \paragraph*{}Si el puerto \texttt{8050} estuviera ocupado por otro proceso, puede ser necesario cerrar la ejecución anterior de la aplicación o reiniciar la terminal.
 
@@ -513,6 +568,8 @@ http://127.0.0.1:8050
 \paragraph*{}Si no se genera una interpretación automática, lo más habitual es que el servidor local de IA no esté iniciado. En ese caso, debe ejecutarse \texttt{START\_LLAMA\_SERVER.bat} y comprobar que \texttt{llama-server} queda escuchando en \texttt{http://127.0.0.1:8000}. Mientras ese servidor no esté activo, el dashboard seguirá funcionando, pero no tendrá a quién pedirle la explicación.
 
 \paragraph*{}También debe comprobarse que existen el modelo GGUF y el ejecutable \texttt{llama-server.exe} en las rutas configuradas. Si el usuario utiliza rutas propias, debe ajustar las variables \texttt{MODEL\_PATH} y \texttt{LLAMA\_SERVER}.
+
+\paragraph*{}Si el ejecutable \texttt{llama-server.exe} existe pero no llega a arrancar, conviene revisar algunos factores del equipo. En ciertos casos, Windows o el antivirus pueden bloquear la ejecución de archivos descargados desde Internet; también puede ocurrir que el puerto \texttt{8000} ya esté ocupado por otro proceso, que el proyecto se encuentre en una carpeta sincronizada como OneDrive o que el ordenador no disponga de recursos suficientes para cargar el modelo local. En estas situaciones, lo más recomendable es cerrar procesos anteriores, mover el proyecto a una ruta sencilla como \texttt{C:\textbackslash TFG}, permitir la ejecución del archivo si Windows lo bloquea y volver a iniciar \texttt{START\_LLAMA\_SERVER.bat}.
 
 \subsection{Problemas al generar informes PDF}
 

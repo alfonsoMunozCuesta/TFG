@@ -1,4 +1,4 @@
-dash==2.0.0
+dash==3.1.0
 dash-daq==0.6.0
 pandas==2.2.3
 numpy==2.2.3
