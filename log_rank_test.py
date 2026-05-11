@@ -142,7 +142,7 @@ def _perform_log_rank_quintiles(df, group_by, col, alpha: float = 0.05):
         value_to_group = {val: i for i, val in enumerate(unique_vals)}
         df_temp['quintil'] = df_temp[col].map(value_to_group)
         actual_bins = len(df_temp['quintil'].unique())
-        print(f"[LOGRANK QUINTILES] ✓ Creados {actual_bins} grupos por valores únicos")
+        print(f"[LOGRANK QUINTILES] Creados {actual_bins} grupos por valores únicos")
     else:
         print(f"[LOGRANK QUINTILES] Usando estrategia: Percentiles (qcut)")
         # Intentar crear quintiles, reduciendo si es necesario
@@ -150,7 +150,7 @@ def _perform_log_rank_quintiles(df, group_by, col, alpha: float = 0.05):
             try:
                 df_temp['quintil'] = pd.qcut(df_temp[col], q=n_bins, labels=False, duplicates='drop')
                 actual_bins = len(df_temp['quintil'].unique())
-                print(f"[LOGRANK QUINTILES] ✓ Creados {actual_bins} grupos (solicitados {n_bins})")
+                print(f"[LOGRANK QUINTILES] Creados {actual_bins} grupos (solicitados {n_bins})")
                 break
             except Exception as e:
                 if n_bins == 2:
@@ -206,7 +206,7 @@ def _perform_log_rank_quintiles(df, group_by, col, alpha: float = 0.05):
                         'Decisión': decision,
                         'Conclusión': interpretacion,
                     })
-                    print(f"[LOGRANK QUINTILES] ✓ Test completado para Quintil {q_a+1} vs Quintil {q_b+1}")
+                    print(f"[LOGRANK QUINTILES] Test completado para Quintil {q_a+1} vs Quintil {q_b+1}")
                 except Exception as e:
                     print(f"[LOGRANK QUINTILES] ERROR en test para Quintil {q_a+1} vs Quintil {q_b+1}: {str(e)}")
     
@@ -416,11 +416,11 @@ def create_logrank_figure(df, group_by):
             yaxis=dict(range=[0, 1])
         )
         
-        print(f"[LOGRANK FIGURE] ✓ Gráfica creada para {group_by}")
+        print(f"[LOGRANK FIGURE] Gráfica creada para {group_by}")
         return fig
         
     except Exception as e:
-        print(f"[LOGRANK FIGURE] ✗ Error creando gráfica: {e}")
+        print(f"[LOGRANK FIGURE] Error creando gráfica: {e}")
         import traceback
         traceback.print_exc()
         return None

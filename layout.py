@@ -14,6 +14,7 @@ _LAYOUT_DF = None
 
 # Función para mapear age_band desde one-hot encoding
 def map_age_band(row):
+    """Agrupa las columnas one-hot de edad en una etiqueta legible."""
     if row.get('age_band_0-35', 0) == 1:
         return '0-35 años'
     elif row.get('age_band_35-55', 0) == 1:
@@ -24,6 +25,7 @@ def map_age_band(row):
 
 # Función para mapear highest_education desde one-hot encoding
 def map_highest_education(row):
+    """Agrupa las columnas one-hot de educacion en una etiqueta legible."""
     education_map = {
         'highest_education_A Level or Equivalent': 'A Level o Equivalente',
         'highest_education_HE Qualification': 'Calificación HE',
@@ -127,11 +129,11 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                 children=[
                     html.Div([
                         html.H2(
-                            "📄 Informe combinado: Weibull + Exponencial" if language == 'es' else "📄 Combined report: Weibull + Exponential",
+                            "Informe combinado: Weibull + Exponencial" if language == 'es' else "Combined report: Weibull + Exponential",
                             style={'margin': 0, 'color': '#2c3e50'}
                         ),
                         html.Button(
-                            "✕",
+                            "X",
                             id=f"{modal_id}-close-btn",
                             style={
                                 'position': 'absolute',
@@ -148,7 +150,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
 
                     html.Div([
                         html.Label(
-                            "📁 Nombre del informe" if language == 'es' else "📁 Report name",
+                            "Nombre del informe" if language == 'es' else "Report name",
                             style={'fontWeight': 'bold', 'color': '#34495e'}
                         ),
                         dcc.Input(
@@ -171,7 +173,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                     ], style={'marginBottom': '18px'}),
 
                     html.Div([
-                        html.H4("🧪 Técnicas" if language == 'es' else "🧪 Techniques", style={'color': '#34495e', 'marginTop': 0}),
+                        html.H4("Técnicas" if language == 'es' else "Techniques", style={'color': '#34495e', 'marginTop': 0}),
                         dcc.Checklist(
                             id=f"{modal_id}-techniques",
                             options=[
@@ -185,7 +187,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                     ], style={'marginBottom': '14px', 'padding': '15px', 'backgroundColor': '#f8fbff', 'borderRadius': '8px'}),
 
                     html.Div([
-                        html.H4("📋 Contenido" if language == 'es' else "📋 Content", style={'color': '#34495e', 'marginTop': 0}),
+                        html.H4("Contenido" if language == 'es' else "Content", style={'color': '#34495e', 'marginTop': 0}),
                         dcc.Checklist(
                             id=f"{modal_id}-content",
                             options=[
@@ -339,9 +341,9 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
             children=[
                 # Header
                 html.Div([
-                    html.H2(f"📄 {get_translation(language, 'pdf_modal_title')}", style={'margin': 0, 'color': '#2c3e50'}),
+                    html.H2(f"{get_translation(language, 'pdf_modal_title')}", style={'margin': 0, 'color': '#2c3e50'}),
                     html.Button(
-                        "✕",
+                        "X",
                         id=f"{modal_id}-close-btn",
                         style={
                             'position': 'absolute',
@@ -366,7 +368,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                     
                     # Sección: Contenido
                     html.Div([
-                        html.H4(f"📋 {get_translation(language, 'pdf_modal_content')}", style={'color': '#34495e', 'marginTop': 0}),
+                        html.H4(f"{get_translation(language, 'pdf_modal_content')}", style={'color': '#34495e', 'marginTop': 0}),
                         
                         dcc.Checklist(
                             id=f"{modal_id}-checklist-content",
@@ -379,7 +381,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                     
                     # Nombre del archivo
                     html.Div([
-                        html.Label(f"📁 {get_translation(language, 'pdf_modal_filename_label')}", style={'fontWeight': 'bold', 'color': '#34495e'}),
+                        html.Label(f"{get_translation(language, 'pdf_modal_filename_label')}", style={'fontWeight': 'bold', 'color': '#34495e'}),
                         dcc.Input(
                             id=f"{modal_id}-filename",
                             type="text",
@@ -461,6 +463,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
 
 # Funciones para crear páginas dinámicamente con soporte multilingüe
 def create_survival_analysis_page(language='es'):
+    """Construye la pagina principal de analisis de supervivencia."""
     techniques = [
         {
             'image': '/assets/weibull.png?v=2',
@@ -517,6 +520,7 @@ def create_survival_analysis_page(language='es'):
 
 
 def create_techniques_comparison_page(language='es'):
+    """Construye la pagina que compara las tecnicas disponibles."""
     is_en = language == 'en'
 
     comparison_rows = [
@@ -821,6 +825,7 @@ def create_techniques_comparison_page(language='es'):
     ])
 
 def create_weibull_analysis_page(language='es'):
+    """Construye la vista dedicada al modelo Weibull."""
     return html.Div([
         html.H1(
             get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'weibull_analysis')),
@@ -859,12 +864,12 @@ def create_weibull_analysis_page(language='es'):
                        title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-weibull-btn',
+            html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-weibull-btn',
                        title=("Necesitas resultados Weibull válidos para exportar" if language == 'es' else "You need valid Weibull results before exporting"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
             html.Button(
-                "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
+                "Exportar informe combinado" if language == 'es' else "Export combined report",
                 id='export-weibexp-btn',
                 title=("Requiere análisis Weibull y Exponencial calculados" if language == 'es' else "Requires computed Weibull and Exponential analyses"),
                 style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
@@ -896,6 +901,7 @@ def create_weibull_analysis_page(language='es'):
     ])
 
 def create_exponential_analysis_page(language='es'):
+    """Construye la vista dedicada al modelo exponencial."""
     return html.Div([
         html.H1(
             get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'exponential_analysis')),
@@ -934,12 +940,12 @@ def create_exponential_analysis_page(language='es'):
                                          title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                      style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                          'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-exponential-btn',
+            html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-exponential-btn',
                                          title=("Necesitas resultados Exponencial válidos para exportar" if language == 'es' else "You need valid Exponential results before exporting"),
                      style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                                                  'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
                         html.Button(
-                                "📄 Exportar informe combinado" if language == 'es' else "📄 Export combined report",
+                                "Exportar informe combinado" if language == 'es' else "Export combined report",
                                 id='export-weibexp-btn',
                                                                 title=("Requiere análisis Weibull y Exponencial calculados" if language == 'es' else "Requires computed Weibull and Exponential analyses"),
                                 style={'padding': '10px 20px', 'backgroundColor': '#2980b9', 'color': 'white', 'border': 'none',
@@ -972,6 +978,7 @@ def create_exponential_analysis_page(language='es'):
 
 
 def create_rsf_analysis_page(language='es'):
+    """Construye la vista dedicada al Random Survival Forest."""
     if language == 'es':
         profile_card_title = 'Simular perfil individual'
         profile_card_note = 'Selecciona un perfil concreto para obtener su curva de supervivencia estimada por RSF.'
@@ -1111,7 +1118,7 @@ def create_rsf_analysis_page(language='es'):
                                                      title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
                            style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                                  'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
-                html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
+                html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-rsf-btn',
                                                  title=("Necesitas ejecutar RSF y obtener resultados antes de exportar" if language == 'es' else "Run RSF and get results before exporting"),
                          style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
@@ -1152,6 +1159,7 @@ def create_rsf_analysis_page(language='es'):
     ])
 
 def create_ver_dataset_page(language='es'):
+    """Construye la pagina de inspeccion del dataset limpio."""
     layout_df = _get_layout_df()
 
     variable_info_catalog = [
@@ -1309,11 +1317,12 @@ def create_ver_dataset_page(language='es'):
 # Se pueden usar en los labelStyle de RadioItems
 
 def create_covariate_analysis_page(language='es'):
+    """Construye la pagina de seleccion y analisis de covariables."""
     return html.Div([
         # Header
         html.Div([
             html.H1(
-                '📊 ' + get_translation(language, 'analisis_covariables_title'),
+                get_translation(language, 'analisis_covariables_title'),
                 style={
                     'textAlign': 'center',
                     'fontSize': '2.5em',
@@ -1342,12 +1351,12 @@ def create_covariate_analysis_page(language='es'):
                 ),
                 dcc.RadioItems(
                     options=[
-                        {'label': f"📈 {get_translation(language, 'abandono_total')}", 'value': 'abandono'},
-                        {'label': f"👥 {get_translation(language, 'abandono_genero')}", 'value': 'gender'},
-                        {'label': f"♿ {get_translation(language, 'abandono_discapacidad')}", 'value': 'disability'},
-                        {'label': f"🎂 {get_translation(language, 'abandono_age_band')}", 'value': 'age_band'},
-                        {'label': f"🎓 {get_translation(language, 'abandono_highest_education')}", 'value': 'highest_education'},
-                        {'label': f"📚 {get_translation(language, 'abandono_studied_credits')}", 'value': 'studied_credits'}
+                        {'label': f"{get_translation(language, 'abandono_total')}", 'value': 'abandono'},
+                        {'label': f"{get_translation(language, 'abandono_genero')}", 'value': 'gender'},
+                        {'label': f"{get_translation(language, 'abandono_discapacidad')}", 'value': 'disability'},
+                        {'label': f"{get_translation(language, 'abandono_age_band')}", 'value': 'age_band'},
+                        {'label': f"{get_translation(language, 'abandono_highest_education')}", 'value': 'highest_education'},
+                        {'label': f"{get_translation(language, 'abandono_studied_credits')}", 'value': 'studied_credits'}
                     ],
                     value='abandono',
                     id='covariables-dropdown',
@@ -1398,7 +1407,7 @@ def create_covariate_analysis_page(language='es'):
                 
                 # Panel de explicación
                 html.Div([
-                    html.H3(f"💡 {get_translation(language, 'interpretacion')}", style={'color': '#1abc9c', 'marginTop': '0', 'fontWeight': 'bold'}),
+                    html.H3(f"{get_translation(language, 'interpretacion')}", style={'color': '#1abc9c', 'marginTop': '0', 'fontWeight': 'bold'}),
                     html.Div(
                         id='graph-explanation',
                         className='explanation-panel',
@@ -1419,6 +1428,7 @@ def create_covariate_analysis_page(language='es'):
 
 # Función para crear página de regresión de Cox con soporte multilingüe
 def create_cox_regression_page(language='es'):
+    """Construye la vista de regresion de Cox."""
     return html.Div([
         html.H1(get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'cox_regression')), style={'textAlign': 'center','fontSize': '35px'}),
     
@@ -1446,7 +1456,7 @@ def create_cox_regression_page(language='es'):
                      title=("Selecciona covariables y ejecuta Cox antes de explicar" if language == 'es' else "Select covariates and run Cox before generating an explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-cox-btn', 
+            html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-cox-btn',
                      title=("Requiere resultados Cox vigentes (si cambias dataset, recalcula)" if language == 'es' else "Requires up-to-date Cox results (recalculate after dataset changes)"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
@@ -1482,6 +1492,7 @@ def create_cox_regression_page(language='es'):
 
 # Función para crear página de Kaplan-Meier con soporte multilingüe
 def create_kaplan_meier_page(language='es'):
+    """Construye la vista de Kaplan-Meier."""
     layout_df = _get_layout_df()
     km_global_component = (
         plot_kaplan_meier(layout_df)
@@ -1498,7 +1509,7 @@ def create_kaplan_meier_page(language='es'):
         
         # ===== GRÁFICA GLOBAL =====
         html.Div([
-            html.H3(f"📊 {'Curva de Kaplan-Meier General' if language == 'es' else 'General Kaplan-Meier curve'}", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold'}),
+            html.H3(f"{'Curva de Kaplan-Meier General' if language == 'es' else 'General Kaplan-Meier curve'}", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold'}),
             html.Div(id='km-global-div', children=km_global_component,
                     style={'padding': '20px', 'backgroundColor': '#f8f9fa', 'borderRadius': '10px'})
         ], style={'marginBottom': '40px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.1)', 'padding': '20px', 'borderRadius': '10px'}),
@@ -1508,22 +1519,22 @@ def create_kaplan_meier_page(language='es'):
             html.Label(get_translation(language, 'selecciona_covariable_kaplan'), 
                       style={'fontWeight':'bold', 'fontSize': '1.1em', 'marginBottom': '15px', 'display': 'block', 'color': '#1a1a1a'}),
             html.Div([
-                html.Button('👥 ' + get_translation(language, 'genero'), id='botonG', 
+                html.Button(get_translation(language, 'genero'), id='botonG',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#f0f0f0', 'border': '2px solid #ddd', 'fontSize': '14px', 'fontWeight': '500', 'color': '#1a1a1a'}),
-                html.Button('♿ ' + get_translation(language, 'discapacidad'), id='botonDisc', 
+                html.Button(get_translation(language, 'discapacidad'), id='botonDisc',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#f0f0f0', 'border': '2px solid #ddd', 'fontSize': '14px', 'fontWeight': '500', 'color': '#1a1a1a'}),
-                html.Button('🎂 ' + get_translation(language, 'edad_banda'), id='botonAge', 
+                html.Button(get_translation(language, 'edad_banda'), id='botonAge',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#f0f0f0', 'border': '2px solid #ddd', 'fontSize': '14px', 'fontWeight': '500', 'color': '#1a1a1a'}),
-                html.Button('🎓 ' + get_translation(language, 'educacion_mas_alta'), id='botonEdu', 
+                html.Button(get_translation(language, 'educacion_mas_alta'), id='botonEdu',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#f0f0f0', 'border': '2px solid #ddd', 'fontSize': '14px', 'fontWeight': '500', 'color': '#1a1a1a'}),
-                html.Button('📚 ' + get_translation(language, 'creditos_estudiados'), id='botonCredits', 
+                html.Button(get_translation(language, 'creditos_estudiados'), id='botonCredits',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#f0f0f0', 'border': '2px solid #ddd', 'fontSize': '14px', 'fontWeight': '500', 'color': '#1a1a1a'}),
-                html.Button('❌ ' + get_translation(language, 'ninguna'), id='botonNone', 
+                html.Button(get_translation(language, 'ninguna'), id='botonNone',
                            style={'borderRadius': '8px', 'padding': '10px 20px', 'margin': '8px', 'cursor': 'pointer',
                                   'backgroundColor': '#d4edda', 'border': '2px solid #28a745', 'fontSize': '14px', 'fontWeight': '500', 'color': '#0d3d1a'}),
             ], style={'textAlign': 'center', 'display': 'flex', 'flexWrap': 'wrap', 'justifyContent': 'center'}),
@@ -1540,7 +1551,7 @@ def create_kaplan_meier_page(language='es'):
                      title=("Selecciona una covariable para generar una explicación estratificada" if language == 'es' else "Select a covariate to generate a stratified explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-km-btn', 
+            html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-km-btn',
                      title=("Para incluir gráfica por grupo, selecciona primero una covariable" if language == 'es' else "To include grouped plot, select a covariate first"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
@@ -1579,6 +1590,7 @@ def create_kaplan_meier_page(language='es'):
 
 #Función para crear página de análisis de log-rank con soporte multilingüe
 def create_log_rank_page(language='es'):
+    """Construye la vista del Test Log-Rank."""
     return html.Div([
         html.H1(get_translation(language, 'survival_analysis_prefix').format(name=get_translation(language, 'log_rank_test')), style={'textAlign': 'center', 'fontSize': '35px'}),
         
@@ -1608,7 +1620,7 @@ def create_log_rank_page(language='es'):
                      title=("Selecciona covariables y ejecuta Log-Rank antes de explicar" if language == 'es' else "Select covariates and run Log-Rank before generating an explanation"),
                        style={'padding': '10px 20px', 'backgroundColor': '#1abc9c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginRight': '10px'}),
-            html.Button(f"📄 {'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-logrank-btn', 
+            html.Button(f"{'Exportar a PDF' if language == 'es' else 'Export to PDF'}", id='export-logrank-btn',
                      title=("Requiere resultados Log-Rank vigentes (si cambias dataset, recalcula)" if language == 'es' else "Requires up-to-date Log-Rank results (recalculate after dataset changes)"),
                        style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
@@ -1643,6 +1655,7 @@ def create_log_rank_page(language='es'):
     ])
 
 def display_logrank_summary_table(result):
+    """Transforma los resultados del Log-Rank en una tabla Dash legible."""
     df_show = result[['Covariable','Grupo A','Grupo B',
                       'n A','n B','test_statistic','p_value','-log2(p)',
                       'Decisión','Conclusión']].copy()

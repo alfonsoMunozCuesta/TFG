@@ -408,7 +408,7 @@ def get_translation(lang, key):
     """
     Obtiene una traducción basada en el idioma y la clave.
     
-    ✅ ERROR #5: Manejo seguro de traducciones faltantes
+     ERROR #5: Manejo seguro de traducciones faltantes
     - Valida que el idioma exista
     - Retorna clave como fallback si traducción no existe
     - Loguea advertencias para debugging

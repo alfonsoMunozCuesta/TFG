@@ -233,6 +233,7 @@ def _build_logrank_interpretation_context(logrank_store_data):
 
 # Página de HOME - como función para usar traducciones dinámicamente
 def create_home_page(language='es'):
+    """Construye la pagina inicial con video, carga de CSV y boton de preprocesado."""
     return html.Div([
         html.Div([ 
             html.Video(
@@ -288,6 +289,7 @@ home_page = create_home_page('es')
 #ocultar frase incial: "Cargar Dataset..."
 
 def register_analysis_callbacks(app):
+    """Registra todos los callbacks de Dash que conectan la interfaz con los analisis."""
     @app.callback(
         Output('upload-text', 'style'),  # Cambiar el estilo del texto
         [Input('upload-data', 'contents')],
@@ -295,12 +297,14 @@ def register_analysis_callbacks(app):
     )
     def hide_upload_text(contents):
         # Si se ha cargado un archivo, ocultamos el texto
+        """Oculta el texto inicial de carga cuando el usuario ya ha subido un archivo."""
         if contents is not None:
             return {'display': 'none'}  # Ocultar el texto
         return {'display': 'block'} 
     
     # Función para procesar el archivo cargado y mostrarlo en una tabla
     def display_data(df, title):
+        """Monta una tabla Dash para previsualizar el dataframe cargado."""
         return html.Div([
             html.H5(title),
             html.Div([
@@ -367,6 +371,7 @@ def register_analysis_callbacks(app):
     
     def verificar_archivo_correcto(contents, filename):
         # Compara el nombre del archivo cargado con el archivo esperado
+        """Comprueba que el archivo subido coincide con el nombre esperado por la aplicacion."""
         archivo_esperado = "temp_data.csv"
         
         # Verificar si el nombre del archivo cargado es el esperado
@@ -476,6 +481,7 @@ def register_analysis_callbacks(app):
     )
     
     def update_output(contents, filename, n_clicks, language, current_df_json):
+        """Gestiona la carga/preprocesado del CSV y actualiza los stores usados por el dashboard."""
         try:
             if language not in ['es', 'en']:
                 language = 'es'
@@ -643,6 +649,7 @@ def register_analysis_callbacks(app):
         [Input('df-store', 'data')]
     )
     def toggle_navbar(df_json):
+        """Muestra la navegacion solo cuando ya existe un dataset disponible."""
         if df_json is not None:
             return {'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'background-color': '#f4f7f6', 'padding': '10px', 'z-index': '1000'}
         return {'display': 'none'}  # Si no se ha presionado el botón, la barra de navegación permanece oculta
@@ -659,6 +666,7 @@ def register_analysis_callbacks(app):
         prevent_initial_call=True
     )
     def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, credits_clicks, none_clicks, df_json, language):
+        """Determina que covariable Kaplan-Meier se selecciono y devuelve su grafica."""
         try:
             ctx = callback_context
             if not ctx.triggered:
@@ -680,35 +688,35 @@ def register_analysis_callbacks(app):
                 from kaplan_meier import plot_km_by_covariate_with_figure
                 graph_component, _ = plot_km_by_covariate_with_figure(df, 'gender_F')
                 return html.Div([
-                    html.H3("👥 Kaplan-Meier Curve by Gender" if language == 'en' else "👥 Curva de Kaplan-Meier por Género", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                    html.H3("Kaplan-Meier Curve by Gender"if language == 'en'else "Curva de Kaplan-Meier por Género", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'gender_F'
             elif button_id == 'botonDisc':
                 from kaplan_meier import plot_km_by_covariate_with_figure
                 graph_component, _ = plot_km_by_covariate_with_figure(df, 'disability_N')
                 return html.Div([
-                    html.H3("♿ Kaplan-Meier Curve by Disability" if language == 'en' else "♿ Curva de Kaplan-Meier por Discapacidad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                    html.H3("Kaplan-Meier Curve by Disability"if language == 'en'else "Curva de Kaplan-Meier por Discapacidad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'disability_N'
             elif button_id == 'botonAge':
                 from kaplan_meier import plot_km_by_covariate_with_figure
                 graph_component, _ = plot_km_by_covariate_with_figure(df, 'age_band')
                 return html.Div([
-                    html.H3("🎂 Kaplan-Meier Curve by Age Band" if language == 'en' else "🎂 Curva de Kaplan-Meier por Banda de Edad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                    html.H3("Kaplan-Meier Curve by Age Band"if language == 'en'else "Curva de Kaplan-Meier por Banda de Edad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'age_band'
             elif button_id == 'botonEdu':
                 from kaplan_meier import plot_km_by_covariate_with_figure
                 graph_component, _ = plot_km_by_covariate_with_figure(df, 'highest_education')
                 return html.Div([
-                    html.H3("🎓 Kaplan-Meier Curve by Highest Education" if language == 'en' else "🎓 Curva de Kaplan-Meier por Educación Más Alta", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                    html.H3("Kaplan-Meier Curve by Highest Education"if language == 'en'else "Curva de Kaplan-Meier por Educación Más Alta", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'highest_education'
             elif button_id == 'botonCredits':
                 from kaplan_meier import plot_km_by_covariate_with_figure
                 graph_component, _ = plot_km_by_covariate_with_figure(df, 'studied_credits')
                 return html.Div([
-                    html.H3("📚 Kaplan-Meier Curve by Studied Credits" if language == 'en' else "📚 Curva de Kaplan-Meier por Créditos Estudiados", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
+                    html.H3("Kaplan-Meier Curve by Studied Credits"if language == 'en'else "Curva de Kaplan-Meier por Créditos Estudiados", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'studied_credits'
             elif button_id == 'botonNone':
@@ -718,7 +726,7 @@ def register_analysis_callbacks(app):
             return None, ''
         
         except Exception as e:
-            # ✅ Manejo de errores en Kaplan-Meier
+            # Manejo de errores en Kaplan-Meier
             import traceback
             error_div = html.Div([
                 html.H3("❌ Error en Kaplan-Meier", style={'color': '#d32f2f', 'fontWeight': 'bold'}),
@@ -787,7 +795,8 @@ def register_analysis_callbacks(app):
         prevent_initial_call=False
     )
     def update_graph(col_chosen, language, df_json):
-        # ✅ VALIDACIÓN 1: Leer el dataset desde el store
+        # VALIDACIÓN 1: Leer el dataset desde el store
+        """Actualiza la visualizacion Kaplan-Meier segun la covariable elegida."""
         df_data = None
         if df_json:
             try:
@@ -795,7 +804,7 @@ def register_analysis_callbacks(app):
             except:
                 df_data = None
         
-        # ✅ VALIDACIÓN 2: Verificar que el dataset está cargado y no está vacío
+        # VALIDACIÓN 2: Verificar que el dataset está cargado y no está vacío
         if df_data is None or df_data.empty:
             error_fig = go.Figure()
             error_fig.add_annotation(
@@ -809,11 +818,12 @@ def register_analysis_callbacks(app):
                 html.P(get_translation(language, 'covariate_error_data_body'))
             ])
         
-        # ✅ VALIDACIÓN 2: Verificar que language es válido
+        # VALIDACIÓN 2: Verificar que language es válido
         if language not in ['es', 'en']:
             language = 'es'
     
         def _pick_existing(df_local, candidates):
+            """Devuelve la primera columna candidata que existe en el dataframe."""
             for col in candidates:
                 if col in df_local.columns:
                     return col
@@ -961,7 +971,7 @@ def register_analysis_callbacks(app):
                     raise KeyError('studied_credits')
                 df_credits = df_data[['studied_credits', 'final_result']].copy()
                 
-                # ✅ ERROR #6: Validación de quintiles - verificar que hay datos suficientes
+                # ERROR #6: Validación de quintiles - verificar que hay datos suficientes
                 unique_values = df_credits['studied_credits'].nunique()
                 if unique_values < 5:
                     # Si hay menos de 5 valores únicos, usar menos grupos
@@ -995,7 +1005,7 @@ def register_analysis_callbacks(app):
                 return go.Figure(), ""
         
         except KeyError as ke:
-            # ✅ ERROR 2: Si falta una columna esperada
+            # ERROR 2: Si falta una columna esperada
             error_fig = go.Figure()
             error_fig.add_annotation(
                 text=f"{get_translation(language, 'covariate_error_missing_prefix')} '{str(ke)}'",
@@ -1009,7 +1019,7 @@ def register_analysis_callbacks(app):
             ])
         
         except Exception as e:
-            # ✅ ERROR 2: Cualquier otro error
+            # ERROR 2: Cualquier otro error
             error_fig = go.Figure()
             error_fig.add_annotation(text=f"❌ Error: {str(e)[:40]}...", showarrow=False, font=dict(size=12, color='red'))
             error_fig.update_layout(title=get_translation(language, 'covariate_error_generic_title'), template="plotly_white")
@@ -1023,6 +1033,7 @@ def register_analysis_callbacks(app):
         Input('covariables-dropdown-cox', 'value')
     )
     def update_cox_store(covariables):
+        """Guarda la seleccion actual de covariables para la regresion de Cox."""
         return covariables if covariables else []
     
     @app.callback(
@@ -1034,6 +1045,7 @@ def register_analysis_callbacks(app):
          Input('dataset-signature-store', 'data')]
     )
     def update_cox_model(covariables, language, df_json, dataset_signature):
+        """Ejecuta la regresion de Cox con las covariables seleccionadas y prepara sus resultados."""
         if covariables is None or len(covariables) == 0:
             return None, ''
         
@@ -1153,10 +1165,12 @@ def register_analysis_callbacks(app):
         [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
     )
     def render_weibull_output(language, df_json, pathname):
+        """Calcula y renderiza el analisis Weibull cuando hay datos cargados."""
         if pathname != '/survival-analysis/weibull':
             raise PreventUpdate
     
         def _no_data_message():
+            """Construye el mensaje mostrado cuando Weibull no tiene datos suficientes."""
             return html.Div(
                 get_translation(language, 'weibull_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
@@ -1255,10 +1269,12 @@ def register_analysis_callbacks(app):
         [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
     )
     def render_exponential_output(language, df_json, pathname):
+        """Calcula y renderiza el analisis exponencial cuando hay datos cargados."""
         if pathname != '/survival-analysis/exponential':
             raise PreventUpdate
     
         def _no_data_message():
+            """Construye el mensaje mostrado cuando Exponencial no tiene datos suficientes."""
             return html.Div(
                 get_translation(language, 'exponential_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
@@ -1359,10 +1375,12 @@ def register_analysis_callbacks(app):
         [Input('language-store', 'data'), Input('df-store', 'data'), Input('url', 'pathname')]
     )
     def render_rsf_output(language, df_json, pathname):
+        """Calcula y renderiza el modelo Random Survival Forest en el panel correspondiente."""
         if pathname != '/survival-analysis/rsf':
             raise PreventUpdate
     
         def _no_data_message():
+            """Construye el mensaje mostrado cuando RSF no tiene datos suficientes."""
             return html.Div(
                 get_translation(language, 'rsf_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
@@ -1457,6 +1475,7 @@ def register_analysis_callbacks(app):
         prevent_initial_call=False
     )
     def simulate_rsf_profile(n_clicks, df_json, gender, disability, age_band, education, credits_level, language):
+        """Simula la supervivencia de un perfil concreto usando el modelo RSF."""
         if not df_json:
             return html.Div(
                 get_translation(language, 'rsf_no_data'),
@@ -1555,6 +1574,7 @@ def register_analysis_callbacks(app):
         prevent_initial_call=True
     )
     def explicar_rsf(n_clicks, rsf_store_data, language):
+        """Genera una interpretacion textual del resultado Random Survival Forest."""
         if n_clicks is None or n_clicks <= 0:
             return get_translation(language, 'respuesta')
     
@@ -1628,6 +1648,7 @@ def register_analysis_callbacks(app):
         prevent_initial_call=True
     )
     def explicar_weibull(n_clicks, df_json, language):
+        """Genera una interpretacion textual del ajuste Weibull actual."""
         if n_clicks is None or n_clicks <= 0:
             return "", "", ""
     
@@ -1643,6 +1664,7 @@ def register_analysis_callbacks(app):
                 return no_data_msg, "", ""
     
             def _fallback_weibull_explanation():
+                """Crea una explicacion local de Weibull si la IA no devuelve respuesta."""
                 shape = analysis['shape']
                 scale = analysis['scale']
                 median = analysis['median_survival']
@@ -1692,6 +1714,7 @@ def register_analysis_callbacks(app):
         prevent_initial_call=True
     )
     def explicar_exponential(n_clicks, df_json, language):
+        """Genera una interpretacion textual del modelo exponencial actual."""
         if n_clicks is None or n_clicks <= 0:
             return "", "", ""
     
@@ -1802,6 +1825,7 @@ def register_analysis_callbacks(app):
         Input('covariables-dropdown-logrank', 'value')
     )
     def update_logrank_store(covariables):
+        """Guarda las covariables seleccionadas para el Test Log-Rank."""
         return covariables if covariables else []
     
     @app.callback(
@@ -1815,6 +1839,7 @@ def register_analysis_callbacks(app):
     
     def update_logrank_test(covariables, language, df_json, dataset_signature):
         # Verificar que al menos se haya seleccionado una covariable
+        """Ejecuta el Test Log-Rank para cada covariable y guarda tablas y graficas."""
         if not covariables:
             return None, ''
         
@@ -1935,6 +1960,7 @@ def register_analysis_callbacks(app):
          Input('language-store', 'data')]
     )
     def sync_logrank_output(data, language):
+        """Reconstruye la salida visual del Log-Rank a partir de los datos guardados."""
         if not data or not isinstance(data, dict):
             return data
     

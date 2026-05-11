@@ -16,6 +16,7 @@ df_limpio = None
 
 
 def load_temp_data():
+    """Carga el dataset temporal original desde disco."""
     global df
     if df is None:
         df = pd.read_csv(TEMP_DATA_PATH, sep=";")
@@ -23,6 +24,7 @@ def load_temp_data():
 
 
 def load_clean_data():
+    """Carga el dataset limpio que alimenta los analisis."""
     global df_limpio
     if df_limpio is None:
         df_limpio = pd.read_csv(CLEAN_DATA_PATH, sep=";")

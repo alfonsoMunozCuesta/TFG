@@ -28,31 +28,31 @@
 \hline
 \textbf{Id} & \textbf{Nombre} & \textbf{Descripción} \\ \hline
 
-CU-1 & \raggedright Ejecutar modelo exponencial & 
+CU-1 & \raggedright EjecutarModeloExponencial & 
 Permite al usuario aplicar el modelo exponencial como técnica de análisis de supervivencia para estudiar el tiempo hasta el evento. \\ \hline
 
-CU-2 & \raggedright Ejecutar modelo Weibull & 
+CU-2 & \raggedright EjecutarModeloWeibull & 
 Permite al usuario aplicar el modelo de Weibull para analizar el comportamiento del riesgo en función del tiempo mediante un enfoque paramétrico. \\ \hline
 
-CU-3 & \raggedright Ejecutar Random Survival Forest & 
+CU-3 & \raggedright EjecutarRandomSurvivalForest & 
 Permite al usuario aplicar el modelo Random Survival Forest para realizar análisis de supervivencia basados en técnicas de aprendizaje automático. \\ \hline
 
-CU-4 & \raggedright Consultar comparación de técnicas & 
+CU-4 & \raggedright ConsultarComparaciónTécnicas & 
 Permite al usuario acceder a una página específica del dashboard dedicada a la comparación de técnicas de análisis de supervivencia, mostrando una tabla comparativa, visualizaciones y un bloque explicativo automático. \\ \hline
 
-CU-5 & \raggedright Exportar informes y resultados & 
+CU-5 & \raggedright ExportarInformesYResultados & 
 Permite al usuario exportar resultados, gráficas y tablas generadas por el sistema en formato reutilizable para documentación o análisis posteriores. \\ \hline
 
-CU-6 & \raggedright Cambiar idioma de la interfaz & 
+CU-6 & \raggedright CambiarIdiomaInterfaz & 
 Permite al usuario seleccionar y cambiar el idioma de la interfaz del sistema, facilitando su uso en distintos contextos lingüísticos. \\ \hline
 
-CU-7 & \raggedright Analizar variables no binarias & 
+CU-7 & \raggedright AnalizarVariablesNoBinarias & 
 Permite incorporar y analizar nuevas variables del conjunto de datos, incluyendo variables no binarias, ampliando las posibilidades de estudio del sistema. \\ \hline
 
-CU-8 & \raggedright Mejorar interpretación con IA & 
+CU-8 & \raggedright MejorarInterpretaciónIA & 
 Permite generar explicaciones más precisas, coherentes y rápidas mediante la mejora del sistema de inteligencia artificial integrado. \\ \hline
 
-CU-9 & \raggedright Ampliar visualizaciones Cox y Test de Log-Rank & 
+CU-9 & \raggedright AmpliarVisualizacionesCoxLogRank & 
 Permite generar nuevas visualizaciones asociadas a los modelos de regresión de Cox y Test de Log-Rank, mejorando la interpretación visual de los resultados. \\ \hline
 
 \end{tabularx}
@@ -86,9 +86,9 @@ Género \newline \texttt{gender\_F} & Representa el género del estudiante media
 
 Discapacidad \newline \texttt{disability\_N} & Indica si el estudiante aparece registrado con o sin discapacidad. & Se selecciona por su relevancia en el contexto educativo, ya que puede estar relacionada con necesidades de apoyo, accesibilidad o condiciones que influyen en la trayectoria académica. \\ \hline
 
-Tramo de edad \newline \texttt{age\_band\_*} & Agrupa al alumnado en rangos de edad: \texttt{0-35}, \texttt{35-55} y \texttt{55<=}. & Se incluye porque la edad puede reflejar perfiles académicos distintos: estudiantes jóvenes, personas que retoman estudios o alumnado con otras responsabilidades. Esto permite comparar curvas y riesgos entre grupos. \\ \hline
+Tramo de edad \newline \texttt{age\_band} & Agrupa al alumnado en rangos de edad: \texttt{0-35}, \texttt{35-55} y \texttt{55<=}. & Se incluye porque la edad puede reflejar perfiles académicos distintos: estudiantes jóvenes, personas que retoman estudios o alumnado con otras responsabilidades. Esto permite comparar curvas y riesgos entre grupos. \\ \hline
 
-Nivel educativo previo \newline \texttt{highest\_education\_*} & Describe la formación máxima alcanzada antes de acceder al curso o programa analizado. & Se considera relevante porque la preparación académica previa puede influir en la adaptación al entorno universitario y, por tanto, en la probabilidad de permanencia o abandono. \\ \hline
+Nivel educativo previo \newline \texttt{highest\_education} & Describe la formación máxima alcanzada antes de acceder al curso o programa analizado. & Se considera relevante porque la preparación académica previa puede influir en la adaptación al entorno universitario y, por tanto, en la probabilidad de permanencia o abandono. \\ \hline
 
 Créditos estudiados \newline \texttt{studied\_credits} & Refleja la carga académica asumida por el estudiante. & Se incorpora porque permite estudiar si la dedicación académica o el volumen de créditos se relaciona con el abandono. Además, es una variable no binaria, por lo que ayuda a cumplir el objetivo de ampliar el análisis más allá de variables simples. \\ \hline
 

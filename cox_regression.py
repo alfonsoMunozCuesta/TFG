@@ -127,7 +127,7 @@ def run_cox_regression(df_limpio, covariables):
         # Intentar ajustar con todas las variables
         try:
             cph.fit(df_cox, duration_col='date', event_col='final_result', show_progress=False)
-            print("[DEBUG Cox] ✓ Modelo ajustado correctamente")
+            print("[DEBUG Cox] Modelo ajustado correctamente")
         except Exception as e:
             print(f"[DEBUG Cox] Error inicial: {str(e)}")
             print(f"[DEBUG Cox] Intentando con regularización...")
@@ -138,7 +138,7 @@ def run_cox_regression(df_limpio, covariables):
                 cph = CoxPHFitter(penalizer=0.1)
                 cph.fit(df_cox, duration_col='date', event_col='final_result', show_progress=False)
                 fitted_with_fallback = True
-                print("[DEBUG Cox] ✓ Modelo ajustado con regularización")
+                print("[DEBUG Cox] Modelo ajustado con regularización")
             except Exception as e2:
                 print(f"[DEBUG Cox] Error con regularización: {str(e2)}")
                 print(f"[DEBUG Cox] Removiendo variables problemáticas...")
@@ -163,7 +163,7 @@ def run_cox_regression(df_limpio, covariables):
                     
                     try:
                         cph.fit(df_cox_temp, duration_col='date', event_col='final_result', show_progress=False)
-                        print(f"[DEBUG Cox] ✓ Modelo ajustado sin: {var_problematica}")
+                        print(f"[DEBUG Cox] Modelo ajustado sin: {var_problematica}")
                         df_cox = df_cox_temp
                         cov_cols_ajustadas = cov_cols_temp
                         exito = True
@@ -183,14 +183,14 @@ def run_cox_regression(df_limpio, covariables):
         # Resumen del modelo de Cox
         summary = cph.summary.copy()
         
-        # ✅ ERROR #4: Validar que tenemos suficientes eventos para el análisis
+        # ERROR #4: Validar que tenemos suficientes eventos para el análisis
         total_events = int(df_cox['final_result'].sum())
         min_events = 5
         if total_events < min_events:
             print(f"[WARN Cox] Solo {total_events} eventos observados (mínimo recomendado: {min_events})")
             # Continuar pero con advertencia
         
-        # ✅ ERROR #4: Validar que no hay problemas con división por cero en el cálculo de p-valores
+        # ERROR #4: Validar que no hay problemas con división por cero en el cálculo de p-valores
         if summary.empty:
             return pd.DataFrame(), None
         
@@ -321,11 +321,11 @@ def create_forest_plot(summary_data):
             xaxis=dict(type='log')
         )
         
-        print(f"[FOREST] ✓ Forest Plot creado con {len(summary_data)} variables")
+        print(f"[FOREST] Forest Plot creado con {len(summary_data)} variables")
         return fig
         
     except Exception as e:
-        print(f"[FOREST] ✗ Error creando Forest Plot: {e}")
+        print(f"[FOREST] Error creando Forest Plot: {e}")
         import traceback
         traceback.print_exc()
         return None

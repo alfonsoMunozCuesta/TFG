@@ -30,6 +30,7 @@ class SurvivalAnalysisPDFExporter:
     """Clase para generar informes PDF de análisis de supervivencia"""
     
     def __init__(self, filename, language='es', has_graph=False, report_name=None, header_datetime=None):
+        """Inicializa la configuracion del exportador y prepara la lista de elementos PDF."""
         self.filename = filename
         self.language = language
         self.has_graph = has_graph  # Para saber si necesitamos landscape
@@ -183,6 +184,7 @@ class SurvivalAnalysisPDFExporter:
         ))
 
     def _is_english(self):
+        """Indica si el informe debe generarse en ingles."""
         return self.language == 'en'
 
     def _format_header_datetime(self):
@@ -217,9 +219,11 @@ class SurvivalAnalysisPDFExporter:
         )
 
         def _clean_text(value):
+            """Normaliza texto para comparar encabezados internos sin simbolos."""
             return re.sub(r'[^a-z0-9 ]+', '', value.lower()).strip()
 
         def _looks_like_subheading(value):
+            """Detecta si un parrafo debe mostrarse como subtitulo dentro del PDF."""
             cleaned = _clean_text(value)
             if not cleaned:
                 return False
@@ -369,7 +373,7 @@ class SurvivalAnalysisPDFExporter:
 
             self.elements.append(table)
             self.elements.append(Spacer(1, 0.2*inch))
-            print(f"  ✓ Tabla KM agregada: {len(table_data)} rows")
+            print(f"Tabla KM agregada: {len(table_data)} rows")
         else:
             self.elements.append(Paragraph(
                 ("Survival Table<br/>" if self._is_english() else "Tabla de Supervivencia<br/>")
@@ -437,7 +441,7 @@ class SurvivalAnalysisPDFExporter:
 
             self.elements.append(table)
             self.elements.append(Spacer(1, 0.2*inch))
-            print(f"  ✓ Tabla Cox agregada: {len(table_data)} rows")
+            print(f"Tabla Cox agregada: {len(table_data)} rows")
         else:
             self.elements.append(Paragraph(
                 ("Cox Model Coefficients<br/>" if self._is_english() else "Coeficientes del Modelo Cox<br/>")
@@ -491,15 +495,15 @@ class SurvivalAnalysisPDFExporter:
 
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 0.2*inch))
-                print(f"  ✓ Tabla Log-Rank agregada (dict)")
+                print(f"Tabla Log-Rank agregada (dict)")
                 
                 # Interpretación
                 p_val = test_results.get('p_value', 1)
                 if p_val < 0.05:
-                    interpretation = "✓ There is a SIGNIFICANT difference between groups (p < 0.05). The null hypothesis is rejected." if self._is_english() else "✓ Hay diferencia SIGNIFICATIVA entre grupos (p < 0.05). Se rechaza la hipótesis nula."
+                    interpretation = "There is a SIGNIFICANT difference between groups (p < 0.05). The null hypothesis is rejected."if self._is_english() else "Hay diferencia SIGNIFICATIVA entre grupos (p < 0.05). Se rechaza la hipótesis nula."
                     color = '#27ae60'
                 else:
-                    interpretation = "✗ There is NO significant difference between groups (p ≥ 0.05). The null hypothesis is not rejected." if self._is_english() else "✗ NO hay diferencia significativa entre grupos (p ≥ 0.05). No se rechaza la hipótesis nula."
+                    interpretation = "There is NO significant difference between groups (p ≥ 0.05). The null hypothesis is not rejected."if self._is_english() else "NO hay diferencia significativa entre grupos (p ≥ 0.05). No se rechaza la hipótesis nula."
                     color = '#e67e22'
                 
                 interp_label = "Interpretation" if self._is_english() else "Interpretación"
@@ -552,7 +556,7 @@ class SurvivalAnalysisPDFExporter:
 
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 0.2*inch))
-                print(f"  ✓ Tabla Log-Rank agregada: {len(table_data)} rows x {num_cols} cols")
+                print(f"Tabla Log-Rank agregada: {len(table_data)} rows x {num_cols} cols")
         else:
             self.elements.append(Paragraph(
                 ("Log-Rank Test Results<br/>" if self._is_english() else "Resultados del Test de Log-Rank<br/>")
@@ -613,7 +617,7 @@ class SurvivalAnalysisPDFExporter:
 
             self.elements.append(table)
             self.elements.append(Spacer(1, 0.2 * inch))
-            print(f"  ✓ Tabla Weibull agregada: {len(table_data)} rows")
+            print(f"Tabla Weibull agregada: {len(table_data)} rows")
         else:
             self.elements.append(Paragraph(
                 ("Weibull Fit Summary<br/>" if self._is_english() else "Resumen del Ajuste Weibull<br/>")
@@ -639,6 +643,7 @@ class SurvivalAnalysisPDFExporter:
             self.elements.append(Spacer(1, 0.1 * inch))
 
             def _cell(value, header=False, left=False):
+                """Formatea una celda de tabla con el estilo adecuado."""
                 style = self.styles['TableCellLeft'] if left else self.styles['TableCell']
                 text = str(value).replace("\n", "<br/>")
                 if header:
@@ -688,7 +693,7 @@ class SurvivalAnalysisPDFExporter:
 
             self.elements.append(table)
             self.elements.append(Spacer(1, 0.2 * inch))
-            print(f"  ✓ Tabla Exponencial agregada: {len(table_data)} rows")
+            print(f"Tabla Exponencial agregada: {len(table_data)} rows")
         else:
             self.elements.append(Paragraph(
                 ("Exponential Fit Summary<br/>" if self._is_english() else "Resumen del Ajuste Exponencial<br/>")
@@ -749,7 +754,7 @@ class SurvivalAnalysisPDFExporter:
 
             self.elements.append(table)
             self.elements.append(Spacer(1, 0.2 * inch))
-            print(f"  ✓ Tabla RSF agregada: {len(table_data)} rows")
+            print(f"Tabla RSF agregada: {len(table_data)} rows")
         else:
             self.elements.append(Paragraph(
                 ("RSF Model Summary<br/>" if self._is_english() else "Resumen del modelo RSF<br/>")
@@ -801,7 +806,7 @@ class SurvivalAnalysisPDFExporter:
                     fig_dict = json.loads(fig)
                     fig = go.Figure(fig_dict)
                 except:
-                    print(f"  ✗ No se pudo convertir JSON a figura Plotly")
+                    print(f"No se pudo convertir JSON a figura Plotly")
                     return
             
             # Convertir con dimensiones ALTAS para mejor resolución
@@ -829,9 +834,9 @@ class SurvivalAnalysisPDFExporter:
                 self.elements.append(caption_para)
                 self.elements.append(Spacer(1, 0.1*inch))
             
-            print(f"  ✓ Figura Plotly agregada al PDF en LANDSCAPE (9.0\" x 4.5\")")
+            print(f"Figura Plotly agregada al PDF en LANDSCAPE (9.0\"x 4.5\")")
         except Exception as e:
-            print(f"  ✗ Error al agregar figura Plotly: {str(e)}")
+            print(f"Error al agregar figura Plotly: {str(e)}")
     
     def generate(self, title="INFORME DE ANÁLISIS DE SUPERVIVENCIA"):
         """Genera el PDF final en landscape si hay gráficas"""
@@ -862,6 +867,7 @@ class SurvivalAnalysisPDFExporter:
         
         # Construir PDF con los elementos que ya están en self.elements
         def _draw_page_decorations(canvas_obj, doc_obj):
+            """Dibuja logos, cabecera, linea superior y pie de pagina en cada hoja."""
             canvas_obj.saveState()
             page_width, page_height = doc_obj.pagesize
 
@@ -1010,6 +1016,7 @@ def export_survival_analysis_to_pdf(
     primera_seccion = True
 
     def _start_new_section():
+        """Inserta un salto de pagina antes de empezar una nueva seccion si procede."""
         nonlocal primera_seccion
         if primera_seccion:
             primera_seccion = False
@@ -1168,6 +1175,7 @@ def export_weibull_exponential_combined_pdf(
     first_section = True
 
     def _start_new_section():
+        """Inserta un salto de pagina entre secciones del informe combinado."""
         nonlocal first_section
         if first_section:
             first_section = False

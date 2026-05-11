@@ -14,6 +14,7 @@ REQUEST_TIMEOUT_S = 240
 
 
 def _looks_like_list_output(text):
+    """Detecta si la respuesta del modelo parece una lista en vez de prosa."""
     if not text:
         return False
     stripped = text.strip()
@@ -23,6 +24,7 @@ def _looks_like_list_output(text):
 
 
 def _academic_system_prompt(language='es'):
+    """Crea el mensaje de sistema que fuerza un tono academico y conciso."""
     if language == 'en':
         return (
             "You are a survival analysis expert writing for an academic thesis on university student dropout. "
@@ -41,6 +43,7 @@ def _academic_system_prompt(language='es'):
 
 
 def _rewrite_to_prose_if_needed(content, max_tokens, language='es', timeout=REQUEST_TIMEOUT_S):
+    """Reescribe respuestas en formato lista para convertirlas en parrafos."""
     if not _looks_like_list_output(content):
         return content
 
@@ -139,7 +142,7 @@ def generate_interpretation_for_pdf(analysis_type, data_summary=None, table_data
         inicio = time.time()
         interpretation = _call_llm(prompt, max_tokens=PDF_MAX_TOKENS, language=language)
         tiempo_respuesta = time.time() - inicio
-        print(f"✓ Interpretación generada en {tiempo_respuesta:.2f}s")
+        print(f"Interpretación generada en {tiempo_respuesta:.2f}s")
         
         return interpretation
     
@@ -524,7 +527,7 @@ Devuelve 2 párrafos académicos breves. Cita valores concretos cuando existan, 
         # Registro de inicio
         inicio = time.time()
         print(f"\n⏳ Enviando solicitud al LLM...")
-        print(f"🔄 Esperando respuesta...\n")
+        print(f"Esperando respuesta...\n")
         sys.stdout.flush()
         explanation = _call_llm(prompt, max_tokens=EXPLAIN_MAX_TOKENS, timeout=REQUEST_TIMEOUT_S, language=language)
         
@@ -535,7 +538,7 @@ Devuelve 2 párrafos académicos breves. Cita valores concretos cuando existan, 
         minutos = int(tiempo_respuesta // 60)
         segundos = int(tiempo_respuesta % 60)
         tiempo_str = f"{minutos}m {segundos}s" if minutos > 0 else f"{segundos}s"
-        print(f"\n✅ Respuesta generada en: {tiempo_str}")
+        print(f"\nRespuesta generada en: {tiempo_str}")
         sys.stdout.flush()
         
         # Limitar la longitud si es necesario

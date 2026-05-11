@@ -120,6 +120,7 @@ app.layout = html.Div([
     Input('language-toggle', 'value')
 )
 def update_language(toggle_value):
+    """Traduce el valor del interruptor de idioma al codigo usado por la aplicacion."""
     return 'en' if toggle_value else 'es'
 
 
@@ -132,6 +133,7 @@ def update_language(toggle_value):
     Input('language-store', 'data')
 )
 def update_navbar_labels(language):
+    """Actualiza los textos del menu de navegacion segun el idioma activo."""
     return (
         get_translation(language, 'navbar_home'),
         get_translation(language, 'navbar_view_dataset'),
@@ -146,6 +148,7 @@ def update_navbar_labels(language):
     [Input('url', 'pathname')]
 )
 def toggle_techniques_comparison_nav(pathname):
+    """Marca la opcion de comparacion como activa cuando se visita esa ruta."""
     if pathname and pathname.startswith('/survival-analysis'):
         return {'display': 'inline-block'}
     return {'display': 'none'}
@@ -156,11 +159,13 @@ def toggle_techniques_comparison_nav(pathname):
     prevent_initial_call=True  # Evita que se active al cargar la página
 )
 def mostrar_confirmacion(n_clicks):
+    """Abre el dialogo de confirmacion al intentar cargar otro dataset."""
     if n_clicks:
         return True 
     return False
 
 def _create_dataset_locked_message(language):
+    """Construye el aviso que bloquea la carga de un segundo dataset."""
     return html.Div(
         [
             html.Div(
@@ -195,6 +200,7 @@ def _create_dataset_locked_message(language):
     Input('language-store', 'data')
 )
 def update_confirm_message(language):
+    """Refresca el mensaje del dialogo de confirmacion al cambiar de idioma."""
     return get_translation(language, 'confirmar_inicio')
 
 
@@ -206,6 +212,7 @@ def update_confirm_message(language):
     [State('df-store', 'data')]
 )
 def display_page(pathname, language, df_json):
+    """Selecciona que pagina del dashboard debe mostrarse para la ruta actual."""
     dataset_loaded = df_json is not None
 
     if pathname == '/':
@@ -246,6 +253,7 @@ def display_page(pathname, language, df_json):
 )
 def navegar_a_inicio(submit_n_clicks, cancel_n_clicks):
 
+    """Decide si volver a inicio para cargar datos o mantener la pagina actual."""
     ctx = callback_context
     if not ctx.triggered:
         return dash.no_update

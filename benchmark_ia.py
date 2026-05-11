@@ -90,6 +90,7 @@ TECHNIQUE_PROMPTS = [
 
 
 def _parse_args() -> argparse.Namespace:
+    """Define y lee los argumentos de consola para configurar el benchmark de IA."""
     parser = argparse.ArgumentParser(
         description="Mide tiempos y consumo aproximado del servidor local de IA."
     )
@@ -168,6 +169,7 @@ def _query_process_snapshot(process_name: str) -> dict | None:
 
 
 def _build_payload(prompt: str, model: str) -> dict:
+    """Construye el cuerpo JSON que se envia al endpoint del modelo."""
     return {
         "model": model,
         "messages": [
@@ -188,6 +190,7 @@ def _build_payload(prompt: str, model: str) -> dict:
 
 
 def _call_model(prompt: str, timeout: int, endpoint: str, model: str) -> tuple[str, float]:
+    """Llama al modelo, mide el tiempo de respuesta y devuelve el texto generado."""
     start = time.perf_counter()
     response = requests.post(endpoint, json=_build_payload(prompt, model), timeout=timeout)
     elapsed = time.perf_counter() - start
@@ -207,6 +210,7 @@ def _run_once(
     model: str,
     technique: str,
 ) -> dict:
+    """Ejecuta una prueba individual del benchmark y registra metricas del sistema."""
     before = _query_process_snapshot(process_name)
     content, elapsed = _call_model(prompt, timeout, endpoint, model)
     after = _query_process_snapshot(process_name)
@@ -233,6 +237,7 @@ def _run_once(
 
 
 def _save_results(results: list[dict], args: argparse.Namespace, summary: dict) -> tuple[Path, Path]:
+    """Guarda los resultados detallados y el resumen del benchmark en disco."""
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -261,6 +266,7 @@ def _save_results(results: list[dict], args: argparse.Namespace, summary: dict) 
 
 
 def _build_summary(results: list[dict]) -> dict:
+    """Resume las metricas principales obtenidas en todas las ejecuciones."""
     times = [row["elapsed_seconds"] for row in results]
     cpu_values = [row["cpu_percent_approx"] for row in results if row["cpu_percent_approx"] is not None]
     ram_values = [row["ram_mb_approx"] for row in results if row["ram_mb_approx"] is not None]
@@ -279,6 +285,7 @@ def _build_summary(results: list[dict]) -> dict:
 
 
 def _build_tasks(args: argparse.Namespace) -> list[dict]:
+    """Prepara la lista de tareas que se lanzaran durante el benchmark."""
     if args.mode == "repeat":
         return [
             {
@@ -305,6 +312,7 @@ def _build_tasks(args: argparse.Namespace) -> list[dict]:
 
 
 def main() -> int:
+    """Orquesta el benchmark completo desde los argumentos hasta los ficheros finales."""
     args = _parse_args()
 
     if args.runs <= 0:

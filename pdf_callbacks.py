@@ -208,7 +208,7 @@ def register_pdf_export_callbacks(app):
                     
                     #Crear figura Plotly directamente
                     km_figure = _create_km_figure(df, covariate_col)
-                    print(f"[KM PDF] ✓ Gráfica KM regenerada para {covariate_col}")
+                    print(f"[KM PDF] Gráfica KM regenerada para {covariate_col}")
                     
                 except Exception as e:
                     print(f"[KM PDF] Error regenerando gráfica: {e}")
@@ -246,7 +246,7 @@ def register_pdf_export_callbacks(app):
                 language=language
             )
             
-            print(f"[KM PDF] ✓ PDF generado en: {pdf_path}")
+            print(f"[KM PDF] PDF generado en: {pdf_path}")
             return dcc.send_file(pdf_path), "", {'display': 'none'}
         
         except Exception as e:
@@ -443,17 +443,17 @@ def register_pdf_export_callbacks(app):
                                     cox_table = summary[cols_disponibles].copy()
                                     if 'Covariable' in cox_table.columns:
                                         cox_table.columns = ['Variable'] + [c for c in summary.columns[1:] if c in cols_disponibles[1:]]
-                                    print(f"[COX PDF] ✓ Tabla creada: {cox_table.shape[0]} variables, {len(cols_disponibles)} columnas")
+                                    print(f"[COX PDF] Tabla creada: {cox_table.shape[0]} variables, {len(cols_disponibles)} columnas")
                                     print(f"[COX PDF] Primeras filas:\n{cox_table.head()}")
                         except Exception as e:
-                            print(f"[COX PDF] ✗ Error creando tabla: {e}")
+                            print(f"[COX PDF] Error creando tabla: {e}")
                             traceback.print_exc()
                             cox_table = None
                     
                     print(f"[COX PDF] Análisis recalculado para variables: {cox_covariables}")
                 
                 except Exception as e:
-                    print(f"[COX PDF] ✗ Error recalculando Cox: {e}")
+                    print(f"[COX PDF] Error recalculando Cox: {e}")
                     traceback.print_exc()
                     cox_table = None
             
@@ -479,7 +479,7 @@ def register_pdf_export_callbacks(app):
                 
                 # Limpiar markdown del texto
                 ai_text_cleaned = clean_markdown_text(ai_text)
-                print(f"[COX PDF] ✓ Interpretación generada ({len(ai_text)} chars → {len(ai_text_cleaned)} chars)")
+                print(f"[COX PDF] Interpretación generada ({len(ai_text)} chars → {len(ai_text_cleaned)} chars)")
                 ai_text = ai_text_cleaned
             
             # GENERAR FOREST PLOT SI SE SOLICITA
@@ -490,9 +490,9 @@ def register_pdf_export_callbacks(app):
                     from cox_regression import create_forest_plot
                     forest_figure = create_forest_plot(summary)
                     if forest_figure:
-                        print(f"[COX PDF] ✓ Forest Plot generado")
+                        print(f"[COX PDF] Forest Plot generado")
                 except Exception as e:
-                    print(f"[COX PDF] ✗ Error generando Forest Plot: {e}")
+                    print(f"[COX PDF] Error generando Forest Plot: {e}")
                     forest_figure = None
             
             print(f"[COX PDF] Generando PDF: {filename}")
@@ -519,7 +519,7 @@ def register_pdf_export_callbacks(app):
                 language=language
             )
             
-            print(f"[COX PDF] ✓ PDF generado en: {pdf_path}")
+            print(f"[COX PDF] PDF generado en: {pdf_path}")
             print(f"[COX PDF] ========== EXPORTACIÓN COMPLETADA ==========\n")
             return dcc.send_file(pdf_path), "", {'display': 'none'}
         
@@ -705,9 +705,9 @@ def register_pdf_export_callbacks(app):
                     try:
                         logrank_figure = create_logrank_figure(df, logrank_covariables[0])
                         if logrank_figure:
-                            print(f"[LOGRANK PDF] ✓ Gráfica Log-Rank generada")
+                            print(f"[LOGRANK PDF] Gráfica Log-Rank generada")
                     except Exception as e:
-                        print(f"[LOGRANK PDF] ✗ Error generando gráfica: {e}")
+                        print(f"[LOGRANK PDF] Error generando gráfica: {e}")
                         logrank_figure = None
             
             # CALCULAR ESTADÍSTICAS DE RESUMEN
@@ -755,7 +755,7 @@ def register_pdf_export_callbacks(app):
                 landscape_tables=['logrank']  # Hacer tabla Log-Rank en horizontal
             )
             
-            print(f"[LOGRANK PDF] ✓ PDF generado en: {pdf_path}")
+            print(f"[LOGRANK PDF] PDF generado en: {pdf_path}")
             print(f"[LOGRANK PDF] ========== EXPORTACIÓN COMPLETADA ==========\n")
             return dcc.send_file(pdf_path), "", {'display': 'none'}
         
@@ -1178,6 +1178,7 @@ def register_pdf_export_callbacks(app):
         prevent_initial_call=True
     )
     def toggle_exponential_pdf_modal(export_clicks, close_clicks, cancel_clicks):
+        """Abre o cierra el modal de exportacion PDF para el modelo exponencial."""
         if not callback_context.triggered:
             return {'display': 'none'}, {'display': 'none'}
 
@@ -1203,6 +1204,7 @@ def register_pdf_export_callbacks(app):
         prevent_initial_call=True
     )
     def download_exponential_pdf(n_clicks, filename, options, ai_text_from_page, ai_text_language, df_json, language):
+        """Genera y descarga el PDF del analisis exponencial con las opciones marcadas."""
         try:
             if not filename or filename.strip() == '':
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

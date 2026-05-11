@@ -17,6 +17,7 @@ COVARIABLE_MAPPING = {
 
 
 def _rgba_with_alpha(color, alpha):
+    """Convierte un color hexadecimal en RGBA aplicando transparencia."""
     if color.startswith('rgba(') and color.endswith(')'):
         parts = [part.strip() for part in color[5:-1].split(',')]
         if len(parts) >= 3:
@@ -25,6 +26,7 @@ def _rgba_with_alpha(color, alpha):
 
 
 def _add_km_trace_with_ci(fig, kmf, name, color, show_legend=True):
+    """Anade a la figura la curva Kaplan-Meier y su intervalo de confianza."""
     survival_col = kmf.survival_function_.columns[0]
     timeline = kmf.timeline.tolist()
     survival_values = kmf.survival_function_[survival_col].tolist()
@@ -65,7 +67,8 @@ def _add_km_trace_with_ci(fig, kmf, name, color, show_legend=True):
     ))
 
 def plot_kaplan_meier(df):
-    # ✅ ERROR #3: Validar estructura de datos antes de análisis
+    # ERROR #3: Validar estructura de datos antes de análisis
+    """Calcula y dibuja la curva Kaplan-Meier global del dataset."""
     if df is None or len(df) == 0:
         raise ValueError("❌ DataFrame vacío - No hay datos para graficar")
     

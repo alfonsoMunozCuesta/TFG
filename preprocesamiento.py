@@ -4,12 +4,14 @@ import matplotlib.pyplot as pyplot
 import os
 
 def load_dataset(file_path):
+    """Lee el CSV original usando el separador esperado por el proyecto."""
     df = pd.read_csv(file_path, sep=';')
     df.columns = df.columns.str.strip()  # Elimina espacios en los nombres de las columnas
     return df
 
 # Función para limpiar las columnas de actividad
 def clean_columns(df):
+    """Normaliza nombres de columnas para que sean consistentes en el analisis."""
     columnas_actividad = [
         "ouelluminate", "sharedsubpage", "ouwiki", "folder", "page", "externalquiz",
         "quiz", "dualpane", "questionnaire", "htmlactivity", "oucollaborate",
@@ -67,6 +69,7 @@ def preprocess_data(df_tmp):
 
     # Función para seleccionar la fila adecuada por estudiante
     def seleccionar_fila(grupo):
+        """Selecciona la fila final representativa de cada estudiante."""
         if grupo['final_result'].iloc[0] == 0:
             fila_269 = grupo[grupo['date'] == 269]
             if not fila_269.empty:
@@ -125,7 +128,7 @@ def preprocess_data(df_tmp):
     # Las borramos
     df_final = df_final.drop(columns=columnas_a_eliminar)
 
-    # ✅ ERROR #7: Validación de valores NaN en columnas críticas
+    # ERROR #7: Validación de valores NaN en columnas críticas
     critical_cols = ['id_student', 'date', 'final_result']
     nan_en_criticas = []
     for col in critical_cols:

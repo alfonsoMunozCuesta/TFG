@@ -21,6 +21,7 @@ TEXT = (20, 20, 20)
 
 
 def font(size=30, bold=False):
+    """Devuelve una fuente tipografica con tamano y grosor configurables."""
     name = "arialbd.ttf" if bold else "arial.ttf"
     path = Path("C:/Windows/Fonts") / name
     return ImageFont.truetype(str(path), size)
@@ -32,11 +33,13 @@ FONT_SMALL = font(25)
 
 
 def text_size(draw, text, fnt):
+    """Calcula las dimensiones de un texto antes de dibujarlo."""
     box = draw.textbbox((0, 0), text, font=fnt)
     return box[2] - box[0], box[3] - box[1]
 
 
 def draw_wrapped(draw, box, text, fnt=FONT, fill=TEXT, align="center"):
+    """Dibuja texto ajustado al ancho de una caja para evitar desbordes."""
     x1, y1, x2, y2 = box
     max_chars = max(16, int((x2 - x1) / (fnt.size * 0.48)))
     lines = []
@@ -56,6 +59,7 @@ def draw_wrapped(draw, box, text, fnt=FONT, fill=TEXT, align="center"):
 
 
 def arrow(draw, start, end):
+    """Dibuja una flecha entre dos puntos del diagrama."""
     draw.line([start, end], fill=BLUE_BORDER, width=4)
     x1, y1 = start
     x2, y2 = end
@@ -69,6 +73,7 @@ def arrow(draw, start, end):
 
 
 def rounded(draw, cx, y, w, h, text, fill=BLUE, outline=BLUE_BORDER, fnt=FONT):
+    """Dibuja una caja redondeada con texto centrado."""
     box = (cx - w // 2, y, cx + w // 2, y + h)
     draw.rounded_rectangle(box, radius=22, fill=fill, outline=outline, width=4)
     draw_wrapped(draw, box, text, fnt=fnt)
@@ -76,6 +81,7 @@ def rounded(draw, cx, y, w, h, text, fill=BLUE, outline=BLUE_BORDER, fnt=FONT):
 
 
 def diamond(draw, cx, y, w, h, text):
+    """Dibuja un rombo de decision con su etiqueta centrada."""
     pts = [(cx, y), (cx + w // 2, y + h // 2), (cx, y + h), (cx - w // 2, y + h // 2)]
     draw.polygon(pts, fill=YELLOW, outline=YELLOW_BORDER)
     draw.line(pts + [pts[0]], fill=YELLOW_BORDER, width=4)
@@ -84,10 +90,12 @@ def diamond(draw, cx, y, w, h, text):
 
 
 def label(draw, xy, text):
+    """Escribe una etiqueta auxiliar en el diagrama."""
     draw.text(xy, text, font=FONT_SMALL, fill=TEXT)
 
 
 def diagram(filename, title, steps, decision=None, alternatives=None):
+    """Genera y guarda un diagrama de actividad completo."""
     img = Image.new("RGB", (W, H), BG)
     draw = ImageDraw.Draw(img)
     cx = W // 2
