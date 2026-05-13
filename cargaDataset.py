@@ -1,4 +1,11 @@
-﻿import os
+﻿"""Punto de entrada de la aplicacion Dash.
+
+Define la instancia de Dash, la barra de navegacion, los stores compartidos y
+los callbacks de navegacion basicos. La logica pesada de analisis se registra
+desde analysis_callbacks.py y pdf_callbacks.py.
+"""
+
+import os
 import platform as _platform
 from collections import namedtuple
 
@@ -29,12 +36,14 @@ from translations import get_translation
 from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
 from analysis_callbacks import create_home_page, register_analysis_callbacks
 
-# Inicializar la aplicación Dash
+# Inicializar la aplicacion Dash. suppress_callback_exceptions permite declarar
+# callbacks de componentes que aparecen solo en determinadas paginas.
 app = Dash(__name__, suppress_callback_exceptions=True)
 app.config['suppress_callback_exceptions'] = True
 
 
-# Barra de navegación fija en la parte superior
+# Barra de navegacion fija en la parte superior. Las etiquetas se actualizan
+# dinamicamente cuando cambia el idioma.
 navbar = html.Div([
     html.Div([ 
         html.Div([
@@ -88,6 +97,8 @@ navbar = html.Div([
 app.layout = html.Div([ 
     navbar, 
     dcc.Location(id='url', refresh=False),  
+    # Los Stores guardan estado compartido entre callbacks sin escribirlo en
+    # disco: dataset procesado, idioma, resultados vigentes y textos de IA.
     dcc.Store(id='language-store', data='es'),  # Store para almacenar el idioma actual
     dcc.Store(id='df-store', data=None),  # Store para almacenar el dataframe procesado
     dcc.Store(id='dataset-signature-store', data=''),  # Firma del dataset para invalidar análisis obsoletos

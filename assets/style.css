@@ -205,6 +205,59 @@ button:hover {
     color: #1f3f5a !important;
 }
 
+.analysis-loading-target[data-dash-is-loading="true"] {
+    min-height: 130px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: transparent !important;
+    position: relative;
+}
+
+.analysis-loading-target[data-dash-is-loading="true"]::after {
+    content: attr(data-loading-message);
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 34px);
+    transform: translateX(-50%);
+    width: min(92%, 520px);
+    color: #34495e;
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.textarea-loading-message {
+    display: none;
+    margin: -10px auto 18px auto;
+    width: min(90%, 620px);
+    color: #34495e;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.inline-loading-message {
+    display: none;
+    margin: 10px auto 0 auto;
+    width: min(90%, 560px);
+    color: #34495e;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+textarea[data-dash-is-loading="true"] + .textarea-loading-message {
+    display: block;
+}
+
+.analysis-loading-component[data-dash-is-loading="true"] + .inline-loading-message {
+    display: block;
+}
+
 #graph-explanation,
 .explanation-panel {
     color: #2a3a4b;

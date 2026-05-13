@@ -1,3 +1,9 @@
+"""Limpieza y reduccion del dataset academico.
+
+Convierte el CSV original en una tabla por estudiante con las columnas que
+necesitan los analisis de supervivencia, validando estructura y valores clave.
+"""
+
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as pyplot

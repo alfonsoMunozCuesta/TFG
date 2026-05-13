@@ -1,10 +1,17 @@
+"""Test Log-Rank y curvas comparativas de supervivencia.
+
+Implementa comparaciones entre grupos para variables binarias, categoricas
+one-hot y continuas discretizadas en grupos, devolviendo tablas y figuras.
+"""
+
 from lifelines.statistics import logrank_test
 from lifelines import KaplanMeierFitter
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
-# Mapeo de parámetros a columnas reales
+# Mapeo entre los nombres de covariables de la interfaz y las columnas reales.
+# Las variables con varias categorias se representan en el CSV como one-hot.
 COVARIABLE_MAPPING = {
     'gender_F': ['gender_F'],
     'disability_N': ['disability_N'],

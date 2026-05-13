@@ -1,3 +1,10 @@
+"""Integracion con el modelo local de IA para explicaciones narrativas.
+
+Construye prompts academicos para cada tecnica de supervivencia, llama al
+servidor local compatible con OpenAI y normaliza la respuesta para mostrarla en
+la aplicacion o incluirla en informes PDF.
+"""
+
 import requests
 import json
 import time

@@ -1,9 +1,16 @@
+"""Funciones para construir curvas Kaplan-Meier.
+
+Agrupa la logica de supervivencia empirica tanto global como estratificada por
+covariables, incluyendo intervalos de confianza y figuras Plotly reutilizables.
+"""
+
+import pandas as pd
 from dash import dcc
 import plotly.graph_objs as go
 from lifelines import KaplanMeierFitter
-import pandas as pd
 
-# Mapeo de parámetros a columnas reales
+# Mapeo entre la covariable seleccionada en la interfaz y las columnas reales.
+# age_band y highest_education llegan como variables one-hot.
 COVARIABLE_MAPPING = {
     'gender_F': ['gender_F'],
     'disability_N': ['disability_N'],

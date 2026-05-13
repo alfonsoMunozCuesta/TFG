@@ -1,4 +1,11 @@
-# Diccionario de traducciones español-inglés
+"""Diccionario bilingue de textos de la interfaz.
+
+Mantiene centralizadas las etiquetas en espanol e ingles para que las paginas
+puedan renderizarse dinamicamente segun el idioma activo.
+"""
+
+# Diccionario de traducciones espanol-ingles. Las claves deben coincidir con
+# las usadas en layout.py, cargaDataset.py y los callbacks.
 translations = {
     'es': {
         # Navbar

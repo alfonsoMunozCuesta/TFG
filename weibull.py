@@ -1,3 +1,9 @@
+"""Analisis parametricos Weibull y Exponencial combinado.
+
+Prepara los datos de supervivencia, ajusta modelos parametricos con lifelines
+y devuelve figura, resumen e interpretacion para la pagina Weibull.
+"""
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go

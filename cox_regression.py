@@ -1,10 +1,17 @@
+"""Modelo de regresion de Cox y visualizacion asociada.
+
+Contiene la preparacion de covariables, el ajuste con lifelines y la creacion
+de tablas/forest plots que se muestran en el dashboard.
+"""
+
 from lifelines import CoxPHFitter
 import numpy as np
 import pandas as pd
 from dash import dash_table
 import plotly.graph_objects as go
 
-# Mapeo de parámetros a columnas reales
+# Mapeo entre nombres usados por la interfaz y columnas reales del dataset.
+# Las variables categoricas one-hot se expanden a varias columnas.
 COVARIABLE_MAPPING = {
     'gender_F': ['gender_F'],
     'disability_N': ['disability_N'],
@@ -82,7 +89,8 @@ def run_cox_regression(df_limpio, covariables):
         # Para variables one-hot encoded (categóricas), remover la última columna para evitar colinealidad perfecta
         cov_cols = [col for col in columnas_validas if col not in ['date', 'final_result']]
         
-        # Identificar variables categóricas one-hot encoded y remover la última columna de cada grupo
+        # Identificar grupos one-hot. En Cox no se pueden meter todas las
+        # categorias a la vez porque producirian colinealidad perfecta.
         columnas_por_grupo = {}
         for col in cov_cols:
             if '_' in col:

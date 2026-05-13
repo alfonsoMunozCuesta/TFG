@@ -1,4 +1,11 @@
-﻿import os
+﻿"""Callbacks principales del dashboard de analisis de supervivencia.
+
+Este modulo concentra la logica interactiva de Dash: carga y validacion del
+CSV, preprocesamiento, navegacion entre vistas, ejecucion de analisis y
+generacion de interpretaciones mediante IA local.
+"""
+
+import os
 import platform as _platform
 from collections import namedtuple
 
@@ -49,12 +56,14 @@ from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
 
 # Inicializar la aplicación Dash
 
-# Rutas base del proyecto
+# Rutas base del proyecto usadas por los callbacks para leer datos temporales
+# y el dataset limpio sin depender del directorio desde el que se ejecute Dash.
 BASE_DIR = Path(__file__).resolve().parent
 TEMP_DATA_PATH = BASE_DIR / 'data' / 'temp_data.csv'
 CLEAN_DATA_PATH = BASE_DIR / 'dataset_limpio.csv'
 
-# Inicializar como None - se cargarán cuando sea necesario
+# Cache simple en memoria. Evita leer los CSV en cada callback y se inicializa
+# bajo demanda con load_dataframes().
 df = None
 df_limpio = None
 

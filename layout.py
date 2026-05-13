@@ -1,3 +1,10 @@
+"""Construccion de las paginas y componentes visuales del dashboard.
+
+Este modulo contiene funciones puras de layout Dash: modales, paginas de
+analisis, tablas y paneles. Los callbacks que dan vida a estos componentes se
+registran en analysis_callbacks.py y pdf_callbacks.py.
+"""
+
 import pandas as pd
 from pathlib import Path
 from dash import Dash, dcc, html, dash_table
@@ -10,6 +17,8 @@ import numpy as np
 from translations import get_translation
 from pdf_exporter import export_survival_analysis_to_pdf
 
+# Cache local para la vista Kaplan-Meier global. Se rellena solo si una pagina
+# lo necesita, evitando cargar el CSV durante el import del modulo.
 _LAYOUT_DF = None
 
 # Función para mapear age_band desde one-hot encoding
@@ -244,6 +253,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
 
                     html.Div(
                         id=f"{modal_id}-error",
+                        className='analysis-loading-target',
                         style={
                             'display': 'none',
                             'marginTop': '15px',
@@ -254,7 +264,8 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                             'border': '1px solid #f5c6cb',
                             'fontSize': '14px',
                             'fontWeight': 'bold'
-                        }
+                        },
+                        **{'data-loading-message': 'Preparando informe PDF...' if language == 'es' else 'Preparing PDF report...'}
                     ),
 
                     dcc.Download(id=f"{modal_id}-download"),
@@ -438,6 +449,7 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
 
                 html.Div(
                     id=f"{modal_id}-error",
+                    className='analysis-loading-target',
                     style={
                         'display': 'none',
                         'marginTop': '15px',
@@ -448,7 +460,8 @@ def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es
                         'border': '1px solid #f5c6cb',
                         'fontSize': '14px',
                         'fontWeight': 'bold'
-                    }
+                    },
+                    **{'data-loading-message': 'Preparando informe PDF...' if language == 'es' else 'Preparing PDF report...'}
                 ),
                 
                 # Componente de descarga
@@ -532,6 +545,11 @@ def create_techniques_comparison_page(language='es'):
                 if not is_en else
                 'Non-informative censoring; empirical survival estimate with no functional form.'
             ),
+            'que_responde': (
+                'Cómo evoluciona la permanencia y si existen diferencias visuales entre grupos.'
+                if not is_en else
+                'How retention evolves and whether visual differences appear between groups.'
+            ),
             'ventajas': (
                 'Muy interpretable; útil como línea base visual.'
                 if not is_en else
@@ -555,6 +573,11 @@ def create_techniques_comparison_page(language='es'):
                 'Riesgo constante en el tiempo (hazard constante).'
                 if not is_en else
                 'Constant hazard over time.'
+            ),
+            'que_responde': (
+                'Si una hipótesis simple de riesgo constante describe razonablemente los datos.'
+                if not is_en else
+                'Whether a simple constant-hazard assumption describes the data reasonably well.'
             ),
             'ventajas': (
                 'Simple, estable y fácil de interpretar.'
@@ -580,6 +603,11 @@ def create_techniques_comparison_page(language='es'):
                 if not is_en else
                 'Monotonic hazard (increasing/decreasing) driven by shape parameter.'
             ),
+            'que_responde': (
+                'Si el riesgo de abandono aumenta, disminuye o se mantiene aproximadamente estable.'
+                if not is_en else
+                'Whether dropout risk increases, decreases, or remains roughly stable.'
+            ),
             'ventajas': (
                 'Flexible y con parámetros interpretables.'
                 if not is_en else
@@ -603,6 +631,11 @@ def create_techniques_comparison_page(language='es'):
                 'Proporcionalidad de riesgos entre grupos/covariables.'
                 if not is_en else
                 'Proportional hazards across groups/covariates.'
+            ),
+            'que_responde': (
+                'Qué covariables aumentan o reducen el riesgo relativo de abandono.'
+                if not is_en else
+                'Which covariates increase or reduce relative dropout risk.'
             ),
             'ventajas': (
                 'Ajusta múltiples covariables sin asumir forma base del hazard.'
@@ -628,6 +661,11 @@ def create_techniques_comparison_page(language='es'):
                 if not is_en else
                 'Tests global equality of survival curves between groups.'
             ),
+            'que_responde': (
+                'Si las diferencias entre curvas son estadísticamente significativas.'
+                if not is_en else
+                'Whether differences between survival curves are statistically significant.'
+            ),
             'ventajas': (
                 'Simple para contraste de hipótesis entre grupos.'
                 if not is_en else
@@ -652,6 +690,11 @@ def create_techniques_comparison_page(language='es'):
                 if not is_en else
                 'No proportionality or explicit parametric form required.'
             ),
+            'que_responde': (
+                'Cómo se comporta el riesgo al combinar muchas variables e interacciones.'
+                if not is_en else
+                'How risk behaves when many variables and interactions are combined.'
+            ),
             'ventajas': (
                 'Captura relaciones no lineales e interacciones complejas.'
                 if not is_en else
@@ -671,6 +714,41 @@ def create_techniques_comparison_page(language='es'):
     ]
 
     table_df = pd.DataFrame(comparison_rows)
+
+    workflow_steps = [
+        {
+            'title': '1. Lectura descriptiva' if not is_en else '1. Descriptive reading',
+            'body': (
+                'Kaplan-Meier resume la supervivencia observada y Log-Rank comprueba si las curvas se separan con significación estadística.'
+                if not is_en else
+                'Kaplan-Meier summarizes observed survival and Log-Rank tests whether curve separation is statistically significant.'
+            ),
+        },
+        {
+            'title': '2. Efecto de covariables' if not is_en else '2. Covariate effect',
+            'body': (
+                'Cox permite cuantificar el riesgo relativo asociado a varias variables mediante hazard ratios.'
+                if not is_en else
+                'Cox quantifies relative risk associated with several variables through hazard ratios.'
+            ),
+        },
+        {
+            'title': '3. Modelos de referencia' if not is_en else '3. Reference models',
+            'body': (
+                'Exponencial y Weibull aportan modelos paramétricos comparables, útiles para evaluar supuestos sobre la forma del riesgo.'
+                if not is_en else
+                'Exponential and Weibull provide comparable parametric models for evaluating assumptions about hazard shape.'
+            ),
+        },
+        {
+            'title': '4. Predicción flexible' if not is_en else '4. Flexible prediction',
+            'body': (
+                'Random Survival Forest se reserva para patrones complejos, perfiles individuales e importancia de variables.'
+                if not is_en else
+                'Random Survival Forest is reserved for complex patterns, individual profiles, and variable importance.'
+            ),
+        },
+    ]
 
     metrics_rows = [
         {'tecnica': 'Kaplan-Meier', 'Predictivo': 2, 'Interpretabilidad': 5, 'Flexibilidad': 2},
@@ -780,15 +858,44 @@ def create_techniques_comparison_page(language='es'):
             'margin': '0 20px 25px 20px'
         }),
         html.Div([
+            html.Div([
+                html.H3(step['title'], style={
+                    'margin': '0 0 8px 0',
+                    'fontSize': '1.05rem',
+                    'color': '#1b3147',
+                    'fontWeight': 'bold'
+                }),
+                html.P(step['body'], style={
+                    'margin': 0,
+                    'lineHeight': '1.55',
+                    'color': '#526477',
+                    'fontSize': '0.95rem'
+                })
+            ], style={
+                'backgroundColor': 'white',
+                'border': '1px solid #d8e0e8',
+                'borderRadius': '8px',
+                'boxShadow': '0 2px 8px rgba(15, 23, 42, 0.06)',
+                'padding': '16px'
+            })
+            for step in workflow_steps
+        ], style={
+            'display': 'grid',
+            'gridTemplateColumns': 'repeat(auto-fit, minmax(230px, 1fr))',
+            'gap': '14px',
+            'margin': '0 20px 25px 20px'
+        }),
+        html.Div([
             dash_table.DataTable(
                 id='techniques-comparison-table',
                 columns=[
                     {'name': ('Técnica' if not is_en else 'Technique'), 'id': 'tecnica'},
                     {'name': ('Tipo de modelo' if not is_en else 'Model type'), 'id': 'tipo_modelo'},
+                    {'name': ('Qué responde' if not is_en else 'Question answered'), 'id': 'que_responde'},
                     {'name': ('Hipótesis' if not is_en else 'Hypothesis'), 'id': 'hipotesis'},
-                    {'name': ('Ventajas' if not is_en else 'Advantages'), 'id': 'ventajas'},
-                    {'name': ('Limitaciones' if not is_en else 'Limitations'), 'id': 'limitaciones'},
-                    {'name': ('Cuándo usarlo' if not is_en else 'When to use'), 'id': 'cuando_usarlo'},
+                    {'name': ('Ventaja' if not is_en else 'Advantage'), 'id': 'ventajas'},
+                    {'name': ('Limitación' if not is_en else 'Limitation'), 'id': 'limitaciones'},
+                    {'name': ('Uso recomendado' if not is_en else 'Recommended use'), 'id': 'cuando_usarlo'},
                 ],
                 data=table_df.to_dict('records'),
                 style_table={'overflowX': 'auto', 'marginTop': '8px'},
@@ -854,7 +961,11 @@ def create_weibull_analysis_page(language='es'):
             dcc.Loading(
                 id='loading-weibull',
                 type='circle',
-                children=html.Div(id='weibull-analysis-output')
+                children=html.Div(
+                    id='weibull-analysis-output',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Calculando modelo Weibull y preparando tabla y gráfica...' if language == 'es' else 'Fitting Weibull model and preparing table and chart...'}
+                )
             ),
             style={'margin': '0 20px 30px 20px'}
         ),
@@ -880,6 +991,7 @@ def create_weibull_analysis_page(language='es'):
         html.Div(
             id='openai-answer-weibull',
             children=get_translation(language, 'respuesta'),
+            className='analysis-loading-target',
             style={
                 'width': '80%',
                 'minHeight': '260px',
@@ -893,7 +1005,8 @@ def create_weibull_analysis_page(language='es'):
                 'overflowY': 'auto',
                 'color': '#1a1a1a',
                 'backgroundColor': '#fff'
-            }
+            },
+            **{'data-loading-message': 'Generando interpretación del modelo Weibull...' if language == 'es' else 'Generating Weibull model interpretation...'}
         ),
 
         create_pdf_export_modal('weibull-pdf-modal', 'weibull', language),
@@ -930,7 +1043,11 @@ def create_exponential_analysis_page(language='es'):
             dcc.Loading(
                 id='loading-exponential',
                 type='circle',
-                children=html.Div(id='exponential-analysis-output')
+                children=html.Div(
+                    id='exponential-analysis-output',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Calculando modelo exponencial y preparando tabla y gráfica...' if language == 'es' else 'Fitting Exponential model and preparing table and chart...'}
+                )
             ),
             style={'margin': '0 20px 30px 20px'}
         ),
@@ -956,6 +1073,7 @@ def create_exponential_analysis_page(language='es'):
         html.Div(
             id='openai-answer-exponential',
             children=get_translation(language, 'respuesta'),
+            className='analysis-loading-target',
             style={
                 'width': '80%',
                 'minHeight': '220px',
@@ -969,7 +1087,8 @@ def create_exponential_analysis_page(language='es'):
                 'overflowY': 'auto',
                 'color': '#1a1a1a',
                 'backgroundColor': '#fff'
-            }
+            },
+            **{'data-loading-message': 'Generando interpretación del modelo exponencial...' if language == 'es' else 'Generating Exponential model interpretation...'}
         ),
 
         create_pdf_export_modal('exponential-pdf-modal', 'exponential', language),
@@ -1074,7 +1193,11 @@ def create_rsf_analysis_page(language='es'):
             dcc.Loading(
                 id='loading-rsf',
                 type='circle',
-                children=html.Div(id='rsf-analysis-output')
+                children=html.Div(
+                    id='rsf-analysis-output',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Entrenando Random Survival Forest y preparando métricas...' if language == 'es' else 'Training Random Survival Forest and preparing metrics...'}
+                )
             ),
             style={'margin': '0 20px 30px 20px'}
         ),
@@ -1112,7 +1235,12 @@ def create_rsf_analysis_page(language='es'):
             html.Div([
                 html.Button(profile_button_label, id='rsf-profile-simulate-btn', style={'padding': '10px 20px', 'backgroundColor': '#8e44ad', 'color': 'white', 'border': 'none', 'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
             ], style={'textAlign': 'center'}),
-            html.Div(id='rsf-profile-output', style={'marginTop': '18px'}),
+            html.Div(
+                id='rsf-profile-output',
+                className='analysis-loading-target',
+                style={'marginTop': '18px'},
+                **{'data-loading-message': 'Simulando perfil individual con el modelo RSF...' if language == 'es' else 'Simulating individual profile with the RSF model...'}
+            ),
             html.Div([
                 html.Button(get_translation(language, 'explicar_rsf'), id='btn-rsf',
                                                      title=("Primero carga y preprocesa un dataset" if language == 'es' else "Load and preprocess a dataset first"),
@@ -1123,10 +1251,11 @@ def create_rsf_analysis_page(language='es'):
                          style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
             ], style={'textAlign': 'center', 'marginTop': '18px', 'marginBottom': '16px'}),
-            html.Div(
+            html.Div([
                 dcc.Textarea(
                     id='openai-answer-rsf',
                     value=get_translation(language, 'respuesta'),
+                    className='ai-output-textarea',
                     style={
                         'width': '90%',
                         'minHeight': '180px',
@@ -1144,8 +1273,11 @@ def create_rsf_analysis_page(language='es'):
                     },
                     disabled=True
                 ),
-                style={'textAlign': 'center'}
-            ),
+                html.Div(
+                    'Generando interpretación RSF...' if language == 'es' else 'Generating RSF interpretation...',
+                    className='textarea-loading-message'
+                ),
+            ], style={'textAlign': 'center'}),
         ], style={
             'backgroundColor': 'white',
             'padding': '20px',
@@ -1393,8 +1525,13 @@ def create_covariate_analysis_page(language='es'):
                         children=[
                             dcc.Graph(
                                 id='covariables-graph',
+                                className='analysis-loading-component',
                                 style={'height': '500px'},
                                 config={'responsive': True, 'displayModeBar': True}
+                            ),
+                            html.Div(
+                                'Actualizando visualización de covariables...' if language == 'es' else 'Updating covariate visualization...',
+                                className='inline-loading-message'
                             )
                         ]
                     )
@@ -1448,7 +1585,18 @@ def create_cox_regression_page(language='es'):
             ),
         ], style={'textAlign': 'center', 'marginTop': '30px'}),
         
-        html.Div(id='cox-regression-output', style={'textAlign': 'center', 'marginTop': '20px'}),
+        html.Div(
+            dcc.Loading(
+                id='loading-cox-regression',
+                type='circle',
+                children=html.Div(
+                    id='cox-regression-output',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Ejecutando regresión de Cox y preparando tabla/forest plot...' if language == 'es' else 'Running Cox regression and preparing table/forest plot...'}
+                )
+            ),
+            style={'textAlign': 'center', 'marginTop': '20px'}
+        ),
         
         # Botones de acción
         html.Div([
@@ -1462,10 +1610,11 @@ def create_cox_regression_page(language='es'):
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
         
-        html.Div(
+        html.Div([
             dcc.Textarea(
                 id='openai-answer-cox',
                 placeholder=get_translation(language, 'respuesta'),
+                className='ai-output-textarea',
                 style={
                     'width': '60%',  # tamaño
                     'height': '400px',  # altura de la caja de texto
@@ -1478,10 +1627,13 @@ def create_cox_regression_page(language='es'):
                     'fontSize': '16px',  # tamaño de la fuente para mayor legibilidad
                     'overflowY': 'auto'
                 },
-                disabled=True 
+                disabled=True
             ),
-            style={'textAlign': 'center'}  # centrado del contenedor que envuelve el Textarea
-        ),
+            html.Div(
+                'Generando interpretación de Cox...' if language == 'es' else 'Generating Cox interpretation...',
+                className='textarea-loading-message'
+            ),
+        ], style={'textAlign': 'center'}),  # centrado del contenedor que envuelve el Textarea
         
         # Modal de exportación a PDF
         create_pdf_export_modal('cox-pdf-modal', 'cox-regression', language),
@@ -1542,8 +1694,19 @@ def create_kaplan_meier_page(language='es'):
                  'backgroundColor': '#f8fbff', 'borderRadius': '10px', 'border': '1px solid #ddd'}),
         
         # ===== GRÁFICA DE COVARIABLE (Solo aparece si se selecciona algo) =====
-        html.Div(id='km-cov-div', style={'marginTop': '40px', 'padding': '20px', 'backgroundColor': '#f8f9fa', 
-                                        'borderRadius': '10px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.1)'}),
+        html.Div(
+            dcc.Loading(
+                id='loading-km-covariate',
+                type='circle',
+                children=html.Div(
+                    id='km-cov-div',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Calculando curva Kaplan-Meier para la covariable seleccionada...' if language == 'es' else 'Computing Kaplan-Meier curve for the selected covariate...'}
+                )
+            ),
+            style={'marginTop': '40px', 'padding': '20px', 'backgroundColor': '#f8f9fa',
+                   'borderRadius': '10px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.1)'}
+        ),
         
         # ===== BOTONES DE ACCIÓN =====
         html.Div([
@@ -1558,10 +1721,11 @@ def create_kaplan_meier_page(language='es'):
         ], style={'textAlign': 'center', 'marginTop': '20px'}),
         
         # ===== TEXTAREA PARA EXPLICACIÓN =====
-        html.Div(
+        html.Div([
             dcc.Textarea(
                 id='openai-answer-kaplan',
                 placeholder=get_translation(language, 'respuesta'),
+                className='ai-output-textarea',
                 style={
                     'width': '80%',  
                     'height': '400px', 
@@ -1576,10 +1740,13 @@ def create_kaplan_meier_page(language='es'):
                     'overflowY': 'auto',
                     'color': '#1a1a1a'
                 },
-                disabled=True  
+                disabled=True
             ),
-            style={'textAlign': 'center'}
-        ),
+            html.Div(
+                'Generando interpretación Kaplan-Meier...' if language == 'es' else 'Generating Kaplan-Meier interpretation...',
+                className='textarea-loading-message'
+            ),
+        ], style={'textAlign': 'center'}),
         
         # Store para mantener variable actual
         dcc.Store(id='km-current-variable', data=''),
@@ -1612,7 +1779,18 @@ def create_log_rank_page(language='es'):
         ], style={'textAlign': 'center', 'marginTop': '30px'}),
 
         # Este div se actualizará con el resultado del Log-Rank Test
-        html.Div(id='logrank-test-output', style={'textAlign': 'center', 'marginTop': '20px'}),
+        html.Div(
+            dcc.Loading(
+                id='loading-logrank-test',
+                type='circle',
+                children=html.Div(
+                    id='logrank-test-output',
+                    className='analysis-loading-target',
+                    **{'data-loading-message': 'Ejecutando Test Log-Rank y preparando curvas comparativas...' if language == 'es' else 'Running Log-Rank test and preparing comparative curves...'}
+                )
+            ),
+            style={'textAlign': 'center', 'marginTop': '20px'}
+        ),
         
         # Botones de acción
         html.Div([
@@ -1626,10 +1804,11 @@ def create_log_rank_page(language='es'):
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
-        html.Div(
+        html.Div([
             dcc.Textarea(
                 id='openai-answer-logrank',
                 placeholder=get_translation(language, 'respuesta'),
+                className='ai-output-textarea',
                 style={
                     'width': '60%',  
                     'height': '400px',  
@@ -1642,10 +1821,13 @@ def create_log_rank_page(language='es'):
                     'fontSize': '16px', 
                     'overflowY': 'auto'
                 },
-                disabled=True  
+                disabled=True
             ),
-            style={'textAlign': 'center'} 
-        ),
+            html.Div(
+                'Generando interpretación Log-Rank...' if language == 'es' else 'Generating Log-Rank interpretation...',
+                className='textarea-loading-message'
+            ),
+        ], style={'textAlign': 'center'}),
         
         # Modal de exportación a PDF
         create_pdf_export_modal('logrank-pdf-modal', 'log-rank', language),
@@ -1672,4 +1854,5 @@ def display_logrank_summary_table(result):
             {'if': {'filter_query': '{decision} = "No rechazar H0"'}, 'backgroundColor': '#ecffec'},
         ]
     )
+
 

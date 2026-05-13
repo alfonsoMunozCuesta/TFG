@@ -485,11 +485,16 @@ def register_pdf_export_callbacks(app):
             # GENERAR FOREST PLOT SI SE SOLICITA
             forest_figure = None
             if 'graph' in options and not summary.empty:
-                print(f"[COX PDF] Generando Forest Plot...")
+                print(f"[COX PDF] Generando Forest Plot igual al mostrado en el dashboard...")
                 try:
-                    from cox_regression import create_forest_plot
-                    forest_figure = create_forest_plot(summary)
-                    if forest_figure:
+                    from survival_plots import plot_cox_hazard_ratios
+                    forest_component = plot_cox_hazard_ratios(
+                        summary,
+                        'Selected covariates' if language == 'en' else 'Covariables seleccionadas',
+                        language=language
+                    )
+                    forest_figure = getattr(forest_component, 'figure', None)
+                    if forest_figure is not None:
                         print(f"[COX PDF] Forest Plot generado")
                 except Exception as e:
                     print(f"[COX PDF] Error generando Forest Plot: {e}")

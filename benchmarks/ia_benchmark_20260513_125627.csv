@@ -1,0 +1,31 @@
+run,technique,elapsed_seconds,response_chars,cpu_percent_approx,ram_mb_approx,process,pid
+1,Kaplan-Meier,6.448,457,49.74,1041.78,llama-server,19040
+2,Kaplan-Meier,5.806,518,50.09,1049.39,llama-server,19040
+3,Kaplan-Meier,3.14,278,50.42,1057.09,llama-server,19040
+4,Kaplan-Meier,4.207,370,50.9,1057.2,llama-server,19040
+5,Kaplan-Meier,7.151,664,49.97,1026.77,llama-server,19040
+6,Regresion de Cox,8.164,676,49.36,1036.21,llama-server,19040
+7,Regresion de Cox,8.478,685,49.72,1029.96,llama-server,19040
+8,Regresion de Cox,14.769,1194,48.45,1031.43,llama-server,19040
+9,Regresion de Cox,10.805,637,48.84,990.76,llama-server,19040
+10,Regresion de Cox,12.295,980,48.81,982.09,llama-server,19040
+11,Test Log-Rank,6.216,455,48.03,1005.41,llama-server,19040
+12,Test Log-Rank,4.651,439,51.03,1005.61,llama-server,19040
+13,Test Log-Rank,5.007,457,50.63,1005.68,llama-server,19040
+14,Test Log-Rank,5.401,494,49.57,1005.78,llama-server,19040
+15,Test Log-Rank,6.729,650,50.06,1012.8,llama-server,19040
+16,Weibull,11.956,845,46.69,1023.18,llama-server,19040
+17,Weibull,9.121,765,50.01,1027.27,llama-server,19040
+18,Weibull,8.103,654,49.97,1037.16,llama-server,19040
+19,Weibull,8.58,672,49.42,1046.42,llama-server,19040
+20,Weibull,7.28,656,49.71,1055.61,llama-server,19040
+21,Exponencial,7.269,533,48.8,1064.65,llama-server,19040
+22,Exponencial,4.305,276,50.27,1056.36,llama-server,19040
+23,Exponencial,6.336,505,50.31,1056.42,llama-server,19040
+24,Exponencial,6.849,525,50.4,1064.24,llama-server,19040
+25,Exponencial,5.603,276,48.42,1073.05,llama-server,19040
+26,Random Survival Forest,4.655,324,49.74,1081.12,llama-server,19040
+27,Random Survival Forest,6.962,659,49.74,1081.19,llama-server,19040
+28,Random Survival Forest,7.298,568,50.06,1040.76,llama-server,19040
+29,Random Survival Forest,4.07,360,50.5,1048.65,llama-server,19040
+30,Random Survival Forest,3.547,327,50.8,1048.72,llama-server,19040

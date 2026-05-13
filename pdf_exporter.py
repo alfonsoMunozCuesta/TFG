@@ -788,6 +788,14 @@ class SurvivalAnalysisPDFExporter:
     def _plotly_to_image(self, fig):
         """Convierte figura Plotly a imagen (BytesIO) con alta resolución"""
         try:
+            # Algunos callbacks devuelven un dcc.Graph completo. Extraemos la
+            # figura interna para exportar la misma grafica que ve el usuario.
+            if hasattr(fig, 'figure'):
+                fig = fig.figure
+
+            if isinstance(fig, dict):
+                fig = go.Figure(fig)
+
             img_bytes = pio.to_image(fig, format='png', width=1400, height=700, scale=2)
             return io.BytesIO(img_bytes)
         except Exception as e:
@@ -800,6 +808,11 @@ class SurvivalAnalysisPDFExporter:
             return
         
         try:
+            # Algunos callbacks devuelven un dcc.Graph completo. Extraemos la
+            # figura interna para exportar la misma grafica que ve el usuario.
+            if hasattr(fig, 'figure'):
+                fig = fig.figure
+
             # Si fig es string JSON, convertir a objeto Plotly
             if isinstance(fig, str):
                 try:
@@ -808,6 +821,8 @@ class SurvivalAnalysisPDFExporter:
                 except:
                     print(f"No se pudo convertir JSON a figura Plotly")
                     return
+            if isinstance(fig, dict):
+                fig = go.Figure(fig)
             
             # Convertir con dimensiones ALTAS para mejor resolución
             # 1400x700 (proporción 2:1) para buena resolución

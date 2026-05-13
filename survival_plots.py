@@ -287,6 +287,7 @@ def plot_cox_hazard_ratios(summary_df, covariable_name, language='es'):
     var_col = 'Covariable' if 'Covariable' in summary_df.columns else summary_df.columns[0]
     
     colors = ['green' if hr < 1 else 'red' for hr in summary_df['HR']]
+    y_labels = []
     
     # Añadir línea de referencia vertical en HR=1 (sin efecto)
     fig.add_vline(x=1, line_dash="dash", line_color="black", 
@@ -296,6 +297,7 @@ def plot_cox_hazard_ratios(summary_df, covariable_name, language='es'):
     # Añadir los puntos y barras de error
     for idx, (i, row) in enumerate(summary_df.iterrows()):
         var_name = str(row[var_col]) if var_col in row and pd.notna(row[var_col]) else f"Var {idx}"
+        y_labels.append(var_name)
         
         fig.add_trace(go.Scatter(
             x=[row['HR']],
@@ -320,7 +322,12 @@ def plot_cox_hazard_ratios(summary_df, covariable_name, language='es'):
         title=f"Forest Plot - Hazard Ratios (Cox Regression)",
         xaxis_title="Hazard Ratio (log scale)" if is_en else "Hazard Ratio (escala logarítmica)",
         yaxis_title="Variables" if is_en else "Variables",
-        yaxis=dict(autorange="reversed", tickmode='linear', tick0=0),
+        yaxis=dict(
+            autorange="reversed",
+            tickmode='array',
+            tickvals=list(range(len(y_labels))),
+            ticktext=y_labels
+        ),
         xaxis=dict(type="log"),
         height=max(400, len(summary_df) * 50),
         template='plotly_white',
