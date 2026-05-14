@@ -1,0 +1,347 @@
+{
+  "created_at": "2026-05-13T13:48:54",
+  "endpoint": "http://127.0.0.1:8000/v1/chat/completions",
+  "model": "qwen2.5-1.5b-instruct",
+  "mode": "techniques",
+  "runs": 5,
+  "warmup": 1,
+  "prompt": null,
+  "technique_prompts": [
+    {
+      "technique": "Kaplan-Meier",
+      "prompt": "Interpreta de forma breve y academica un analisis Kaplan-Meier con 1200 estudiantes, 310 abandonos observados, supervivencia estimada a los 100 dias de 0.82 y a los 200 dias de 0.69. La curva del grupo con mas creditos estudiados desciende antes que la del resto."
+    },
+    {
+      "technique": "Regresion de Cox",
+      "prompt": "Interpreta de forma breve y academica una regresion de Cox aplicada al abandono academico. La variable creditos estudiados presenta un Hazard Ratio de 1.42 con p-valor 0.03, edad 35-55 tiene Hazard Ratio 0.91 con p-valor 0.28 y discapacidad presenta Hazard Ratio 1.18 con p-valor 0.12."
+    },
+    {
+      "technique": "Test Log-Rank",
+      "prompt": "Interpreta de forma breve y academica un Test Log-Rank que compara curvas de supervivencia por nivel educativo previo. El estadistico de prueba es 12.84 y el p-valor es 0.004. Las curvas muestran una separacion visible entre grupos a partir de la mitad del seguimiento."
+    },
+    {
+      "technique": "Weibull",
+      "prompt": "Interpreta de forma breve y academica un modelo Weibull para abandono academico. El parametro de forma rho es 1.31, la mediana de supervivencia estimada es 176 dias, el log-likelihood es -842.5 y el AIC es 1689.0. El riesgo parece aumentar ligeramente con el tiempo."
+    },
+    {
+      "technique": "Exponencial",
+      "prompt": "Interpreta de forma breve y academica un modelo Exponencial para abandono academico. El parametro lambda estimado es 0.0048, la mediana de supervivencia es 144 dias, el log-likelihood es -861.2 y el AIC es 1724.4. El modelo asume riesgo constante durante el seguimiento."
+    },
+    {
+      "technique": "Random Survival Forest",
+      "prompt": "Interpreta de forma breve y academica un Random Survival Forest aplicado al abandono academico. El indice de concordancia es 0.71, la puntuacion out-of-bag es 0.66 y las variables mas importantes son creditos estudiados, edad y nivel educativo previo. Los perfiles de alto riesgo muestran una curva de supervivencia claramente inferior."
+    }
+  ],
+  "summary": {
+    "time_mean_seconds": 6.317,
+    "time_median_seconds": 4.936,
+    "time_max_seconds": 14.872,
+    "time_min_seconds": 3.312,
+    "response_chars_mean": 488.8,
+    "ram_mb_max_approx": 1149.68,
+    "cpu_percent_mean_approx": 49.8,
+    "cpu_percent_max_approx": 51.43
+  },
+  "results": [
+    {
+      "run": 1,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 5.767,
+      "response_chars": 411,
+      "cpu_percent_approx": 50.43,
+      "ram_mb_approx": 1141.54,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 2,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 6.005,
+      "response_chars": 538,
+      "cpu_percent_approx": 50.09,
+      "ram_mb_approx": 1141.79,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 3,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 3.312,
+      "response_chars": 289,
+      "cpu_percent_approx": 50.36,
+      "ram_mb_approx": 1149.68,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 4,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 4.923,
+      "response_chars": 358,
+      "cpu_percent_approx": 47.29,
+      "ram_mb_approx": 1146.02,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 5,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 5.04,
+      "response_chars": 329,
+      "cpu_percent_approx": 48.71,
+      "ram_mb_approx": 1117.59,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 6,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 14.872,
+      "response_chars": 1127,
+      "cpu_percent_approx": 48.7,
+      "ram_mb_approx": 1030.28,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 7,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.912,
+      "response_chars": 666,
+      "cpu_percent_approx": 49.45,
+      "ram_mb_approx": 984.05,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 8,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 8.927,
+      "response_chars": 644,
+      "cpu_percent_approx": 49.79,
+      "ram_mb_approx": 987.56,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 9,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 7.14,
+      "response_chars": 552,
+      "cpu_percent_approx": 49.99,
+      "ram_mb_approx": 996.74,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 10,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 12.35,
+      "response_chars": 995,
+      "cpu_percent_approx": 49.3,
+      "ram_mb_approx": 996.45,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 11,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 6.024,
+      "response_chars": 507,
+      "cpu_percent_approx": 49.88,
+      "ram_mb_approx": 1015.72,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 12,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 4.949,
+      "response_chars": 457,
+      "cpu_percent_approx": 49.67,
+      "ram_mb_approx": 1022.7,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 13,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 3.574,
+      "response_chars": 339,
+      "cpu_percent_approx": 51.43,
+      "ram_mb_approx": 1023.27,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 14,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 4.67,
+      "response_chars": 432,
+      "cpu_percent_approx": 49.64,
+      "ram_mb_approx": 1023.37,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 15,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 4.284,
+      "response_chars": 372,
+      "cpu_percent_approx": 50.47,
+      "ram_mb_approx": 1023.54,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 16,
+      "technique": "Weibull",
+      "elapsed_seconds": 10.393,
+      "response_chars": 759,
+      "cpu_percent_approx": 49.73,
+      "ram_mb_approx": 1031.89,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 17,
+      "technique": "Weibull",
+      "elapsed_seconds": 4.268,
+      "response_chars": 311,
+      "cpu_percent_approx": 50.66,
+      "ram_mb_approx": 1041.68,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 18,
+      "technique": "Weibull",
+      "elapsed_seconds": 9.316,
+      "response_chars": 748,
+      "cpu_percent_approx": 50.13,
+      "ram_mb_approx": 1041.84,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 19,
+      "technique": "Weibull",
+      "elapsed_seconds": 9.782,
+      "response_chars": 711,
+      "cpu_percent_approx": 49.29,
+      "ram_mb_approx": 1051.57,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 20,
+      "technique": "Weibull",
+      "elapsed_seconds": 4.582,
+      "response_chars": 322,
+      "cpu_percent_approx": 50.25,
+      "ram_mb_approx": 1061.33,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 21,
+      "technique": "Exponencial",
+      "elapsed_seconds": 4.557,
+      "response_chars": 246,
+      "cpu_percent_approx": 49.65,
+      "ram_mb_approx": 1068.11,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 22,
+      "technique": "Exponencial",
+      "elapsed_seconds": 4.096,
+      "response_chars": 254,
+      "cpu_percent_approx": 50.02,
+      "ram_mb_approx": 1068.12,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 23,
+      "technique": "Exponencial",
+      "elapsed_seconds": 7.187,
+      "response_chars": 558,
+      "cpu_percent_approx": 50.28,
+      "ram_mb_approx": 1068.27,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 24,
+      "technique": "Exponencial",
+      "elapsed_seconds": 4.322,
+      "response_chars": 254,
+      "cpu_percent_approx": 48.65,
+      "ram_mb_approx": 1076.29,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 25,
+      "technique": "Exponencial",
+      "elapsed_seconds": 4.117,
+      "response_chars": 271,
+      "cpu_percent_approx": 50.64,
+      "ram_mb_approx": 1076.29,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 26,
+      "technique": "Random Survival Forest",
+      "elapsed_seconds": 4.825,
+      "response_chars": 373,
+      "cpu_percent_approx": 50.18,
+      "ram_mb_approx": 1084.03,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 27,
+      "technique": "Random Survival Forest",
+      "elapsed_seconds": 4.477,
+      "response_chars": 391,
+      "cpu_percent_approx": 49.28,
+      "ram_mb_approx": 1084.04,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 28,
+      "technique": "Random Survival Forest",
+      "elapsed_seconds": 3.861,
+      "response_chars": 362,
+      "cpu_percent_approx": 50.08,
+      "ram_mb_approx": 1084.07,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 29,
+      "technique": "Random Survival Forest",
+      "elapsed_seconds": 8.581,
+      "response_chars": 762,
+      "cpu_percent_approx": 49.57,
+      "ram_mb_approx": 1084.23,
+      "process": "llama-server",
+      "pid": 21488
+    },
+    {
+      "run": 30,
+      "technique": "Random Survival Forest",
+      "elapsed_seconds": 3.387,
+      "response_chars": 327,
+      "cpu_percent_approx": 50.49,
+      "ram_mb_approx": 1093.43,
+      "process": "llama-server",
+      "pid": 21488
+    }
+  ]
+}

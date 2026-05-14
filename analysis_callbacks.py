@@ -329,10 +329,18 @@ def register_analysis_callbacks(app):
                         'minWidth': '100%',
                         'maxWidth': '100%'
                     },
-                    style_cell={'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'lineHeight': '15px'},
+                    style_cell={
+                        'textAlign': 'left',
+                        'whiteSpace': 'normal',
+                        'height': 'auto',
+                        'lineHeight': '15px',
+                        'minWidth': '125px',
+                        'width': '125px',
+                        'maxWidth': '210px'
+                    },
                 ),
-            ], style={'width': '100%', 'maxWidth': '100%', 'overflowX': 'auto'}),
-        ], style={'width': '100%', 'maxWidth': '100%'})
+            ], className='dataset-preview-table'),
+        ], className='dataset-preview')
     # Función para cargar el archivo CSV
     def parse_contents(contents):
         """

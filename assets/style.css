@@ -1,4 +1,5 @@
 :root {
+    --app-font: "Times New Roman", Times, serif;
     --bg: #f3f5f8;
     --surface: #ffffff;
     --surface-soft: #f8fafc;
@@ -14,11 +15,57 @@
 
 body {
     background-color: var(--bg);
-    font-family: "Times New Roman", Times, serif;
+    font-family: var(--app-font);
     color: var(--text);
     margin: 0;
     padding: 0;
     padding-top: 76px;
+}
+
+html,
+body,
+*,
+*::before,
+*::after,
+button,
+input,
+textarea,
+select,
+label,
+span,
+div,
+p,
+a,
+li,
+td,
+th {
+    font-family: var(--app-font) !important;
+}
+
+.Select,
+.Select *,
+.Select-control,
+.Select-menu-outer,
+.Select-value-label,
+.VirtualizedSelectOption,
+.dash-dropdown,
+.dash-dropdown *,
+.dash-table-container,
+.dash-table-container *,
+.dash-spreadsheet,
+.dash-spreadsheet *,
+.dash-spreadsheet-container,
+.dash-spreadsheet-container *,
+.dash-cell,
+.dash-header,
+.dash-table-tooltip,
+.js-plotly-plot,
+.js-plotly-plot *,
+.js-plotly-plot .main-svg,
+.js-plotly-plot .main-svg text,
+.plot-container,
+.plot-container * {
+    font-family: var(--app-font) !important;
 }
 
 #navbar {
@@ -85,7 +132,7 @@ h2, h3, h4 {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Times New Roman", Times, serif;
+    font-family: var(--app-font);
 }
 
 p {
@@ -277,8 +324,8 @@ textarea[data-dash-is-loading="true"] + .textarea-loading-message {
 }
 
 #data-table {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: hidden;
 }
 
 /* Home: bloque central formal (sin tocar banner ni navbar) */
@@ -366,6 +413,25 @@ textarea[data-dash-is-loading="true"] + .textarea-loading-message {
     color: #4f6274;
     font-size: 1rem;
     text-align: center;
+}
+
+.dataset-preview {
+    position: relative;
+    width: calc(100vw - 48px);
+    max-width: none;
+    margin: 14px 0 0 0;
+    margin-left: calc(50% - 50vw + 24px);
+    text-align: left;
+}
+
+.dataset-preview h5 {
+    text-align: center;
+}
+
+.dataset-preview-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 /* El selector de idioma mantiene su estilo original definido en el layout */

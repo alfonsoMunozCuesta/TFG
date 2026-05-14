@@ -1410,7 +1410,7 @@ def create_ver_dataset_page(language='es'):
                 data=layout_df.to_dict('records'),  # convertir el DataFrame en un formato que Dash pueda usar
                 style_table={
                     'overflowX': 'auto',
-                    'overflowY': 'auto',
+                    'overflowY': 'hidden',
                     'height': '74vh',
                     'maxHeight': '74vh',
                     'width': '100%'
