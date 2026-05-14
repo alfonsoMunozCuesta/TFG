@@ -168,7 +168,7 @@ http://127.0.0.1:8050
 
 \section{Interfaz de usuario}
 
-\paragraph*{}Una vez iniciada la aplicación y abierta la dirección local en el navegador, el usuario accede a la interfaz principal del dashboard. La aplicación está organizada en distintas páginas conectadas mediante una barra de navegación superior. Desde ella se puede volver al inicio, consultar el dataset, acceder al análisis de covariables, entrar en los módulos de análisis de supervivencia y comparar técnicas. La navegación está pensada para que el recorrido sea bastante natural: primero se cargan los datos, después se revisan y, finalmente, se analizan.
+\paragraph*{}Una vez iniciada la aplicación y abierta la dirección local en el navegador, el usuario accede a la interfaz principal del dashboard. La aplicación está organizada en distintas páginas conectadas mediante una barra de navegación superior. Desde ella se puede volver al inicio, consultar el dataset, acceder al análisis de covariables y entrar en los módulos de análisis de supervivencia. Dentro de esta última sección se incluye también el acceso a la comparación de técnicas. La navegación está pensada para que el recorrido sea bastante natural: primero se cargan los datos, después se revisan y, finalmente, se analizan.
 
 \paragraph*{}Las capturas incluidas en este manual tienen una función práctica: muestran al usuario qué pantalla debe localizar durante el flujo de uso. El capítulo de diseño recoge la distribución visual y los componentes de la interfaz con mayor detalle, mientras que este anexo se centra en acompañar el uso real de la aplicación, casi como una guía de trabajo.
 
@@ -233,8 +233,7 @@ http://127.0.0.1:8050
     \item \texttt{INICIO}: vuelve a la pantalla principal de carga del dataset.
     \item \texttt{VER DATASET}: muestra el dataset limpio y la descripción de las variables.
     \item \texttt{ANÁLISIS DE COVARIABLES}: permite explorar variables académicas y personales antes de aplicar técnicas de supervivencia.
-    \item \texttt{ANÁLISIS DE SUPERVIVENCIA}: da acceso a Kaplan-Meier, Regresión de Cox, Test Log-Rank, Weibull, Exponencial y Random Survival Forest.
-    \item \texttt{COMPARACIÓN DE TÉCNICAS}: permite revisar una comparación general entre los métodos disponibles.
+    \item \texttt{ANÁLISIS DE SUPERVIVENCIA}: da acceso a Kaplan-Meier, Regresión de Cox, Test Log-Rank, Weibull, Exponencial, Random Survival Forest y, desde un botón interno situado bajo las técnicas, a la comparación general entre métodos.
 \end{itemize}
 
 \paragraph*{}Al volver a la pantalla inicial, la aplicación puede solicitar confirmación para evitar perder el dataset cargado y los análisis realizados. Esta medida reduce el riesgo de abandonar accidentalmente el flujo de trabajo activo, algo que puede pasar con facilidad cuando se está explorando varias secciones seguidas.
@@ -294,7 +293,7 @@ http://127.0.0.1:8050
 
 \section{Técnicas de análisis de supervivencia}
 
-\paragraph*{}La sección de análisis de supervivencia agrupa los métodos estadísticos disponibles en la aplicación. Para utilizar cualquiera de ellos es necesario haber cargado y preprocesado previamente el dataset. Desde esta página, el usuario puede acceder a los distintos modelos y pruebas mediante los botones o enlaces internos de navegación.
+\paragraph*{}La sección de análisis de supervivencia agrupa los métodos estadísticos disponibles en la aplicación. Para utilizar cualquiera de ellos es necesario haber cargado y preprocesado previamente el dataset. Desde esta página, el usuario puede acceder a los distintos modelos y pruebas mediante los botones o enlaces internos de navegación. Bajo el conjunto de técnicas se muestra además un botón ancho de ``Comparación de técnicas'', que abre la vista comparativa general.
 
 \begin{figure}[H]
     \centering
@@ -391,7 +390,7 @@ http://127.0.0.1:8050
 
 \subsection{Comparación de técnicas}
 
-\paragraph*{}La comparación de técnicas ofrece una vista conjunta de los métodos incluidos en la aplicación. Esta sección ayuda al usuario a distinguir el propósito de cada técnica, sus ventajas y sus limitaciones. Es especialmente útil cuando se desea decidir qué resultado utilizar como referencia principal en un análisis, porque no todos los métodos responden exactamente a la misma pregunta.
+\paragraph*{}La comparación de técnicas ofrece una vista conjunta de los métodos incluidos en la aplicación. Se accede a ella desde el botón situado bajo las técnicas de la página de análisis de supervivencia, de manera que queda integrada en el mismo flujo de selección de modelos. Esta sección ayuda al usuario a distinguir el propósito de cada técnica, sus ventajas y sus limitaciones. Es especialmente útil cuando se desea decidir qué resultado utilizar como referencia principal en un análisis, porque no todos los métodos responden exactamente a la misma pregunta.
 
 \paragraph*{}La aplicación permite revisar de forma comparativa los modelos clásicos, paramétricos y de aprendizaje automático. Esta visión conjunta facilita entender que cada método responde a una pregunta distinta: Kaplan-Meier estima curvas, Log-Rank compara grupos, Cox analiza riesgos relativos, Weibull y Exponencial ajustan modelos paramétricos, y Random Survival Forest incorpora capacidad predictiva con múltiples variables.
 

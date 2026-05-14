@@ -193,7 +193,8 @@ diagram(
     "act_cu4.png",
     "CU-4: Consultar comparación de técnicas",
     [
-        "Usuario accede a la página Comparación de técnicas",
+        "Usuario accede a Análisis de Supervivencia",
+        "Usuario pulsa el botón Comparación de técnicas",
         "Sistema valida que exista un dataset disponible en sesión",
         "Sistema carga tabla comparativa de técnicas",
         "Sistema genera gráfico comparativo de capacidades",

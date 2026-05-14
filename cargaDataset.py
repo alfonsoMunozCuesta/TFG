@@ -51,13 +51,6 @@ navbar = html.Div([
             dcc.Link(get_translation('es', 'navbar_view_dataset'), href='/ver-dataset', className='navbar-link', id='navbar-view-dataset'), 
             dcc.Link(get_translation('es', 'navbar_covariate_analysis'), href='/covariate-analysis', className='navbar-link', id='navbar-covariate-analysis'),
             dcc.Link(get_translation('es', 'navbar_survival_analysis'), href='/survival-analysis', className='navbar-link', id='navbar-survival-analysis'),
-            dcc.Link(
-                get_translation('es', 'navbar_techniques_comparison'),
-                href='/survival-analysis/comparacion-tecnicas',
-                className='navbar-link',
-                id='navbar-techniques-comparison',
-                style={'display': 'none'}
-            ),
         ], className='navbar-links', style={'flex': '1'}),
         # Selector de idioma con banderas + switch en la esquina derecha
         html.Div([
@@ -139,8 +132,7 @@ def update_language(toggle_value):
     [Output('inicio-btn', 'children'),
      Output('navbar-view-dataset', 'children'),
      Output('navbar-covariate-analysis', 'children'),
-     Output('navbar-survival-analysis', 'children'),
-     Output('navbar-techniques-comparison', 'children')],
+     Output('navbar-survival-analysis', 'children')],
     Input('language-store', 'data')
 )
 def update_navbar_labels(language):
@@ -150,19 +142,8 @@ def update_navbar_labels(language):
         get_translation(language, 'navbar_view_dataset'),
         get_translation(language, 'navbar_covariate_analysis'),
         get_translation(language, 'navbar_survival_analysis'),
-        get_translation(language, 'navbar_techniques_comparison'),
     )
 
-
-@app.callback(
-    Output('navbar-techniques-comparison', 'style'),
-    [Input('url', 'pathname')]
-)
-def toggle_techniques_comparison_nav(pathname):
-    """Marca la opcion de comparacion como activa cuando se visita esa ruta."""
-    if pathname and pathname.startswith('/survival-analysis'):
-        return {'display': 'inline-block'}
-    return {'display': 'none'}
 
 @app.callback(
     Output('confirm-dialog', 'displayed'),

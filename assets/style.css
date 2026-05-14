@@ -434,6 +434,20 @@ textarea[data-dash-is-loading="true"] + .textarea-loading-message {
     overflow-x: auto;
 }
 
+.techniques-comparison-cta {
+    width: calc(100% - 60px);
+    max-width: none;
+    text-align: center;
+    margin: 0 auto 70px auto;
+}
+
+.techniques-comparison-wide {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 18px;
+}
+
 /* El selector de idioma mantiene su estilo original definido en el layout */
 
 @media (max-width: 980px) {
@@ -558,6 +572,10 @@ textarea[data-dash-is-loading="true"] + .textarea-loading-message {
         max-width: 380px;
         min-width: 0 !important;
         margin: 6px auto !important;
+    }
+
+    .techniques-comparison-cta {
+        width: calc(100% - 24px);
     }
 }
 

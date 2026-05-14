@@ -525,7 +525,15 @@ def create_survival_analysis_page(language='es'):
                 dcc.Link(get_translation(language, technique['label_key']), href=technique['href'], className='home-link'),
             ], className='survival-technique-card', style={'textAlign': 'center', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'marginTop': '20px', 'width': '30%', 'minWidth': '220px'})
             for technique in techniques
-        ], className='survival-techniques-grid', style={'textAlign': 'center', 'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap', 'gap': '30px', 'marginTop': '20px', 'paddingBottom': '90px'}),  
+        ], className='survival-techniques-grid', style={'textAlign': 'center', 'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap', 'gap': '30px', 'marginTop': '20px', 'paddingBottom': '28px'}),  
+
+        html.Div([
+            dcc.Link(
+                get_translation(language, 'navbar_techniques_comparison'),
+                href='/survival-analysis/comparacion-tecnicas',
+                className='home-link techniques-comparison-wide'
+            )
+        ], className='techniques-comparison-cta'),
 
         # Contenedor para mostrar el gráfico de Kaplan-Meier
         html.Div(id='survival_analysis_page', children=[]),
