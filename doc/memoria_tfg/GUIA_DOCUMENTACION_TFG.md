@@ -6,7 +6,7 @@ Esta carpeta contiene la plantilla LaTeX extraida de `ALFONSO.zip` y preparada p
 - Datos de portada: `Configuracion/_datos_proyecto.tex`
 - Capitulos: `Unidades/*/info.tex`
 - Bibliografia: `referencias.bib`
-- Manuales anexos: `Unidades/Apéndice/manual_de_usuario.tex` y `Unidades/Apéndice/manual_de_codigo.tex`
+- Manual anexo: `Unidades/Apéndice/manual_de_usuario.tex`
 
 ## Datos del anteproyecto que deben mantenerse
 

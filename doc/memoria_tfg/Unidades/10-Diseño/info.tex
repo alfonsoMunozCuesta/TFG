@@ -89,6 +89,16 @@ El diseño de la interfaz mantiene la idea principal del dashboard original: ofr
 La navegación se estructura mediante diferentes páginas o secciones. Cada una agrupa funcionalidades relacionadas: carga y visualización del dataset, análisis de covariables, técnicas de supervivencia, comparación de modelos y exportación de resultados. Esta organización evita mezclar demasiada información en una sola pantalla y permite que el usuario avance poco a poco, como si siguiera un pequeño recorrido: primero carga los datos, después los prepara, luego ejecuta modelos y finalmente interpreta o exporta los resultados.
 
 \paragraph*{}
+Para que ese recorrido se entienda de un vistazo, se ha incorporado un diagrama de navegación de la aplicación. La verdad es que este tipo de esquema ayuda bastante, porque funciona casi como un mapa antes de empezar una ruta: permite ver desde dónde parte el usuario, qué pantallas puede visitar y cómo se conectan las distintas acciones del dashboard. En él se representa el paso desde la carga inicial del dataset hasta la visualización de datos, el análisis de covariables, las técnicas de supervivencia, la comparación de métodos, la interpretación mediante IA y la exportación de resultados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Imagenes/navegaciion.png}
+    \caption{Diagrama de navegación de la aplicación}
+    \label{fig:diagrama_navegacion}
+\end{figure}
+
+\paragraph*{}
 En las páginas de análisis se ha seguido un patrón común. Primero se presenta la técnica seleccionada, después se muestran los controles necesarios y, finalmente, se generan tablas, métricas, gráficas e interpretaciones. Este patrón se repite en modelos como Exponencial, Weibull y Random Survival Forest, lo que aporta coherencia al uso de la aplicación. Cuando el usuario aprende cómo funciona una sección, puede moverse por las demás con menos esfuerzo.
 
 \paragraph*{}
@@ -434,12 +444,23 @@ En cuanto a clases propiamente dichas, destaca la clase responsable de construir
 \label{tab:componentes_diseno}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth,height=0.78\textheight,keepaspectratio]{Imagenes/diagrama_clases.png}
+    \caption{Diagrama de clases y componentes de la aplicación}
+    \label{fig:diagrama_clases_componentes}
+\end{figure}
+
 \section{Diagramas de secuencia}
 
 \paragraph*{}
 Los diagramas de secuencia muestran cómo colaboran los principales componentes del sistema cuando el usuario ejecuta cada una de las funcionalidades definidas en los casos de uso. A diferencia de los diagramas de actividad, que se centran en el flujo de acciones, estos diagramas ayudan a entender qué partes internas intervienen en cada proceso: la interfaz, los callbacks, el dataset, los modelos de análisis, la generación de visualizaciones, la inteligencia artificial o la exportación de informes.
 \paragraph*{}
 En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facilitar la lectura de las interacciones. Por este motivo, algunos participantes aparecen con nombres funcionales, como ``Interfaz Dash'', ``Callbacks de análisis'' o ``Estado del dataset'', en lugar de emplear exactamente los nombres técnicos utilizados en la vista de clases y componentes. Estos participantes no deben interpretarse siempre como clases Python estrictas, sino como componentes o responsabilidades del sistema. No obstante, se corresponden con los elementos descritos anteriormente: la interfaz se relaciona con \texttt{DashApp} y \texttt{layout.py}, los callbacks con \texttt{AnalysisCallbacks}, el estado del dataset con el componente \texttt{Dataset}, y los módulos de análisis con sus correspondientes modelos.
+
+\subsection{CU-1: EjecutarModeloExponencial}
+\paragraph*{}
+El diagrama de secuencia del CU-1 muestra cómo se coordina la interfaz con los callbacks de análisis para ejecutar el modelo exponencial. Primero se comprueba que el dataset esté cargado y preprocesado; si los datos son válidos, el sistema llama al módulo \texttt{exponential.py}, genera la gráfica mediante Plotly y devuelve al usuario la tabla resumen, la visualización y la comparativa de ajuste. Además, el diagrama incluye las interacciones opcionales con el módulo de IA y con la exportación a PDF, así como el camino alternativo cuando el dataset no es compatible.
 
 \begin{figure}[H]
     \centering
@@ -448,12 +469,20 @@ En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facil
     \label{fig:sec_cu1}
 \end{figure}
 
+\subsection{CU-2: EjecutarModeloWeibull}
+\paragraph*{}
+El diagrama del CU-2 representa el flujo interno necesario para ejecutar el modelo Weibull. La secuencia parte de la selección del análisis por parte del usuario, continúa con la validación del dataset y de los parámetros, y después delega el cálculo en el módulo \texttt{weibull.py}. Una vez obtenidos los resultados, se generan las visualizaciones correspondientes y se deja abierta la posibilidad de solicitar una explicación mediante IA o descargar el informe en PDF.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu2.png}
     \caption{Diagrama de secuencia del CU-2: EjecutarModeloWeibull}
     \label{fig:sec_cu2}
 \end{figure}
+
+\subsection{CU-3: EjecutarRandomSurvivalForest}
+\paragraph*{}
+El diagrama del CU-3 describe una interacción más completa, ya que Random Survival Forest no solo calcula resultados generales, sino que también permite simular perfiles personalizados. El sistema valida el dataset, ejecuta el análisis en \texttt{rsf.py}, genera curvas de supervivencia e importancia de variables y muestra los resultados en la interfaz. Después se contemplan acciones adicionales, como modificar los valores de un perfil, solicitar una interpretación automática o exportar el informe generado.
 
 \begin{figure}[H]
     \centering
@@ -462,12 +491,20 @@ En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facil
     \label{fig:sec_cu3}
 \end{figure}
 
+\subsection{CU-4: ConsultarComparacionDeTecnicas}
+\paragraph*{}
+El diagrama del CU-4 muestra cómo se construye la página de comparación de técnicas. Tras acceder desde el módulo de análisis de supervivencia, los callbacks comprueban que exista información disponible en sesión y solicitan la creación de la tabla comparativa, el gráfico de apoyo y el bloque explicativo automático. También se representan dos situaciones importantes: que no pueda generarse el gráfico comparativo o que falle la explicación mediante IA, en cuyo caso la página mantiene visible la información que sí se ha podido construir.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu4.png}
     \caption{Diagrama de secuencia del CU-4: ConsultarComparacionDeTecnicas}
     \label{fig:sec_cu4}
 \end{figure}
+
+\subsection{CU-5: ExportarInformesYResultados}
+\paragraph*{}
+El diagrama del CU-5 representa la generación de informes descargables. La secuencia comienza cuando el usuario abre el modal de exportación, introduce las opciones deseadas y solicita la descarga. A partir de ahí intervienen los callbacks de PDF, el estado del análisis y el exportador \texttt{SurvivalAnalysisPDFExporter}, que reúne resultados, convierte gráficas a imagen cuando es necesario, añade interpretaciones si se han seleccionado y guarda el documento en el sistema de archivos antes de devolverlo al usuario.
 
 \begin{figure}[H]
     \centering
@@ -476,12 +513,20 @@ En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facil
     \label{fig:sec_cu5}
 \end{figure}
 
+\subsection{CU-6: CambiarIdiomaInterfaz}
+\paragraph*{}
+El diagrama del CU-6 explica cómo se aplica el cambio de idioma en la interfaz. El usuario selecciona un idioma, el selector notifica el cambio a los callbacks de navegación y el sistema actualiza el estado del idioma activo. A continuación se recuperan las traducciones necesarias desde \texttt{translations.py} y se reconstruyen los componentes visibles del layout para actualizar menús, botones, títulos y mensajes sin modificar los datos cargados.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu6.png}
     \caption{Diagrama de secuencia del CU-6: CambiarIdiomaInterfaz}
     \label{fig:sec_cu6}
 \end{figure}
+
+\subsection{CU-7: AnalizarVariablesNoBinarias}
+\paragraph*{}
+El diagrama del CU-7 muestra el recorrido desde la carga del archivo CSV hasta el análisis de una variable no binaria. Primero se valida el formato del archivo y se ejecuta el preprocesamiento mediante \texttt{preprocesamiento.py}; después se guarda el dataset limpio y se recupera la variable seleccionada. Si la variable es compatible con el análisis, el sistema ejecuta el modelo correspondiente y genera tablas, métricas y visualizaciones. Si no lo es, se devuelve un mensaje de incompatibilidad al usuario.
 
 \begin{figure}[H]
     \centering
@@ -490,12 +535,20 @@ En los diagramas de secuencia se utiliza una nomenclatura descriptiva para facil
     \label{fig:sec_cu7}
 \end{figure}
 
+\subsection{CU-8: MejorarInterpretacionIA}
+\paragraph*{}
+El diagrama del CU-8 detalla el proceso de generación de interpretaciones mediante inteligencia artificial. La interfaz solicita una explicación, los callbacks recuperan los resultados disponibles y se construye un contexto textual con métricas, tablas y conclusiones relevantes. Ese contexto se envía al módulo \texttt{ollama\_AI.py}, que prepara la petición hacia el servidor local \texttt{llama-server} y el modelo Qwen. Finalmente, la respuesta se revisa, se formatea y se muestra al usuario, contemplando también los casos en los que no hay resultados previos o el módulo de IA no devuelve una respuesta válida.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu8.png}
     \caption{Diagrama de secuencia del CU-8: MejorarInterpretacionIA}
     \label{fig:sec_cu8}
 \end{figure}
+
+\subsection{CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\paragraph*{}
+El diagrama del CU-9 representa la generación de visualizaciones ampliadas para la regresión de Cox y el Test de Log-Rank. El sistema comprueba que existan datos y resultados previos, y después sigue un camino distinto según la visualización solicitada. Para Cox recupera los resultados de regresión y construye gráficos de hazard ratios; para Log-Rank obtiene la comparación entre grupos y genera curvas comparativas. En ambos casos, el módulo de visualizaciones prepara la figura con Plotly y devuelve la gráfica junto con los datos asociados.
 
 \begin{figure}[H]
     \centering

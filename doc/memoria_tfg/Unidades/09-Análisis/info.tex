@@ -78,7 +78,6 @@ Dicho diagrama se centra únicamente en los casos de uso asociados a la ampliaci
 \end{figure}
 
 
-
 \newpage
 \section{Especificación de los casos de uso}
 Una vez definidos los casos de uso, los actores del sistema y el diagrama general, se procede a la especificación de cada uno de ellos.
@@ -543,15 +542,21 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 
 \section{Diagramas de actividad}
 
+\paragraph*{}A continuación se presentan los diagramas de actividad asociados a los casos de uso de la ampliación. Estos diagramas permiten ver, de manera más dinámica que en la especificación textual, cómo avanza cada funcionalidad desde la acción inicial del usuario hasta la respuesta final del sistema. Además, ayudan a identificar las validaciones, decisiones y posibles caminos alternativos que pueden aparecer durante la interacción con el dashboard.
+
 \subsection{CU-1: EjecutarModeloExponencial}
+\paragraph*{}El diagrama del CU-1 representa el proceso que sigue el usuario para ejecutar el modelo exponencial dentro del módulo de análisis de supervivencia. En él se muestra la comprobación inicial del dataset, el cálculo automático del modelo y la posterior visualización de resultados, junto con las acciones complementarias de explicación mediante IA o exportación.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/act_cu1_2.png}
-    \caption{Diagrama de actividad del CU-2: EjecutarModeloExponencial}
+    \caption{Diagrama de actividad del CU-1: EjecutarModeloExponencial}
     \label{fig:act_cu1}
 \end{figure}
 
 \subsection{CU-2: EjecutarModeloWeibull}
+\paragraph*{}El diagrama del CU-2 recoge el flujo de ejecución del modelo Weibull. La actividad comienza cuando el usuario selecciona esta técnica, tras lo cual el sistema verifica que los datos estén preparados, ajusta el modelo y presenta las salidas necesarias para interpretar el comportamiento del riesgo a lo largo del tiempo.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/act_cu2_2.png}
@@ -561,6 +566,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 
 
 \subsection{CU-3: EjecutarRandomSurvivalForest}
+\paragraph*{}El diagrama del CU-3 describe la ejecución del modelo Random Survival Forest. En este caso, el flujo incorpora tanto el entrenamiento del modelo como la generación de resultados visuales y la simulación de perfiles, lo que permite al usuario explorar escenarios concretos a partir de los valores seleccionados.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Imagenes/act_cu3_2.png}
@@ -570,6 +577,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 
 
 \subsection{CU-4: ConsultarComparacionDeTecnicas}
+\paragraph*{}El diagrama del CU-4 muestra el acceso a la página de comparación de técnicas desde la sección de análisis de supervivencia. La verdad es que este flujo resulta útil porque resume cómo el usuario llega a una vista pensada para comparar métodos, revisar sus diferencias principales y apoyarse en una explicación automática cuando está disponible.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/act_cu4_2.png}
@@ -578,6 +587,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \end{figure}
 
 \subsection{CU-5: ExportarInformesYResultados}
+\paragraph*{}El diagrama del CU-5 representa el proceso de exportación de informes y resultados. En él se refleja cómo el usuario solicita la generación de un documento o archivo reutilizable, mientras el sistema recopila tablas, gráficas e interpretaciones disponibles antes de construir la salida final.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Imagenes/act_cu5_2.png}
@@ -587,6 +598,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 
 
 \subsection{CU-6: CambiarIdiomaInterfaz}
+\paragraph*{}El diagrama del CU-6 describe el cambio de idioma de la interfaz. El flujo es sencillo, pero importante para la experiencia de uso, ya que muestra cómo el usuario selecciona un idioma y cómo el sistema actualiza los textos visibles del dashboard sin alterar los datos ni los resultados ya cargados.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{Imagenes/act_cu6_2.png}
@@ -595,6 +608,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \end{figure}
 
 \subsection{CU-7: AnalizarVariablesNoBinarias}
+\paragraph*{}El diagrama del CU-7 explica cómo se incorporan variables no binarias al análisis. Este proceso amplía el alcance del dashboard, porque permite trabajar con factores que no se reducen a dos categorías y que, en muchos casos, aportan una lectura más rica del abandono académico.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Imagenes/act_cu7_2.png}
@@ -603,6 +618,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \end{figure}
 
 \subsection{CU-8: MejorarInterpretacionIA}
+\paragraph*{}El diagrama del CU-8 representa el flujo de mejora de la interpretación mediante inteligencia artificial. Se muestra cómo el sistema recoge los resultados del análisis, prepara el contexto necesario y solicita una explicación al módulo de IA, buscando que la respuesta sea comprensible, coherente y útil para el usuario.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/act_cu8_2.png}
@@ -611,6 +628,8 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 \end{figure}
 
 \subsection{CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\paragraph*{}El diagrama del CU-9 recoge la generación de visualizaciones adicionales asociadas a la regresión de Cox y al Test de Log-Rank. Su objetivo es mostrar cómo el sistema transforma los resultados estadísticos en salidas gráficas más claras, facilitando la comparación entre grupos y la interpretación visual de las diferencias detectadas.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Imagenes/act_cu9_2.png}
