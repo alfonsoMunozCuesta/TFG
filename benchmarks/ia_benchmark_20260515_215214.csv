@@ -1,0 +1,16 @@
+run,technique,elapsed_seconds,response_chars,cpu_percent_approx,ram_mb_approx,process,pid
+1,Kaplan-Meier,16.983,730,,1328.44,ollama,28504
+2,Kaplan-Meier,9.207,683,46.46,1330.38,ollama,28504
+3,Kaplan-Meier,9.459,671,46.56,1332.15,ollama,28504
+4,Kaplan-Meier,9.178,691,46.43,1333.85,ollama,28504
+5,Kaplan-Meier,9.285,684,46.46,1335.54,ollama,28504
+6,Regresion de Cox,9.988,663,46.45,1338.67,ollama,28504
+7,Regresion de Cox,9.085,672,45.93,1340.29,ollama,28504
+8,Regresion de Cox,9.233,628,46.53,1341.96,ollama,28504
+9,Regresion de Cox,9.153,646,46.57,1343.58,ollama,28504
+10,Regresion de Cox,9.118,645,47.14,1345.21,ollama,28504
+11,Test Log-Rank,11.048,738,46.82,1339.59,ollama,28504
+12,Test Log-Rank,9.226,691,46.36,1325.87,ollama,28504
+13,Test Log-Rank,9.3,699,46.11,1320.67,ollama,28504
+14,Test Log-Rank,9.284,775,46.62,1322.36,ollama,28504
+15,Test Log-Rank,9.227,663,46.6,1324.07,ollama,28504

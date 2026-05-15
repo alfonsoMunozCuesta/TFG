@@ -270,6 +270,9 @@ El Test de Log-Rank se utiliza para comparar curvas de supervivencia entre grupo
 \paragraph*{}
 La técnica de Weibull amplía el análisis de supervivencia con un modelo paramétrico capaz de representar distintos comportamientos del riesgo a lo largo del tiempo. En la interfaz se muestran los resultados principales del ajuste, las visualizaciones asociadas y la opción de exportación conjunta.
 
+\paragraph*{}
+La exportación conjunta se plantea de forma específica para Weibull y Exponencial porque ambos modelos pertenecen a la misma familia de análisis paramétrico y mantienen una relación directa entre caso general y caso particular. El informe no busca mezclar todas las técnicas del sistema, sino comparar un modelo base, más sencillo y con riesgo constante, frente a una alternativa más flexible que permite estudiar si el riesgo cambia con el tiempo.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/weibull1.png}
@@ -287,7 +290,7 @@ La técnica de Weibull amplía el análisis de supervivencia con un modelo param
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/exportarCombinado.png}
-    \caption{Botón de exportación combinada utilizado en Weibull y Exponencial, ya que ambos modelos exportan el mismo tipo de resultados}
+    \caption{Botón de exportación combinada utilizado en Weibull y Exponencial para comparar el modelo base con su generalización flexible}
     \label{fig:interfaz_exportar_combinado_weibull_exponencial}
 \end{figure}
 
@@ -399,7 +402,7 @@ Al pulsar el botón de exportación se abre una ventana modal en la que el usuar
 \end{figure}
 
 \paragraph*{}
-En los modelos Weibull y Exponencial se incluye además un botón de exportación combinada, ya que ambos representan una relación de caso general y caso particular dentro de los modelos paramétricos. Por su parte, Random Survival Forest incorpora un botón específico para simular perfiles, lo que permite explorar el comportamiento del modelo ante distintas combinaciones de variables.
+En los modelos Weibull y Exponencial se incluye además un botón de exportación combinada. La decisión de mantener este informe separado del resto de técnicas responde a una razón estadística y didáctica: el modelo exponencial actúa como referencia paramétrica básica, mientras que Weibull permite comprobar si esa mayor flexibilidad aporta un mejor ajuste respecto al caso particular. De esta forma, el usuario puede interpretar primero el modelo más simple y después valorar si el modelo más potente mejora la lectura del abandono. Por su parte, Random Survival Forest incorpora un botón específico para simular perfiles, lo que permite explorar el comportamiento del modelo ante distintas combinaciones de variables.
 
 \begin{figure}[H]
     \centering

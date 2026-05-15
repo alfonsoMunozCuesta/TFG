@@ -1,0 +1,188 @@
+{
+  "created_at": "2026-05-15T21:52:14",
+  "endpoint": "http://127.0.0.1:11434/api/chat",
+  "model": "llama3.2:1b",
+  "num_ctx": 512,
+  "max_tokens": 180,
+  "mode": "techniques",
+  "runs": 5,
+  "warmup": 0,
+  "dataset": "C:\\Users\\LENOVO\\Desktop\\TFG\\TFG\\dataset_limpio.csv",
+  "prompt": null,
+  "technique_prompts": [
+    {
+      "technique": "Kaplan-Meier",
+      "prompt": "Interpreta de forma breve y academica la curva Kaplan-Meier global del dashboard de abandono academico. Dataset: 371 estudiantes, 60 eventos de abandono, seguimiento entre 0 y 269 dias, media 241.89 dias. La supervivencia estimada es 0.922 en el dia 100 y 0.852 en el dia 200. Las variables disponibles para segmentar las curvas en este Dash son: Genero (Masculino: 226, Femenino: 145); Discapacidad (Sin discapacidad: 23, Con discapacidad: 348)."
+    },
+    {
+      "technique": "Regresion de Cox",
+      "prompt": "Interpreta de forma breve y academica una Regresion de Cox del dashboard de abandono academico. Covariables incluidas: gender_F, disability_N. Resultados: gender_F: HR=1.427, coef=0.356, p=0.1736; disability_N: HR=0.391, coef=-0.938, p=0.0147. Explica como afectan las covariables a la probabilidad de abandono."
+    },
+    {
+      "technique": "Test Log-Rank",
+      "prompt": "Interpreta de forma breve y academica un Test Log-Rank del dashboard comparando curvas de supervivencia con las variables existentes. Resultados: Genero (Masculino: 226, Femenino: 145): estadistico=2.7261, p-valor=0.098718, decision=No rechazar H0, conclusion=No se observan diferencias significativas entre las curvas; Discapacidad (Sin discapacidad: 23, Con discapacidad: 348): estadistico=7.8145, p-valor=0.005183, decision=Rechazar H0, conclusion=Hay diferencias significativas entre las curvas."
+    }
+  ],
+  "summary": {
+    "time_mean_seconds": 9.918,
+    "time_median_seconds": 9.233,
+    "time_max_seconds": 16.983,
+    "time_min_seconds": 9.085,
+    "response_chars_mean": 685.3,
+    "ram_mb_max_approx": 1345.21,
+    "cpu_percent_mean_approx": 46.5,
+    "cpu_percent_max_approx": 47.14
+  },
+  "results": [
+    {
+      "run": 1,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 16.983,
+      "response_chars": 730,
+      "cpu_percent_approx": null,
+      "ram_mb_approx": 1328.44,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 2,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 9.207,
+      "response_chars": 683,
+      "cpu_percent_approx": 46.46,
+      "ram_mb_approx": 1330.38,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 3,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 9.459,
+      "response_chars": 671,
+      "cpu_percent_approx": 46.56,
+      "ram_mb_approx": 1332.15,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 4,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 9.178,
+      "response_chars": 691,
+      "cpu_percent_approx": 46.43,
+      "ram_mb_approx": 1333.85,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 5,
+      "technique": "Kaplan-Meier",
+      "elapsed_seconds": 9.285,
+      "response_chars": 684,
+      "cpu_percent_approx": 46.46,
+      "ram_mb_approx": 1335.54,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 6,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.988,
+      "response_chars": 663,
+      "cpu_percent_approx": 46.45,
+      "ram_mb_approx": 1338.67,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 7,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.085,
+      "response_chars": 672,
+      "cpu_percent_approx": 45.93,
+      "ram_mb_approx": 1340.29,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 8,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.233,
+      "response_chars": 628,
+      "cpu_percent_approx": 46.53,
+      "ram_mb_approx": 1341.96,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 9,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.153,
+      "response_chars": 646,
+      "cpu_percent_approx": 46.57,
+      "ram_mb_approx": 1343.58,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 10,
+      "technique": "Regresion de Cox",
+      "elapsed_seconds": 9.118,
+      "response_chars": 645,
+      "cpu_percent_approx": 47.14,
+      "ram_mb_approx": 1345.21,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 11,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 11.048,
+      "response_chars": 738,
+      "cpu_percent_approx": 46.82,
+      "ram_mb_approx": 1339.59,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 12,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 9.226,
+      "response_chars": 691,
+      "cpu_percent_approx": 46.36,
+      "ram_mb_approx": 1325.87,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 13,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 9.3,
+      "response_chars": 699,
+      "cpu_percent_approx": 46.11,
+      "ram_mb_approx": 1320.67,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 14,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 9.284,
+      "response_chars": 775,
+      "cpu_percent_approx": 46.62,
+      "ram_mb_approx": 1322.36,
+      "process": "ollama",
+      "pid": 28504
+    },
+    {
+      "run": 15,
+      "technique": "Test Log-Rank",
+      "elapsed_seconds": 9.227,
+      "response_chars": 663,
+      "cpu_percent_approx": 46.6,
+      "ram_mb_approx": 1324.07,
+      "process": "ollama",
+      "pid": 28504
+    }
+  ]
+}
