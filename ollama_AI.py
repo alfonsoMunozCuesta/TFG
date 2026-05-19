@@ -9,14 +9,15 @@ import requests
 import json
 import time
 import sys
+import re
 import pandas as pd
 from config import LLAMA_SERVER_URL, MODEL_NAME
 
 DEFAULT_TEMPERATURE = 0.15
 DEFAULT_TOP_P = 0.85
-PDF_MAX_TOKENS = 480
-EXPLAIN_MAX_TOKENS = 260
-QUESTION_MAX_TOKENS = 320
+PDF_MAX_TOKENS = 560
+EXPLAIN_MAX_TOKENS = 320
+QUESTION_MAX_TOKENS = 560
 REQUEST_TIMEOUT_S = 240
 
 
@@ -30,22 +31,41 @@ def _looks_like_list_output(text):
     return any(marker in stripped for marker in ('1)', '2)', '3)', '1.', '2.', '3.'))
 
 
+def _trim_incomplete_final_sentence(text):
+    """Evita mostrar respuestas cortadas a mitad de frase por limite de tokens."""
+    if not text:
+        return text
+
+    stripped = text.strip()
+    if stripped.endswith(('.', '!', '?', ')', ']', '"', "'")):
+        return stripped
+
+    sentence_endings = list(re.finditer(r'[.!?](?=\s|$)', stripped))
+    if not sentence_endings:
+        return stripped
+
+    trimmed = stripped[:sentence_endings[-1].end()].strip()
+    return trimmed or stripped
+
+
 def _academic_system_prompt(language='es'):
     """Crea el mensaje de sistema que fuerza un tono academico y conciso."""
     if language == 'en':
         return (
             "You are a survival analysis expert writing for an academic thesis on university student dropout. "
             "Write in formal, evidence-based academic prose using only the numerical results provided. "
-            "Always cite specific values such as survival probabilities, p-values, hazard ratios or model parameters. "
-            "Connect each finding to its practical meaning in the student dropout context. "
-            "Return 2-3 short paragraphs with no bullet points, no numbered lists, and no invented data."
+            "Cite only the most relevant values, such as survival probabilities, p-values, hazard ratios or model parameters, as evidence. "
+            "Do not transcribe tables row by row: synthesize the main pattern, compare groups or curves, and explain what it means in the student dropout context. "
+            "Return 2-3 short paragraphs with no bullet points, no numbered lists, and no invented data. "
+            "Always finish with a complete final sentence."
         )
     return (
         "Eres un experto en análisis de supervivencia redactando para un TFG sobre abandono académico universitario. "
         "Redacta en prosa académica formal y basada en evidencias, usando solo los resultados numéricos proporcionados. "
-        "Cita siempre valores concretos como probabilidades de supervivencia, p-valores, hazard ratios o parámetros del modelo. "
-        "Relaciona cada resultado con su significado práctico en el contexto del abandono estudiantil. "
-        "Devuelve 2-3 párrafos breves, sin viñetas ni listas numeradas, sin inventar datos."
+        "Cita solo los valores mas relevantes, como probabilidades de supervivencia, p-valores, hazard ratios o parametros del modelo, como evidencia. "
+        "No transcribas tablas fila por fila: sintetiza el patron principal, compara grupos o curvas y explica que significa en el contexto del abandono estudiantil. "
+        "Devuelve 2-3 párrafos breves, sin viñetas ni listas numeradas, sin inventar datos. "
+        "Termina siempre con una frase final completa."
     )
 
 
@@ -95,7 +115,8 @@ def _call_llm(prompt, max_tokens, temperature=DEFAULT_TEMPERATURE, timeout=REQUE
     response.raise_for_status()
     result = response.json()
     content = result['choices'][0]['message']['content'].strip()
-    return _rewrite_to_prose_if_needed(content, max_tokens=max_tokens, language=language, timeout=timeout)
+    content = _rewrite_to_prose_if_needed(content, max_tokens=max_tokens, language=language, timeout=timeout)
+    return _trim_incomplete_final_sentence(content)
 
 
 def responder_pregunta_con_llama3(pregunta: str, language: str = 'es') -> str:

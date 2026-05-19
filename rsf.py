@@ -18,8 +18,8 @@ PROFILE_CATEGORIES = {
         0: "Masculino",
     },
     "disability_N": {
-        1: "Con discapacidad",
-        0: "Sin discapacidad",
+        1: "Sin discapacidad",
+        0: "Con discapacidad",
     },
     "age_band": {
         "age_band_0-35": "0-35 años",
@@ -276,6 +276,7 @@ def build_rsf_analysis(df: pd.DataFrame, language: str = 'es'):
     fig_survival = go.Figure()
     colors = ["#1abc9c", "#2980b9", "#e74c3c"]
     y_min = 1.0
+    survival_curve_summaries = []
 
     def _hex_to_rgba(hex_color: str, alpha: float) -> str:
         """Convierte colores hexadecimales en RGBA para sombrear intervalos en Plotly."""
@@ -289,6 +290,12 @@ def build_rsf_analysis(df: pd.DataFrame, language: str = 'es'):
         curve = survival_curves[index]
         curve_plot = [float(value) for value in np.asarray(curve, dtype=float).tolist()]
         y_min = min(y_min, float(np.min(curve)))
+        survival_curve_summaries.append({
+            "label": survival_labels[index],
+            "risk_score": float(risk_scores[row_index]),
+            "final_survival": float(curve_plot[-1]) if curve_plot else None,
+            "min_survival": float(np.min(curve)) if len(curve) else None,
+        })
         fig_survival.add_trace(
             go.Scatter(
                 x=curve_times_plot,
@@ -428,6 +435,7 @@ def build_rsf_analysis(df: pd.DataFrame, language: str = 'es'):
         "top_feature_importance": float(top_feature_value),
         "top_features": top_features,
         "survival_labels": survival_labels,
+        "survival_curve_summaries": survival_curve_summaries,
     }
 
 
@@ -495,7 +503,7 @@ def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict, language: str = 
 
     profile_labels = {
         "gender_F": ("Female" if int(profile.get("gender_F", 1)) == 1 else "Male") if is_en else PROFILE_CATEGORIES["gender_F"].get(int(profile.get("gender_F", 1)), "Femenino"),
-        "disability_N": ("With disability" if int(profile.get("disability_N", 1)) == 1 else "Without disability") if is_en else PROFILE_CATEGORIES["disability_N"].get(int(profile.get("disability_N", 1)), "Con discapacidad"),
+        "disability_N": ("Without disability" if int(profile.get("disability_N", 1)) == 1 else "With disability") if is_en else PROFILE_CATEGORIES["disability_N"].get(int(profile.get("disability_N", 1)), "Sin discapacidad"),
         "age_band": (
             {
                 "age_band_0-35": "0-35 years",
@@ -539,9 +547,17 @@ def build_rsf_profile_analysis(df: pd.DataFrame, profile: dict, language: str = 
         )
     )
 
+    risk_percentile = float((np.mean(risk_scores <= profile_risk_score) * 100)) if len(risk_scores) else 0.0
+    final_survival = float(survival_curve_plot[-1]) if survival_curve_plot else None
+
     return {
         "figure": fig_profile,
         "summary_df": profile_summary,
         "interpretation": interpretation,
         "risk_score": profile_risk_score,
+        "risk_percentile": risk_percentile,
+        "final_survival": final_survival,
+        "min_survival": float(curve_min),
+        "max_survival": float(curve_max),
+        "end_time": float(curve_times_plot[-1]) if curve_times_plot else None,
     }

@@ -5,9 +5,10 @@ necesitan los analisis de supervivencia, validando estructura y valores clave.
 """
 
 import pandas as pd
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as pyplot
 import os
+import csv
 
 def load_dataset(file_path):
     """Lee el CSV original usando el separador esperado por el proyecto."""
@@ -27,6 +28,124 @@ def clean_columns(df):
     return columnas_actividad
 
 # Función para preprocesar el dataset
+def preprocess_csv_file_streaming(file_path):
+    """Preprocesa temp_data.csv fila a fila para evitar cargar todo el CSV en memoria."""
+    columnas_actividad = clean_columns(None)
+    columnas_a_conservar = [
+        'id_student', 'date', 'final_result',
+        'gender_F', 'disability_N',
+        'age_band_0-35', 'age_band_35-55', 'age_band_55<=',
+        'highest_education_A Level or Equivalent', 'highest_education_HE Qualification',
+        'highest_education_Lower Than A Level', 'highest_education_No Formal quals',
+        'highest_education_Post Graduate Qualification',
+        'studied_credits'
+    ]
+    columnas_necesarias = set(columnas_a_conservar + columnas_actividad)
+
+    def _to_float(value, default=0.0):
+        try:
+            if value is None or str(value).strip() == "":
+                return default
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    def _to_int(value, default=0):
+        try:
+            if value is None or str(value).strip() == "":
+                return default
+            return int(float(value))
+        except (TypeError, ValueError):
+            return default
+
+    def _normalizar_fila(raw_row):
+        return {
+            (key.strip() if key else key): value
+            for key, value in raw_row.items()
+            if key is not None
+        }
+
+    def _preparar_registro(row):
+        final_result_text = str(row.get('final_result', '')).strip().lower()
+        date_value = _to_float(row.get('date'))
+        record = {col: row.get(col, '') for col in columnas_necesarias if col in row}
+        record['_date_value'] = date_value
+        record['_event_value'] = 1 if final_result_text == 'withdrawn' else 0
+        return record
+
+    def _tiene_actividad(record):
+        return any(_to_float(record.get(col), 0.0) > 0.0 for col in columnas_actividad)
+
+    seleccion_por_estudiante = {}
+
+    with open(file_path, newline='', encoding='utf-8') as csv_file:
+        reader = csv.DictReader(csv_file, delimiter=';')
+        fieldnames = {name.strip() for name in (reader.fieldnames or []) if name}
+        columnas_faltantes = [col for col in ['id_student', 'date', 'final_result'] if col not in fieldnames]
+        if columnas_faltantes:
+            raise ValueError(f"[ERROR] Faltan columnas criticas: {', '.join(columnas_faltantes)}")
+
+        for raw_row in reader:
+            row = _normalizar_fila(raw_row)
+            student_id = str(row.get('id_student', '')).strip()
+            if not student_id:
+                continue
+
+            record = _preparar_registro(row)
+            date_value = record['_date_value']
+            student_state = seleccion_por_estudiante.setdefault(
+                student_id,
+                {
+                    'latest': record,
+                    'oldest': record,
+                    'date_269': None,
+                    'date_0': None,
+                    'activity_latest': None,
+                }
+            )
+
+            if date_value > student_state['latest']['_date_value']:
+                student_state['latest'] = record
+            if date_value < student_state['oldest']['_date_value']:
+                student_state['oldest'] = record
+            if int(date_value) == 269 and student_state['date_269'] is None:
+                student_state['date_269'] = record
+            if int(date_value) == 0 and student_state['date_0'] is None:
+                student_state['date_0'] = record
+            if _tiene_actividad(record) and (
+                student_state['activity_latest'] is None
+                or date_value > student_state['activity_latest']['_date_value']
+            ):
+                student_state['activity_latest'] = record
+
+    filas_finales = []
+    for student_id in sorted(seleccion_por_estudiante, key=lambda value: _to_int(value)):
+        state = seleccion_por_estudiante[student_id]
+        latest = state['latest']
+        if latest['_event_value'] == 0:
+            selected = state['date_269'] or latest
+        else:
+            selected = state['activity_latest'] or state['date_0'] or state['oldest']
+
+        output_row = {}
+        for col in columnas_a_conservar:
+            if col == 'final_result':
+                output_row[col] = int(selected['_event_value'])
+            else:
+                output_row[col] = _to_int(selected.get(col), 0)
+        filas_finales.append(output_row)
+
+    df_final = pd.DataFrame(filas_finales, columns=columnas_a_conservar)
+    if df_final.empty:
+        raise ValueError("[ERROR] El dataset esta vacio. No hay filas para procesar.")
+
+    print("\n[OK] Preprocesamiento streaming completado:")
+    print(f"  - Filas procesadas: {df_final.shape[0]}")
+    print(f"  - Columnas conservadas: {df_final.shape[1]}")
+    print(f"  - Distribucion final_result: {df_final['final_result'].value_counts().to_dict()}\n")
+    return df_final
+
+
 def preprocess_data(df_tmp):
     """
     Preprocesa el dataset eliminando duplicados, conservando columnas esenciales,

@@ -41,7 +41,7 @@ from kaplan_meier import plot_kaplan_meier, plot_km_G, plot_km_disc
 from cox_regression import run_cox_regression
 from log_rank_test import perform_log_rank_test
 from survival_plots import plot_logrank_curves, plot_cox_hazard_ratios
-from preprocesamiento import preprocess_data
+from preprocesamiento import preprocess_data, preprocess_csv_file_streaming
 from weibull import build_weibull_analysis
 from exponential import build_exponential_analysis
 from rsf import build_rsf_analysis, build_rsf_profile_analysis
@@ -61,6 +61,7 @@ from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
 BASE_DIR = Path(__file__).resolve().parent
 TEMP_DATA_PATH = BASE_DIR / 'data' / 'temp_data.csv'
 CLEAN_DATA_PATH = BASE_DIR / 'dataset_limpio.csv'
+DATASET_PREVIEW_MAX_ROWS = 100
 
 # Cache simple en memoria. Evita leer los CSV en cada callback y se inicializa
 # bajo demanda con load_dataframes().
@@ -118,125 +119,640 @@ def _dataset_signature_from_json(df_json):
 
 def _build_km_interpretation_context(df, variable_actual):
     """Construye un resumen interpretable de la curva Kaplan-Meier actual."""
-    if df is None or variable_actual not in df.columns:
+    if df is None or 'date' not in df.columns or 'final_result' not in df.columns:
         return ""
 
     from lifelines import KaplanMeierFitter
+    from kaplan_meier import COVARIABLE_MAPPING
 
     context_lines = []
     kmf = KaplanMeierFitter()
 
-    if variable_actual in ['gender_F', 'disability_N']:
+    columns = COVARIABLE_MAPPING.get(variable_actual, [variable_actual])
+    available_columns = [col for col in columns if col in df.columns]
+    if not available_columns:
+        return ""
+
+    max_time = float(df['date'].max()) if len(df) else 0.0
+    mid_followup_time = float(df['date'].median()) if len(df) else 0.0
+
+    def _format_group_stats(label, group_df):
+        """Resume una curva visible de Kaplan-Meier para el prompt de IA."""
+        if len(group_df) == 0:
+            return ""
+
+        kmf.fit(group_df['date'], event_observed=group_df['final_result'])
+        final_survival = float(kmf.survival_function_.iloc[-1, 0]) if len(kmf.survival_function_) > 0 else 0.0
+        mid_followup_survival = float(kmf.predict(mid_followup_time)) if mid_followup_time else final_survival
+        max_survival = float(kmf.predict(max_time)) if max_time else final_survival
+        km_median = kmf.median_survival_time_
+        median_note = "no alcanzada" if pd.isna(km_median) or km_median == float("inf") else f"{float(km_median):.0f}"
+        events = int(group_df['final_result'].sum())
+        event_rate = (events / len(group_df)) * 100
+
+        return (
+            f"- {label}: n={len(group_df)}, eventos={events} ({event_rate:.1f}%), "
+            f"S(tiempo intermedio observado={mid_followup_time:.0f}) aprox. {mid_followup_survival:.3f}, "
+            f"S(tiempo máximo observado={max_time:.0f}) aprox. {max_survival:.3f}, "
+            f"supervivencia final aprox. {final_survival:.3f}, "
+            f"mediana Kaplan-Meier={median_note}"
+        )
+
+    if len(columns) == 1 and variable_actual != 'studied_credits':
+        col = columns[0]
         label_map = {
             'gender_F': {1: 'Femenino', 0: 'Masculino'},
-            'disability_N': {1: 'Con discapacidad', 0: 'Sin discapacidad'}
+            'disability_N': {1: 'Sin discapacidad', 0: 'Con discapacidad'}
         }
-        for group_value in sorted(df[variable_actual].dropna().unique()):
-            group_df = df[df[variable_actual] == group_value]
-            if len(group_df) == 0:
-                continue
-            kmf.fit(group_df['date'], event_observed=group_df['final_result'])
-            final_survival = float(kmf.survival_function_.iloc[-1, 0]) if len(kmf.survival_function_) > 0 else 0.0
-            context_lines.append(
-                f"- {label_map.get(variable_actual, {}).get(group_value, group_value)}: "
-                f"n={len(group_df)}, eventos={int(group_df['final_result'].sum())}, "
-                f"supervivencia final≈{final_survival:.3f}"
-            )
+        df_filtered = df[df[col].notnull()]
+        for group_value in sorted(df_filtered[col].unique()):
+            group_df = df_filtered[df_filtered[col] == group_value]
+            label = label_map.get(variable_actual, {}).get(group_value, f"{col} = {group_value}")
+            line = _format_group_stats(label, group_df)
+            if line:
+                context_lines.append(line)
 
-    elif variable_actual in ['age_band', 'highest_education']:
-        mapping = {
-            'age_band': ['age_band_0-35', 'age_band_35-55', 'age_band_55<='],
-            'highest_education': [
-                'highest_education_A Level or Equivalent',
-                'highest_education_HE Qualification',
-                'highest_education_Lower Than A Level',
-                'highest_education_Post Graduate Qualification'
-            ]
-        }
-        for col in mapping.get(variable_actual, []):
+    elif len(columns) > 1:
+        for col in columns:
             if col not in df.columns:
                 continue
             group_df = df[df[col] == 1]
             if len(group_df) == 0:
                 continue
-            kmf.fit(group_df['date'], event_observed=group_df['final_result'])
-            final_survival = float(kmf.survival_function_.iloc[-1, 0]) if len(kmf.survival_function_) > 0 else 0.0
-            label = col.split('_', 1)[1] if '_' in col else col
-            context_lines.append(
-                f"- {label}: n={len(group_df)}, eventos={int(group_df['final_result'].sum())}, "
-                f"supervivencia final≈{final_survival:.3f}"
-            )
+            if col.startswith('age_band_'):
+                label = col.replace('age_band_', '', 1)
+            elif col.startswith('highest_education_'):
+                label = col.replace('highest_education_', '', 1)
+            else:
+                label = col
+            line = _format_group_stats(label, group_df)
+            if line:
+                context_lines.append(line)
 
-    elif variable_actual == 'studied_credits' and 'studied_credits' in df.columns:
+    elif variable_actual == 'studied_credits':
         df_temp = df[['studied_credits', 'date', 'final_result']].dropna()
         if len(df_temp) > 0:
-            n_unique = df_temp['studied_credits'].nunique()
-            if n_unique <= 5:
-                unique_vals = sorted(df_temp['studied_credits'].unique())
-                value_to_group = {val: i for i, val in enumerate(unique_vals)}
-                df_temp['group'] = df_temp['studied_credits'].map(value_to_group)
-                groups = sorted(df_temp['group'].unique())
-                labels = [f"Grupo {i+1} ({unique_vals[i]:.0f} créditos)" for i in groups]
+            unique_values = sorted(df_temp['studied_credits'].unique())
+            if len(unique_values) > 10:
+                df_temp['credits_group'] = pd.cut(df_temp['studied_credits'], bins=5, duplicates='drop')
             else:
-                df_temp['group'] = pd.qcut(df_temp['studied_credits'], q=5, labels=False, duplicates='drop')
-                groups = sorted(df_temp['group'].unique())
-                labels = [f"Quintil {i+1}" for i in groups]
+                df_temp['credits_group'] = df_temp['studied_credits']
 
-            for i, group_val in enumerate(groups):
-                group_df = df_temp[df_temp['group'] == group_val]
-                if len(group_df) == 0:
-                    continue
-                kmf.fit(group_df['date'], event_observed=group_df['final_result'])
-                final_survival = float(kmf.survival_function_.iloc[-1, 0]) if len(kmf.survival_function_) > 0 else 0.0
-                context_lines.append(
-                    f"- {labels[i]}: n={len(group_df)}, eventos={int(group_df['final_result'].sum())}, "
-                    f"supervivencia final≈{final_survival:.3f}"
-                )
+            groups = list(df_temp['credits_group'].dropna().unique())
+            for group_value in groups:
+                group_df = df_temp[df_temp['credits_group'] == group_value]
+                label = f"Créditos: {group_value}"
+                line = _format_group_stats(label, group_df)
+                if line:
+                    context_lines.append(line)
+
+            if not context_lines and len(unique_values) <= 5:
+                unique_vals = sorted(df_temp['studied_credits'].unique())
+                context_lines.append(f"- Valores de créditos visibles: {', '.join(map(str, unique_vals))}")
+
+    if context_lines:
+        context_lines.append(
+            "Nota para interpretar: S(t) es supervivencia estimada en tiempos observados, no mediana de supervivencia. "
+            "Si la mediana Kaplan-Meier no se alcanza, no afirmes que existe una mediana de supervivencia. "
+            "Compara la proximidad visual de las curvas y trata con cautela curvas con n pequeno o supervivencia final perfecta."
+        )
 
     return "\n".join(context_lines)
 
 
+def _build_cox_interpretation_context(summary_df, selected_covariables=None, df=None, language='es'):
+    """Construye un resumen fiel de la tabla Cox activa para el prompt de IA."""
+    if summary_df is None or summary_df.empty:
+        return ""
+
+    from math import exp, isfinite
+    from cox_regression import COVARIABLE_MAPPING
+
+    selected_covariables = selected_covariables or []
+    if isinstance(selected_covariables, str):
+        selected_covariables = [item.strip() for item in selected_covariables.split(',') if item.strip()]
+
+    label_map = {
+        'gender_F': 'Femenino frente a Masculino',
+        'disability_N': 'Sin discapacidad frente a Con discapacidad',
+        'studied_credits': 'Créditos estudiados (por unidad)',
+        'age_band_0-35': 'Edad 0-35',
+        'age_band_35-55': 'Edad 35-55',
+        'age_band_55<=': 'Edad 55 o más',
+        'highest_education_A Level or Equivalent': 'A Level or Equivalent',
+        'highest_education_HE Qualification': 'HE Qualification',
+        'highest_education_Lower Than A Level': 'Lower Than A Level',
+        'highest_education_Post Graduate Qualification': 'Post Graduate Qualification',
+    }
+
+    def _as_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _clean_label(covariable):
+        covariable = str(covariable)
+        if covariable in label_map:
+            return label_map[covariable]
+        if covariable.startswith('age_band_'):
+            return covariable.replace('age_band_', 'Edad ', 1)
+        if covariable.startswith('highest_education_'):
+            return covariable.replace('highest_education_', '', 1)
+        return _humanize_label(covariable)
+
+    def _selected_label(covariable):
+        covariable = str(covariable)
+        if covariable == 'gender_F':
+            return 'Género'
+        if covariable == 'disability_N':
+            return 'Discapacidad'
+        if covariable == 'age_band':
+            return 'Banda de edad'
+        if covariable == 'highest_education':
+            return 'Nivel educativo'
+        if covariable == 'studied_credits':
+            return 'Créditos estudiados'
+        return _humanize_label(covariable)
+
+    lines = []
+    if df is not None and 'date' in df.columns and 'final_result' in df.columns:
+        lines.append(
+            f"Datos del modelo activo: n={len(df)}, eventos={int(df['final_result'].sum())}, "
+            f"tiempo máximo observado={float(df['date'].max()):.0f}."
+        )
+
+    if selected_covariables:
+        selected_labels = ", ".join(_selected_label(item) for item in selected_covariables)
+        lines.append(f"Covariables seleccionadas en pantalla: {selected_labels}.")
+
+    for cov in selected_covariables:
+        mapped_cols = COVARIABLE_MAPPING.get(cov, [cov])
+        existing_cols = [col for col in mapped_cols if df is None or col in df.columns]
+        if len(existing_cols) > 1:
+            reference = existing_cols[-1]
+            lines.append(
+                f"Referencia categórica para {_selected_label(cov)}: {_clean_label(reference)}. "
+                "Los HR de sus categorías se interpretan frente a esta referencia."
+            )
+
+    lines.append("Resultados reales de la tabla Cox activa:")
+    for _, row in summary_df.iterrows():
+        cov_name = row.get('Covariable', row.get('Variable', 'N/A'))
+        if str(cov_name).upper() == 'ERROR':
+            continue
+
+        hr = _as_float(row.get('exp(Coef.)', row.get('exp(coef)', None)))
+        ci_low = _as_float(row.get('exp(Coef.) lower 95%', None))
+        ci_high = _as_float(row.get('exp(Coef.) upper 95%', None))
+        p_val = _as_float(row.get('p', None))
+
+        if ci_low is None:
+            coef_low = _as_float(row.get('Coef. lower 95%', None))
+            ci_low = None if coef_low is None else float(exp(coef_low))
+        if ci_high is None:
+            coef_high = _as_float(row.get('Coef. upper 95%', None))
+            ci_high = None if coef_high is None else float(exp(coef_high))
+
+        if hr is None:
+            continue
+
+        significance = "significativa" if p_val is not None and p_val < 0.05 else "no significativa"
+        point_direction = "HR puntual >1" if hr > 1 else "HR puntual <1"
+        direction = (
+            "mayor hazard/riesgo de abandono"
+            if hr > 1 and significance == "significativa"
+            else "menor hazard/riesgo de abandono"
+            if hr < 1 and significance == "significativa"
+            else "estimación puntual no concluyente"
+        )
+        ci_text = f"IC95% HR=[{ci_low:.3f}, {ci_high:.3f}]" if ci_low is not None and ci_high is not None else "IC95% HR=no disponible"
+        p_text = f"p={p_val:.4f}" if p_val is not None else "p=no disponible"
+        unstable_ci = (
+            ci_low is not None and ci_high is not None and
+            (ci_low <= 0 or not isfinite(ci_high) or ci_high > 1000)
+        )
+        crosses_one = (
+            " El IC95% cruza 1, por lo que el efecto debe tratarse como incierto."
+            if ci_low is not None and ci_high is not None and ci_low <= 1 <= ci_high else ""
+        )
+        unstable_note = (
+            " El intervalo es extremadamente amplio o infinito, señal de estimación inestable; no interpretes la magnitud del HR como efecto real."
+            if unstable_ci else ""
+        )
+
+        lines.append(
+            f"- {_clean_label(cov_name)}: HR={hr:.3f}, {ci_text}, {p_text}, "
+            f"{significance}; {point_direction}; interpretación: {direction}.{crosses_one}{unstable_note}"
+        )
+
+    lines.append(
+        "Nota para interpretar: en Cox, HR>1 indica mayor hazard del evento y HR<1 indica menor hazard. "
+        "No hagas afirmaciones causales; habla de asociación ajustada. "
+        "Si p>=0.05 o el IC95% incluye 1, evita presentar el efecto como concluyente. "
+        "Si el IC95% es infinito o extremadamente amplio, destaca inestabilidad y no interpretes la magnitud del HR."
+    )
+
+    return "\n".join(lines)
+
+
 def _build_logrank_interpretation_context(logrank_store_data):
-    """Convierte los resultados de Log-Rank en texto interpretable."""
+    """Convierte tabla y curvas Log-Rank activas en contexto interpretable."""
     if not isinstance(logrank_store_data, dict):
         return ""
+
+    from lifelines import KaplanMeierFitter
+    from log_rank_test import COVARIABLE_MAPPING
+
+    def _clean_group_label(value, covariable=None):
+        text = str(value)
+        if covariable == 'gender_F':
+            return {'0': 'Masculino', '1': 'Femenino'}.get(text, text)
+        if covariable == 'disability_N':
+            return {'0': 'Con discapacidad', '1': 'Sin discapacidad'}.get(text, text)
+        if text.startswith('age_band_'):
+            return text.replace('age_band_', '', 1)
+        if text.startswith('highest_education_'):
+            return text.replace('highest_education_', '', 1)
+        if text.startswith('band_'):
+            return text.replace('band_', '', 1)
+        if text.startswith('education_'):
+            return text.replace('education_', '', 1)
+        return _humanize_label(text)
+
+    def _selected_label(covariable):
+        labels = {
+            'gender_F': 'Género',
+            'disability_N': 'Discapacidad',
+            'age_band': 'Banda de edad',
+            'highest_education': 'Nivel educativo',
+            'studied_credits': 'Créditos estudiados',
+        }
+        return labels.get(str(covariable), _humanize_label(covariable))
+
+    def _format_group_stats(label, group_df):
+        if group_df is None or len(group_df) == 0:
+            return ""
+
+        kmf = KaplanMeierFitter()
+        kmf.fit(group_df['date'], event_observed=group_df['final_result'])
+        final_survival = float(kmf.survival_function_.iloc[-1, 0]) if len(kmf.survival_function_) > 0 else 0.0
+        events = int(group_df['final_result'].sum())
+        event_rate = (events / len(group_df)) * 100
+        return f"{label}: n={len(group_df)}, eventos={events} ({event_rate:.1f}%), supervivencia final aprox. {final_survival:.3f}"
+
+    def _build_curve_context(df, covariable):
+        if df is None or df.empty or 'date' not in df.columns or 'final_result' not in df.columns:
+            return []
+
+        columns = COVARIABLE_MAPPING.get(covariable, [covariable])
+        curve_lines = []
+
+        if covariable == 'studied_credits' and 'studied_credits' in df.columns:
+            df_temp = df[['studied_credits', 'date', 'final_result']].dropna().copy()
+            if df_temp.empty:
+                return []
+            unique_values = sorted(df_temp['studied_credits'].unique())
+            if len(unique_values) <= 5:
+                value_to_group = {val: i for i, val in enumerate(unique_values)}
+                df_temp['group'] = df_temp['studied_credits'].map(value_to_group)
+                labels = {i: f"Valor {unique_values[i]:.0f} créditos" for i in range(len(unique_values))}
+            else:
+                df_temp['group'] = pd.qcut(df_temp['studied_credits'], q=5, labels=False, duplicates='drop')
+                labels = {int(group): f"Quintil {int(group) + 1}" for group in sorted(df_temp['group'].dropna().unique())}
+
+            for group_value in sorted(df_temp['group'].dropna().unique()):
+                group_df = df_temp[df_temp['group'] == group_value]
+                line = _format_group_stats(labels.get(int(group_value), f"Grupo {group_value}"), group_df)
+                if line:
+                    curve_lines.append(line)
+
+        elif len(columns) > 1:
+            for col in columns:
+                if col not in df.columns:
+                    continue
+                group_df = df[df[col] == 1]
+                line = _format_group_stats(_clean_group_label(col, covariable), group_df)
+                if line:
+                    curve_lines.append(line)
+
+        elif columns and columns[0] in df.columns:
+            col = columns[0]
+            for group_value in sorted(df[col].dropna().unique()):
+                group_df = df[df[col] == group_value]
+                label = _clean_group_label(group_value, covariable)
+                line = _format_group_stats(label, group_df)
+                if line:
+                    curve_lines.append(line)
+
+        return curve_lines
 
     result_blocks = []
 
     # Formato heredado: {'results_json': '...'}
     if logrank_store_data.get('results_json'):
-        result_blocks.append(logrank_store_data.get('results_json'))
+        result_blocks.append({
+            'covariable': logrank_store_data.get('covariable', ''),
+            'results_json': logrank_store_data.get('results_json')
+        })
 
     # Formato actual: {'results': [{'results_json': '...'}, ...]}
     for item in logrank_store_data.get('results', []) or []:
         if isinstance(item, dict) and item.get('results_json'):
-            result_blocks.append(item.get('results_json'))
+            result_blocks.append(item)
 
     if not result_blocks:
         return ""
 
     lines = []
+    df_data = None
+    if logrank_store_data.get('df_json'):
+        try:
+            df_data = _read_split_json(logrank_store_data.get('df_json'))
+        except Exception:
+            df_data = None
+
+    selected_covariables = logrank_store_data.get('covariables', [])
+    if selected_covariables:
+        selected_labels = ", ".join(_selected_label(cov) for cov in selected_covariables)
+        lines.append(f"Parámetro(s) Log-Rank seleccionado(s) en pantalla: {selected_labels}.")
+
     for block in result_blocks:
         try:
-            results_df = _read_split_json(block)
+            results_df = _read_split_json(block.get('results_json'))
         except Exception:
             continue
 
         if results_df is None or results_df.empty:
             continue
 
-        for _, row in results_df.head(8).iterrows():
+        covariable = block.get('covariable', '')
+        if covariable:
+            lines.append(f"Curvas visibles para {_selected_label(covariable)}:")
+            curve_lines = _build_curve_context(df_data, covariable)
+            lines.extend(f"- {line}" for line in curve_lines)
+
+        sortable_df = results_df.copy()
+        sortable_df['_p_sort'] = pd.to_numeric(sortable_df.get('p_value', sortable_df.get('p', None)), errors='coerce')
+        sortable_df = sortable_df.sort_values('_p_sort', na_position='last')
+
+        lines.append(f"Comparaciones reales de la tabla Log-Rank para {_selected_label(covariable)}:")
+        for _, row in sortable_df.head(10).iterrows():
             p_value = row.get('p_value', row.get('p', None))
             stat = row.get('test_statistic', row.get('chi2', None))
-            conclusion = row.get('Conclusión', '')
-            group_a = _humanize_label(row.get('Grupo A', 'N/A'))
-            group_b = _humanize_label(row.get('Grupo B', 'N/A'))
-            decision = row.get('Decisión', '')
+            conclusion = row.get('Conclusión', row.get('ConclusiÃ³n', ''))
+            group_a = _clean_group_label(row.get('Grupo A', 'N/A'), covariable)
+            group_b = _clean_group_label(row.get('Grupo B', 'N/A'), covariable)
+            decision = row.get('Decisión', row.get('DecisiÃ³n', ''))
+            significance = "significativo" if pd.notna(p_value) and float(p_value) < 0.05 else "no significativo"
             lines.append(
-                f"- {_humanize_label(row.get('Covariable', row.get('Variable', 'N/A')))} | {group_a} vs {group_b}: chi2={stat}, p={p_value}, decisión={decision}, conclusión={conclusion}"
+                f"- {group_a} vs {group_b}: chi2={stat}, p={p_value}, resultado={significance}, decisión={decision}, conclusión={conclusion}"
             )
 
+    if lines:
+        lines.append(
+            "Nota para interpretar: Log-Rank contrasta si las curvas de supervivencia difieren entre grupos. "
+            "Usa la tabla para significación estadística y las curvas para describir dirección/separación visual. "
+            "Si p>=0.05, no afirmes diferencias concluyentes; si hay muchos contrastes pairwise, resume los más relevantes."
+        )
+
     return "\n".join(lines)
+
+
+def _build_weibull_interpretation_context(analysis, df=None, language='es'):
+    """Resume la tabla y grafica Weibull activas para el prompt de IA."""
+    if not analysis or not isinstance(analysis, dict):
+        return ""
+
+    shape = analysis.get('shape')
+    scale = analysis.get('scale')
+    median_survival = analysis.get('median_survival')
+    event_rate = analysis.get('event_rate')
+    n_observations = analysis.get('n_observations')
+    n_events = analysis.get('n_events')
+    weibull_aic = analysis.get('aic')
+    best_fit_model = analysis.get('best_fit_model')
+    comparison_text = analysis.get('model_comparison_interpretation', '')
+
+    risk_text = (
+        "aumenta con el tiempo" if shape is not None and shape > 1.05 else
+        "disminuye con el tiempo" if shape is not None and shape < 0.95 else
+        "se mantiene aproximadamente constante"
+    )
+
+    lines = [
+        "Analisis Weibull activo: no hay covariable seleccionable; la tabla y la grafica son las mostradas en pantalla.",
+        f"Tabla activa: n={n_observations}, eventos={n_events}, tasa de eventos={event_rate:.1f}%.",
+        f"Parametros Weibull: shape/rho={shape:.4f}, scale/lambda={scale:.4f}, mediana estimada por Weibull={median_survival:.4f}.",
+        f"Lectura del shape: el riesgo {risk_text}.",
+    ]
+
+    if weibull_aic is not None:
+        lines.append(f"Ajuste Weibull: AIC={weibull_aic:.4f}.")
+    if best_fit_model:
+        lines.append(f"Comparacion de modelos activa: mejor ajuste por AIC={best_fit_model}. {comparison_text}")
+
+    if df is not None and 'date' in df.columns and 'final_result' in df.columns:
+        try:
+            durations = pd.to_numeric(df['date'], errors='coerce').dropna()
+            events = pd.to_numeric(df['final_result'], errors='coerce').dropna()
+            if not durations.empty:
+                max_observed_time = float(durations.max())
+                lines.append(
+                    f"Datos de la grafica: tiempo maximo observado={max_observed_time:.0f}; "
+                    f"eventos observados={int(events.sum())}."
+                )
+                if median_survival is not None and median_survival > max_observed_time:
+                    lines.append(
+                        "Cautela: la mediana estimada por Weibull queda fuera del rango observado; interpretala como extrapolacion parametrica, no como mediana empirica observada."
+                    )
+        except Exception:
+            pass
+
+    figure = analysis.get('figure')
+    if figure is not None and getattr(figure, 'data', None):
+        try:
+            trace_summaries = []
+            for trace in figure.data:
+                name = getattr(trace, 'name', 'curva')
+                y_values = list(getattr(trace, 'y', []) or [])
+                if y_values:
+                    trace_summaries.append(f"{name}: supervivencia al final de la curva aprox. {float(y_values[-1]):.3f}")
+            if trace_summaries:
+                lines.append("Grafica activa: " + "; ".join(trace_summaries) + ".")
+        except Exception:
+            pass
+
+    lines.append(
+        "Nota para interpretar: usa la tabla para parametros y AIC; usa la grafica para comparar visualmente Kaplan-Meier empirico, Weibull ajustado y Exponencial ajustado. "
+        "No afirmes causalidad ni hables de covariables, porque Weibull aqui modela la supervivencia global. "
+        "Si la mediana estimada supera el tiempo maximo observado, menciona que es una extrapolacion del modelo."
+    )
+
+    return "\n".join(lines)
+
+
+def _build_exponential_interpretation_context(analysis, df=None, language='es'):
+    """Resume la tabla y grafica exponencial activas para el prompt de IA."""
+    if not analysis or not isinstance(analysis, dict):
+        return ""
+
+    lambda_value = analysis.get('lambda_value')
+    event_rate = analysis.get('event_rate')
+    n_observations = analysis.get('n_observations')
+    n_events = analysis.get('n_events')
+    exponential_aic = analysis.get('aic')
+    best_fit_model = analysis.get('best_fit_model')
+    comparison_text = analysis.get('model_comparison_interpretation', '')
+
+    lines = [
+        "Analisis Exponencial activo: no hay covariable seleccionable; la tabla y la grafica son las mostradas en pantalla.",
+        f"Tabla activa: n={n_observations}, eventos={n_events}, tasa de eventos={event_rate:.1f}%.",
+        f"Parametro exponencial: lambda/tasa={lambda_value:.6f}.",
+        "Supuesto del modelo: hazard/riesgo constante a lo largo del tiempo.",
+    ]
+
+    if exponential_aic is not None:
+        lines.append(f"Ajuste Exponencial: AIC={exponential_aic:.4f}.")
+    if best_fit_model:
+        lines.append(f"Comparacion de modelos activa: mejor ajuste por AIC={best_fit_model}. {comparison_text}")
+
+    if df is not None and 'date' in df.columns and 'final_result' in df.columns:
+        try:
+            durations = pd.to_numeric(df['date'], errors='coerce').dropna()
+            events = pd.to_numeric(df['final_result'], errors='coerce').dropna()
+            if not durations.empty:
+                lines.append(
+                    f"Datos de la grafica: tiempo maximo observado={float(durations.max()):.0f}; "
+                    f"eventos observados={int(events.sum())}."
+                )
+        except Exception:
+            pass
+
+    figure = analysis.get('figure')
+    if figure is not None and getattr(figure, 'data', None):
+        try:
+            trace_summaries = []
+            for trace in figure.data:
+                name = getattr(trace, 'name', 'curva')
+                y_values = list(getattr(trace, 'y', []) or [])
+                if y_values:
+                    trace_summaries.append(f"{name}: supervivencia al final de la curva aprox. {float(y_values[-1]):.3f}")
+            if trace_summaries:
+                lines.append("Grafica activa: " + "; ".join(trace_summaries) + ".")
+        except Exception:
+            pass
+
+    lines.append(
+        "Nota para interpretar: usa la tabla para lambda, eventos y AIC; usa la grafica para comparar visualmente Kaplan-Meier empirico y curva Exponencial. "
+        "Explica que Exponencial impone riesgo constante; si Weibull tiene menor AIC, menciona que el supuesto exponencial puede ser demasiado simple. "
+        "No afirmes causalidad ni hables de covariables, porque Exponencial aqui modela la supervivencia global."
+    )
+
+    return "\n".join(lines)
+
+
+def _build_rsf_interpretation_context(rsf_store_data, profile_store_data=None, language='es'):
+    """Resume las graficas, tabla e indicador de perfil activos de RSF."""
+    if not isinstance(rsf_store_data, dict):
+        return ""
+
+    lines = [
+        "Analisis RSF activo: usa la tabla resumen, curvas de supervivencia bajo/medio/alto riesgo, importancia de variables y perfil simulado visible."
+    ]
+
+    lines.append(
+        f"Modelo global: observaciones={rsf_store_data.get('n_observations', 'N/A')}, "
+        f"eventos={rsf_store_data.get('n_events', 'N/A')}, predictores={rsf_store_data.get('n_features', 'N/A')}, "
+        f"c-index train={rsf_store_data.get('train_c_index', 'N/A')}, c-index OOB={rsf_store_data.get('oob_score', 'N/A')}."
+    )
+
+    top_feature = rsf_store_data.get('top_feature', 'N/A')
+    top_importance = rsf_store_data.get('top_feature_importance', 'N/A')
+    lines.append(f"Variable mas influyente activa: {top_feature} con importancia aproximada={top_importance}.")
+
+    top_features = rsf_store_data.get('top_features', []) or []
+    if top_features:
+        feature_lines = []
+        for item in top_features[:5]:
+            feature_lines.append(f"{item.get('name', 'N/A')}={float(item.get('importance', 0.0)):.3f}")
+        lines.append("Importancia de variables visible: " + "; ".join(feature_lines) + ".")
+
+    curve_summaries = rsf_store_data.get('survival_curve_summaries', []) or []
+    if curve_summaries:
+        curve_lines = []
+        for curve in curve_summaries:
+            final_survival = curve.get('final_survival')
+            final_text = f"{float(final_survival):.3f}" if final_survival is not None else "N/A"
+            curve_lines.append(
+                f"{curve.get('label', 'Curva')}: score={float(curve.get('risk_score', 0.0)):.3f}, supervivencia final aprox. {final_text}"
+            )
+        lines.append("Curvas globales activas: " + "; ".join(curve_lines) + ".")
+
+    if isinstance(profile_store_data, dict):
+        profile_summary = ""
+        if profile_store_data.get('summary_json'):
+            try:
+                profile_df = _read_split_json(profile_store_data.get('summary_json'))
+                if profile_df is not None and not profile_df.empty:
+                    profile_parts = []
+                    for _, row in profile_df.iterrows():
+                        metric = row.get('Metrica', row.get('Metric', 'Métrica'))
+                        value = row.get('Valor', row.get('Value', 'N/A'))
+                        profile_parts.append(f"{metric}={value}")
+                    profile_summary = "; ".join(profile_parts)
+            except Exception:
+                profile_summary = ""
+
+        risk_score = profile_store_data.get('risk_score', None)
+        risk_percentile = profile_store_data.get('risk_percentile', None)
+        final_survival = profile_store_data.get('final_survival', None)
+        end_time = profile_store_data.get('end_time', None)
+        profile_text = (
+            f"Perfil simulado activo: {profile_summary}. "
+            f"Score de riesgo={float(risk_score):.3f}" if risk_score is not None else f"Perfil simulado activo: {profile_summary}. Score de riesgo=N/A"
+        )
+        if risk_percentile is not None:
+            profile_text += f", percentil de riesgo aprox. {float(risk_percentile):.1f}"
+        if final_survival is not None:
+            profile_text += f", supervivencia final aprox. {float(final_survival):.3f}"
+        if end_time is not None:
+            profile_text += f" en t aprox. {float(end_time):.0f}"
+        profile_text += "."
+        lines.append(profile_text)
+    else:
+        lines.append("No hay perfil simulado activo disponible para interpretar.")
+
+    lines.append(
+        "Nota para interpretar: RSF es un modelo predictivo no paramétrico; no afirmes causalidad. "
+        "La lectura global debe basarse en discriminación, separación de curvas e importancia de variables. "
+        "La lectura individual debe basarse en el perfil simulado actualmente visible y cambia al modificar sus parámetros."
+    )
+
+    return "\n".join(lines)
+
+
+def _interpretation_style_guidance(language='es'):
+    """Instruccion comun para que la IA interprete en vez de copiar tablas."""
+    if language == 'en':
+        return (
+            "Do not rewrite the table row by row. Start with the main conclusion suggested by the data, "
+            "use only a few key numbers as evidence, explain what the active graph shows visually, "
+            "and include a clear conclusion about the curve trend when curves are present: decreasing survival curves "
+            "usually reflect accumulated events/dropouts over time, flat segments indicate few or no events in that interval, "
+            "and abrupt drops or jumps suggest concentrated events or small group sizes. If a displayed curve increases, "
+            "explain whether the axis represents risk, cumulative events, or another non-survival quantity. "
+            "Close with a cautious interpretation for student dropout."
+        )
+    return (
+        "No redactes la tabla fila por fila. Empieza por la conclusion principal que sugieren los datos, "
+        "usa solo algunas cifras clave como evidencia, explica que muestra visualmente la grafica activa "
+        "e incluye una conclusion clara sobre la tendencia de las curvas cuando existan: las curvas de supervivencia "
+        "decrecientes suelen reflejar acumulacion de eventos o abandonos con el paso del tiempo, los tramos planos "
+        "indican pocos o ningun evento en ese intervalo, y las caidas o saltos bruscos sugieren concentracion de eventos "
+        "o grupos con pocos casos. Si una curva mostrada crece, explica si el eje representa riesgo, eventos acumulados "
+        "u otra magnitud distinta de la supervivencia. Cierra con una interpretacion prudente sobre el abandono estudiantil."
+    )
 
 
 
@@ -312,15 +828,17 @@ def register_analysis_callbacks(app):
         return {'display': 'block'} 
     
     # Función para procesar el archivo cargado y mostrarlo en una tabla
-    def display_data(df, title):
+    def display_data(df, title, language='es'):
         """Monta una tabla Dash para previsualizar el dataframe cargado."""
+        preview_df = df.head(DATASET_PREVIEW_MAX_ROWS).copy() if df is not None else pd.DataFrame()
         return html.Div([
             html.H5(title),
             html.Div([
                 dash_table.DataTable(
                     id='data-table',
-                    columns=[{"name": col, "id": col} for col in df.columns],
-                    data=df.to_dict('records'),
+                    columns=[{"name": col, "id": col} for col in preview_df.columns],
+                    data=preview_df.to_dict('records'),
+                    page_size=10,
                     style_table={
                         'overflowX': 'auto',
                         'overflowY': 'auto',
@@ -342,7 +860,7 @@ def register_analysis_callbacks(app):
             ], className='dataset-preview-table'),
         ], className='dataset-preview')
     # Función para cargar el archivo CSV
-    def parse_contents(contents):
+    def parse_contents(contents, filename=None, preview_only=False):
         """
         Decodifica y carga un archivo CSV desde un upload de Dash.
         Intenta automáticamente detecatar el separador correcto.
@@ -356,32 +874,48 @@ def register_analysis_callbacks(app):
         Raises:
             ValueError: Si no se puede procesar el archivo
         """
+        if filename == "temp_data.csv" and TEMP_DATA_PATH.exists():
+            try:
+                nrows = DATASET_PREVIEW_MAX_ROWS if preview_only else None
+                return pd.read_csv(TEMP_DATA_PATH, sep=';', nrows=nrows)
+            except Exception as disk_error:
+                print(f"⚠️  No se pudo leer temp_data.csv desde disco: {disk_error}")
+
         try:
+            if not isinstance(contents, str) or ',' not in contents:
+                raise ValueError("El contenido recibido por Dash está vacío o incompleto.")
+
             content_type, content_string = contents.split(',')
-            decoded = base64.b64decode(content_string)
-            
-            # Intentar decodificar con UTF-8
             try:
-                csv_string = decoded.decode('utf-8')
-            except UnicodeDecodeError:
-                # Intentar con latin-1 como fallback
-                try:
-                    csv_string = decoded.decode('latin-1')
-                except:
-                    raise ValueError("No se pudo decodificar el archivo. Verifica la codificación (UTF-8 o Latin-1)")
-            
-            # Intentar cargar con separador ";" primero (esperado)
-            try:
-                df = pd.read_csv(io.StringIO(csv_string), sep=";")
-                return df
-            except Exception as e1:
-                # Intentar con "," como fallback
-                try:
-                    df = pd.read_csv(io.StringIO(csv_string), sep=",")
-                    print(f"⚠️  Advertencia: Se detectó separador ',' en lugar de ';'")
-                    return df
-                except Exception as e2:
-                    raise ValueError(f"No se pudo leer el CSV. Verifica el formato y separador.")
+                decoded = base64.b64decode(content_string)
+            except MemoryError:
+                raise ValueError("El archivo es grande y no se pudo decodificar en memoria.")
+
+            best_candidate = None
+            read_errors = []
+            for encoding in ('utf-8', 'latin-1'):
+                for separator in (';', ','):
+                    try:
+                        nrows = DATASET_PREVIEW_MAX_ROWS if preview_only else None
+                        df_candidate = pd.read_csv(io.BytesIO(decoded), sep=separator, encoding=encoding, nrows=nrows)
+                        if best_candidate is None:
+                            best_candidate = df_candidate
+                        if len(df_candidate.columns) > 1:
+                            if separator == ',':
+                                print("⚠️  Advertencia: Se detectó separador ',' en lugar de ';'")
+                            return df_candidate
+                    except UnicodeDecodeError:
+                        read_errors.append(f"{encoding}/{separator}: codificación no válida")
+                        continue
+                    except Exception as read_error:
+                        read_errors.append(f"{encoding}/{separator}: {read_error}")
+                        continue
+
+            if best_candidate is not None:
+                return best_candidate
+
+            details = "; ".join(read_errors[:3])
+            raise ValueError(f"No se pudo leer el CSV. Verifica el formato, separador y codificación. {details}")
                     
         except Exception as e:
             raise ValueError(f"Error procesando el archivo: {str(e)}")
@@ -513,7 +1047,7 @@ def register_analysis_callbacks(app):
                         return (
                             {'display': 'none'},
                             {'display': 'none'},
-                            display_data(df_cached, get_translation(language, 'archivo_preprocesado')),
+                            display_data(df_cached, get_translation(language, 'archivo_preprocesado'), language),
                             current_df_json,
                             _dataset_signature_from_json(current_df_json),
                         )
@@ -543,10 +1077,34 @@ def register_analysis_callbacks(app):
                         'marginTop': '20px'
                     }
                 ), None, ''
+
+            if safe_clicks > 0 and filename == "temp_data.csv" and TEMP_DATA_PATH.exists():
+                try:
+                    df_procesado = preprocess_csv_file_streaming(TEMP_DATA_PATH)
+                    processed_json = df_procesado.to_json(date_format='iso', orient='split')
+                    return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado'), language), processed_json, _dataset_signature_from_json(processed_json)
+                except Exception as e:
+                    return {'display': 'none'}, {'display': 'none'}, html.Div(
+                        [
+                            html.H3(f"❌ {get_translation(language, 'error_preprocess_title')}"),
+                            html.P(str(e)),
+                            html.Hr(),
+                            html.P(get_translation(language, 'error_preprocess_body'))
+                        ],
+                        style={
+                            'color': 'red',
+                            'fontSize': '14px',
+                            'padding': '20px',
+                            'border': '2px solid red',
+                            'borderRadius': '5px',
+                            'marginTop': '20px',
+                            'backgroundColor': '#fff5f5'
+                        }
+                    ), None, ''
     
             # Cargar el archivo CSV con manejo de errores
             try:
-                df = parse_contents(contents)
+                df = parse_contents(contents, filename, preview_only=safe_clicks <= 0)
             except Exception as e:
                 return {'display': 'none'}, {'display': 'none'}, html.Div(
                     [
@@ -596,7 +1154,7 @@ def register_analysis_callbacks(app):
                 try:
                     df_procesado = preprocess_data(df)
                     processed_json = df_procesado.to_json(date_format='iso', orient='split')
-                    return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado')), processed_json, _dataset_signature_from_json(processed_json)
+                    return {'display': 'none'}, {'display': 'none'}, display_data(df_procesado, get_translation(language, 'archivo_preprocesado'), language), processed_json, _dataset_signature_from_json(processed_json)
                 except (ValueError, TypeError) as e:
                     return {'display': 'none'}, {'display': 'none'}, html.Div(
                         [
@@ -644,7 +1202,7 @@ def register_analysis_callbacks(app):
                     ), None, ''
     
             # Si no se ha presionado el botón de limpiar, mostrar el archivo bruto
-            return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto')), None, ''
+            return {'display': 'none'}, {'display': 'inline-block'}, display_data(df, get_translation(language, 'archivo_bruto'), language), None, ''
     
         except Exception as e:
             print(f"[UPDATE_OUTPUT] Error no controlado: {e}")
@@ -782,16 +1340,25 @@ def register_analysis_callbacks(app):
                     stats_info = _build_km_interpretation_context(df, variable_actual)
                 except Exception as e:
                     print(f"Error extrayendo estadísticas KM: {e}")
+
+            if not stats_info.strip():
+                return (
+                    "⚠️  Could not extract numerical data from the current Kaplan-Meier graph."
+                    if language == 'en'
+                    else "⚠️  No se pudieron extraer datos numéricos de la gráfica Kaplan-Meier actual."
+                )
             
             # Construir prompt con datos reales
             if language == 'en':
-                prompt = f"""Write an academic interpretation of the Kaplan-Meier output for '{_humanize_label(variable_actual)}' using only the real group results below:
+                prompt = f"""Write an academic interpretation of the Kaplan-Meier graph currently displayed for '{_humanize_label(variable_actual)}'. Use only the real group results below and do not discuss variables that are not visible in this graph:
     {stats_info}
-    Produce exactly 2 short paragraphs: first paragraph for statistical interpretation of curve behavior, second paragraph for practical implication and one limitation. Do not use bullet points."""
+    {_interpretation_style_guidance(language)}
+    Produce exactly 2 short paragraphs: first paragraph for statistical interpretation of the visible curves, second paragraph for practical implication and one limitation. Do not call the intermediate observed time a survival median. If the Kaplan-Meier median is not reached, say so. Mention when curves are visually close, and be cautious with groups that have small n or perfect final survival. Do not use bullet points. Finish with a complete sentence."""
             else:
-                prompt = f"""Redacta una interpretación académica de la salida Kaplan-Meier para '{_humanize_label(variable_actual)}' usando solo los resultados reales de grupos:
+                prompt = f"""Redacta una interpretación académica de la gráfica Kaplan-Meier mostrada actualmente para '{_humanize_label(variable_actual)}'. Usa solo los resultados reales de grupos siguientes y no menciones variables que no aparezcan en esta gráfica:
     {stats_info}
-    Devuelve exactamente 2 párrafos breves: el primero con lectura estadística del comportamiento de curvas y el segundo con implicación práctica y una limitación. Sin viñetas ni listas numeradas."""
+    {_interpretation_style_guidance(language)}
+    Devuelve exactamente 2 párrafos breves: el primero con lectura estadística de las curvas visibles y el segundo con implicación práctica y una limitación. No llames mediana de supervivencia al tiempo intermedio observado. Si la mediana Kaplan-Meier no se alcanza, indícalo. Menciona cuando las curvas estén visualmente próximas y sé prudente con grupos de n pequeño o supervivencia final perfecta. Sin viñetas ni listas numeradas. Termina con una frase completa."""
             
             respuesta = responder_pregunta_con_llama3(prompt, language)
             return respuesta if respuesta else ("⚠️  Error: Empty response" if language == 'en' else "⚠️  Error: Respuesta vacía")
@@ -1473,6 +2040,8 @@ def register_analysis_callbacks(app):
             'n_events': analysis['n_events'],
             'n_features': analysis['n_features'],
             'interpretation': analysis['interpretation'],
+            'top_features': analysis.get('top_features', []),
+            'survival_curve_summaries': analysis.get('survival_curve_summaries', []),
             'language': language,
         }
     
@@ -1480,7 +2049,8 @@ def register_analysis_callbacks(app):
     
     
     @app.callback(
-        Output('rsf-profile-output', 'children'),
+        [Output('rsf-profile-output', 'children'),
+         Output('rsf-profile-data', 'data')],
         [Input('rsf-profile-simulate-btn', 'n_clicks'),
          Input('df-store', 'data')],
         [State('rsf-profile-gender', 'value'),
@@ -1497,7 +2067,7 @@ def register_analysis_callbacks(app):
             return html.Div(
                 get_translation(language, 'rsf_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
-            )
+            ), None
     
         try:
             df_data = _read_split_json(df_json)
@@ -1505,7 +2075,7 @@ def register_analysis_callbacks(app):
             return html.Div(
                 get_translation(language, 'rsf_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
-            )
+            ), None
     
         credits_map = {'few': 30, 'medium': 60, 'many': 120}
         profile = {
@@ -1521,7 +2091,7 @@ def register_analysis_callbacks(app):
             return html.Div(
                 get_translation(language, 'rsf_no_data'),
                 style={'textAlign': 'center', 'color': '#b03a2e', 'fontWeight': 'bold', 'padding': '20px'}
-            )
+            ), None
     
         show_table = bool(n_clicks and n_clicks > 0)
     
@@ -1547,6 +2117,19 @@ def register_analysis_callbacks(app):
             'boxShadow': '0 2px 8px rgba(0,0,0,0.06)',
             'marginBottom': '22px'
         })
+
+        profile_store_data = {
+            'summary_json': analysis['summary_df'].to_json(orient='split'),
+            'interpretation': analysis['interpretation'],
+            'risk_score': analysis.get('risk_score'),
+            'risk_percentile': analysis.get('risk_percentile'),
+            'final_survival': analysis.get('final_survival'),
+            'min_survival': analysis.get('min_survival'),
+            'max_survival': analysis.get('max_survival'),
+            'end_time': analysis.get('end_time'),
+            'profile': profile,
+            'language': language,
+        }
     
         if not show_table:
             return html.Div([
@@ -1559,7 +2142,7 @@ def register_analysis_callbacks(app):
                     'color': '#2c3e50',
                     'lineHeight': '1.6'
                 })
-            ])
+            ]), profile_store_data
     
         return html.Div([
             html.Div([
@@ -1581,16 +2164,18 @@ def register_analysis_callbacks(app):
                 'color': '#2c3e50',
                 'lineHeight': '1.6'
             })
-        ])
+        ]), profile_store_data
     
     
     @app.callback(
         Output('openai-answer-rsf', 'value'),
         [Input('btn-rsf', 'n_clicks')],
-        [State('rsf-analysis-data', 'data'), State('language-store', 'data')],
+        [State('rsf-analysis-data', 'data'),
+         State('rsf-profile-data', 'data'),
+         State('language-store', 'data')],
         prevent_initial_call=True
     )
-    def explicar_rsf(n_clicks, rsf_store_data, language):
+    def explicar_rsf(n_clicks, rsf_store_data, rsf_profile_data, language):
         """Genera una interpretacion textual del resultado Random Survival Forest."""
         if n_clicks is None or n_clicks <= 0:
             return get_translation(language, 'respuesta')
@@ -1598,47 +2183,31 @@ def register_analysis_callbacks(app):
         if not rsf_store_data:
             return get_translation(language, 'rsf_no_data')
     
-        top_feature = rsf_store_data.get('top_feature', 'N/A')
-        oob_score = rsf_store_data.get('oob_score', None)
-        train_c_index = rsf_store_data.get('train_c_index', None)
-        n_features = rsf_store_data.get('n_features', 0)
-    
-        summary_text = ""
-        summary_json = rsf_store_data.get('summary_json')
-        if summary_json:
-            try:
-                summary_df = _read_split_json(summary_json)
-                if summary_df is not None and not summary_df.empty:
-                    summary_lines = []
-                    for _, row in summary_df.head(12).iterrows():
-                        metric = row.get('Metrica', row.get('Metric', 'Métrica'))
-                        value = row.get('Valor', row.get('Value', 'N/A'))
-                        summary_lines.append(f"- {metric}: {value}")
-                    summary_text = "\n".join(summary_lines)
-            except Exception:
-                summary_text = ""
+        rsf_context = _build_rsf_interpretation_context(rsf_store_data, rsf_profile_data, language=language)
+        if not rsf_context.strip():
+            return get_translation(language, 'rsf_no_data')
     
         if language == 'en':
             prompt = (
-                "Interpret the RSF dashboard outputs using ONLY the visible chart/table information.\n"
-                f"- Predictors: {n_features}\n"
-                f"- Train c-index: {train_c_index}\n"
-                f"- OOB c-index: {oob_score}\n"
-                f"- Top feature: {top_feature}\n"
-                f"- Summary table:\n{summary_text}\n"
-                "Focus on: 1) calibration/discrimination quality, 2) what the survival curves imply for low/medium/high risk profiles, "
-                "3) practical implication and one limitation. Keep it concise and factual."
+                "Write an academic interpretation of the active Random Survival Forest dashboard. "
+                "Use only the active model table, risk curves, variable-importance chart, and simulated profile below:\n"
+                f"{rsf_context}\n"
+                f"{_interpretation_style_guidance(language)} "
+                "Return exactly 2 short paragraphs, maximum 160 words total. "
+                "First paragraph: global model quality, low/medium/high-risk survival curves, and most important variables. "
+                "Second paragraph: interpret the currently simulated profile, including its risk score/percentile and survival curve. "
+                "Do not make causal claims. Finish with a complete sentence."
             )
         else:
             prompt = (
-                "Interpreta la salida de RSF usando SOLO la información visible en gráfica y tabla del dashboard.\n"
-                f"- Predictores: {n_features}\n"
-                f"- c-index entrenamiento: {train_c_index}\n"
-                f"- c-index OOB: {oob_score}\n"
-                f"- Variable más importante: {top_feature}\n"
-                f"- Tabla resumen:\n{summary_text}\n"
-                "Enfócate en: 1) calidad de discriminación/calibración, 2) qué implican las curvas para perfiles de riesgo bajo/medio/alto, "
-                "3) implicación práctica y una limitación. Sé conciso y factual."
+                "Redacta una interpretación académica del dashboard Random Survival Forest activo. "
+                "Usa solo la tabla del modelo, las curvas de riesgo, la importancia de variables y el perfil simulado siguientes:\n"
+                f"{rsf_context}\n"
+                f"{_interpretation_style_guidance(language)} "
+                "Devuelve exactamente 2 párrafos breves, máximo 160 palabras en total. "
+                "Primer párrafo: calidad global del modelo, curvas de bajo/medio/alto riesgo e importancia de variables. "
+                "Segundo párrafo: interpreta el perfil simulado actualmente, incluyendo su score/percentil de riesgo y su curva de supervivencia. "
+                "No hagas afirmaciones causales. Termina con una frase completa."
             )
     
         respuesta = responder_pregunta_con_llama3(prompt, language)
@@ -1646,18 +2215,26 @@ def register_analysis_callbacks(app):
             return respuesta
     
         if language == 'en':
+            top_feature = rsf_store_data.get('top_feature', 'N/A')
+            oob_score = rsf_store_data.get('oob_score', None)
+            train_c_index = rsf_store_data.get('train_c_index', None)
+            n_features = rsf_store_data.get('n_features', 0)
             return (
                 f"RSF uses {n_features} predictors. Train c-index={train_c_index}, OOB c-index={oob_score}, and top feature={top_feature}. "
-                "The dashboard curves suggest meaningful separation across risk profiles; confirm with external validation."
+                "The dashboard curves and simulated profile should be interpreted as predictive estimates; confirm with external validation."
             )
+        top_feature = rsf_store_data.get('top_feature', 'N/A')
+        oob_score = rsf_store_data.get('oob_score', None)
+        train_c_index = rsf_store_data.get('train_c_index', None)
+        n_features = rsf_store_data.get('n_features', 0)
         return (
             f"RSF usa {n_features} predictores. c-index entrenamiento={train_c_index}, c-index OOB={oob_score}, y variable principal={top_feature}. "
-            "Las curvas del dashboard sugieren separación entre perfiles de riesgo; conviene validar externamente."
+            "Las curvas del dashboard y el perfil simulado deben interpretarse como estimaciones predictivas; conviene validar externamente."
         )
     
     
     @app.callback(
-        [Output('openai-answer-weibull', 'children'),
+        [Output('openai-answer-weibull', 'value'),
          Output('weibull-ai-text-store', 'data'),
          Output('weibull-ai-language-store', 'data')],
         [Input('btn-weibull', 'n_clicks')],
@@ -1703,17 +2280,37 @@ def register_analysis_callbacks(app):
                     f"El parámetro de escala es {scale:.3f} y la mediana de supervivencia es {median:.3f}. La tasa de eventos es {event_rate:.1f}%, por lo que la curva ajustada resume el patrón global de supervivencia de los datos limpios."
                 )
     
-            respuesta = generate_interpretation_for_pdf(
-                'weibull',
-                {
-                    'n_patients': analysis['n_observations'],
-                    'n_events': analysis['n_events'],
-                    'event_rate': analysis['event_rate'],
-                    'variable_name': 'Weibull'
-                },
-                analysis['summary_df'],
-                language=language
-            )
+            weibull_context = _build_weibull_interpretation_context(analysis, df=df_data, language=language)
+            if not weibull_context.strip():
+                final_text = _fallback_weibull_explanation()
+                return final_text, final_text, language
+
+            if language == 'en':
+                prompt = (
+                    "Write an academic interpretation of the active Weibull analysis shown in the dashboard. "
+                    "Use only the table, model-comparison, and curve information below:\n"
+                    f"{weibull_context}\n"
+                    f"{_interpretation_style_guidance(language)} "
+                    "Return exactly 2 short paragraphs, maximum 130 words total. "
+                    "First paragraph: interpret rho/shape, scale, event rate, and median estimated by Weibull. "
+                    "Second paragraph: compare the fitted Weibull curve with empirical Kaplan-Meier and Exponential using AIC and visual fit. "
+                    "If the median exceeds the observed time range, call it a parametric extrapolation. "
+                    "Do not mention covariates or causal effects. Finish with a complete sentence."
+                )
+            else:
+                prompt = (
+                    "Redacta una interpretación académica del análisis Weibull activo mostrado en el dashboard. "
+                    "Usa solo la tabla, la comparación de modelos y la información de curvas siguientes:\n"
+                    f"{weibull_context}\n"
+                    f"{_interpretation_style_guidance(language)} "
+                    "Devuelve exactamente 2 párrafos breves, máximo 130 palabras en total. "
+                    "Primer párrafo: interpreta rho/shape, escala, tasa de eventos y mediana estimada por Weibull. "
+                    "Segundo párrafo: compara la curva Weibull ajustada con Kaplan-Meier empírico y Exponencial usando AIC y ajuste visual. "
+                    "Si la mediana supera el rango observado, descríbela como extrapolación paramétrica. "
+                    "No menciones covariables ni efectos causales. Termina con una frase completa."
+                )
+
+            respuesta = responder_pregunta_con_llama3(prompt, language)
             final_text = respuesta if respuesta else _fallback_weibull_explanation()
             return final_text, final_text, language
         except Exception as e:
@@ -1723,7 +2320,7 @@ def register_analysis_callbacks(app):
     
     
     @app.callback(
-        [Output('openai-answer-exponential', 'children'),
+        [Output('openai-answer-exponential', 'value'),
          Output('exponential-ai-text-store', 'data'),
          Output('exponential-ai-language-store', 'data')],
         [Input('btn-exponential', 'n_clicks')],
@@ -1746,17 +2343,37 @@ def register_analysis_callbacks(app):
                 no_data_msg = get_translation(language, 'exponential_no_data')
                 return no_data_msg, "", ""
     
-            respuesta = generate_interpretation_for_pdf(
-                'exponential',
-                {
-                    'n_patients': analysis['n_observations'],
-                    'n_events': analysis['n_events'],
-                    'event_rate': analysis['event_rate'],
-                    'variable_name': 'Exponential'
-                },
-                analysis['summary_df'],
-                language=language
-            )
+            exponential_context = _build_exponential_interpretation_context(analysis, df=df_data, language=language)
+            if not exponential_context.strip():
+                final_text = analysis['interpretation']
+                return final_text, final_text, language
+
+            if language == 'en':
+                prompt = (
+                    "Write an academic interpretation of the active Exponential survival analysis shown in the dashboard. "
+                    "Use only the table, model-comparison, and curve information below:\n"
+                    f"{exponential_context}\n"
+                    f"{_interpretation_style_guidance(language)} "
+                    "Return exactly 2 short paragraphs, maximum 130 words total. "
+                    "First paragraph: interpret lambda, event rate, and the constant-hazard assumption. "
+                    "Second paragraph: compare the Exponential curve with empirical Kaplan-Meier and Weibull using AIC and visual fit. "
+                    "If Weibull has lower AIC, say the Exponential assumption may be too simple. "
+                    "Do not mention covariates or causal effects. Finish with a complete sentence."
+                )
+            else:
+                prompt = (
+                    "Redacta una interpretación académica del análisis Exponencial activo mostrado en el dashboard. "
+                    "Usa solo la tabla, la comparación de modelos y la información de curvas siguientes:\n"
+                    f"{exponential_context}\n"
+                    f"{_interpretation_style_guidance(language)} "
+                    "Devuelve exactamente 2 párrafos breves, máximo 130 palabras en total. "
+                    "Primer párrafo: interpreta lambda, tasa de eventos y el supuesto de riesgo constante. "
+                    "Segundo párrafo: compara la curva Exponencial con Kaplan-Meier empírico y Weibull usando AIC y ajuste visual. "
+                    "Si Weibull tiene menor AIC, indica que el supuesto Exponencial puede ser demasiado simple. "
+                    "No menciones covariables ni efectos causales. Termina con una frase completa."
+                )
+
+            respuesta = responder_pregunta_con_llama3(prompt, language)
             final_text = respuesta if respuesta else analysis['interpretation']
             return final_text, final_text, language
         except Exception as e:
@@ -1769,11 +2386,12 @@ def register_analysis_callbacks(app):
         [Input('btn-cox', 'n_clicks')],
         [State('cox-regression-output-store', 'data'),
          State('cox-current-variables', 'data'),
+         State('df-store', 'data'),
          State('language-store', 'data'),
          State('dataset-signature-store', 'data')],
         prevent_initial_call=True
     )
-    def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, language, dataset_signature):
+    def explicar_cox(n_clicks, cox_store_data, variables_seleccionadas, df_json, language, dataset_signature):
         """Callback para generar explicación de Cox Regression con datos reales"""
         try:
             if n_clicks is None or n_clicks <= 0:
@@ -1799,32 +2417,39 @@ def register_analysis_callbacks(app):
             if language not in ['es', 'en']:
                 language = 'es'
             
-            # Extraer datos de la tabla Cox si están disponibles
-            table_summary = ""
-            if cox_store_data and isinstance(cox_store_data, dict):
-                try:
-                    if 'summary_json' in cox_store_data and cox_store_data['summary_json']:
-                        summary_df = _read_split_json(cox_store_data['summary_json'])
-                        table_summary = "\nDatos de la tabla Cox:"
-                        for _, row in summary_df.iterrows():
-                            cov_name = _humanize_label(row.get('Covariable', 'N/A'))
-                            hr = row.get('exp(Coef.)', row.get('exp(coef)', 'N/A'))
-                            p_val = row.get('p', 'N/A')
-                            hr_text = f"{float(hr):.3f}" if hr not in [None, 'N/A'] else 'N/A'
-                            p_text = f"{float(p_val):.4f}" if p_val not in [None, 'N/A'] else 'N/A'
-                            table_summary += f"\n- {cov_name}: HR={hr_text}, p={p_text}"
-                except Exception as e:
-                    print(f"Error extrayendo tabla Cox: {e}")
+            df_data = _read_split_json(df_json) if df_json else None
+            summary_df = _read_split_json(cox_store_data['summary_json'])
+            table_summary = _build_cox_interpretation_context(
+                summary_df,
+                cox_store_data.get('covariables', variables_seleccionadas),
+                df=df_data,
+                language=language
+            )
+
+            if not table_summary.strip():
+                return (
+                    "⚠️  Could not extract numerical data from the current Cox model."
+                    if language == 'en'
+                    else "⚠️  No se pudieron extraer datos numéricos del modelo Cox actual."
+                )
             
             # Construir prompt con datos reales
             if language == 'en':
-                prompt = (f"Write an academic interpretation of Cox Regression for {_humanize_label(variables_seleccionadas)} using only this real table summary:{table_summary}\n"
-                         f"Return 2 short paragraphs: first paragraph with significant/non-significant covariates and HR interpretation (risk vs protective), "
-                         f"second paragraph with practical conclusion and one methodological limitation. No bullet points.")
+                prompt = (f"Write an academic interpretation of the Cox regression model currently displayed for {_humanize_label(variables_seleccionadas)}. "
+                         f"Use only this real table summary and do not discuss covariates that are not in the active model:\n{table_summary}\n"
+                         f"{_interpretation_style_guidance(language)} "
+                         f"Return exactly 2 short paragraphs, maximum 130 words total. "
+                         f"First paragraph: HR, 95% CI, p-value, direction, and significance. "
+                         f"Second paragraph: practical reading and one methodological limitation. "
+                         f"Be cautious when CI includes 1 or p>=0.05, mention reference groups if present, and do not make causal claims. No bullet points. Finish with a complete sentence.")
             else:
-                prompt = (f"Redacta una interpretación académica de la Regresión de Cox para {_humanize_label(variables_seleccionadas)} usando solo este resumen real de tabla:{table_summary}\n"
-                         f"Devuelve 2 párrafos breves: el primero con covariables significativas/no significativas y lectura de HR (riesgo vs protector), "
-                         f"el segundo con conclusión práctica y una limitación metodológica. Sin viñetas ni listas.")
+                prompt = (f"Redacta una interpretación académica del modelo de Regresión de Cox mostrado actualmente para {_humanize_label(variables_seleccionadas)}. "
+                         f"Usa solo este resumen real de tabla y no menciones covariables que no estén en el modelo activo:\n{table_summary}\n"
+                         f"{_interpretation_style_guidance(language)} "
+                         f"Devuelve exactamente 2 párrafos breves, máximo 130 palabras en total. "
+                         f"Primer párrafo: HR, IC95%, p-valor, dirección y significación. "
+                         f"Segundo párrafo: lectura práctica y una limitación metodológica. "
+                         f"Sé prudente cuando el IC95% incluya 1 o p>=0.05, menciona referencias si existen y no hagas afirmaciones causales. Sin viñetas ni listas. Termina con una frase completa.")
             
             respuesta = responder_pregunta_con_llama3(prompt, language)
             return respuesta if respuesta else ("⚠️  Error: Empty response" if language == 'en' else "⚠️  Error: Respuesta vacía")
@@ -1944,18 +2569,31 @@ def register_analysis_callbacks(app):
             
             # Formatear datos del store (limitar para prompt conciso)
             logrank_data_str = _build_logrank_interpretation_context(logrank_content)
+
+            if not logrank_data_str.strip():
+                return (
+                    "⚠️  Could not extract numerical data from the current Log-Rank result."
+                    if language == 'en'
+                    else "⚠️  No se pudieron extraer datos numéricos del resultado Log-Rank actual."
+                )
             
             # Construir prompt con datos reales
             if language == 'en':
-                prompt = (f"Write an academic interpretation of the Log-Rank output for {_humanize_label(variables_seleccionadas)} using only the real comparisons below:\n"
+                prompt = (f"Write an academic interpretation of the Log-Rank result currently displayed for {_humanize_label(variables_seleccionadas)}. "
+                         f"Use only the active table and curve summaries below:\n"
                          f"{logrank_data_str}\n"
-                         f"Return 2 short paragraphs in prose: first paragraph identifying statistically significant contrasts and direction of differences, "
-                         f"second paragraph with practical reading of survival-curve separation and one limitation. No bullet points.")
+                         f"{_interpretation_style_guidance(language)} "
+                         f"Return exactly 2 short paragraphs, maximum 130 words total. "
+                         f"First paragraph: identify significant/non-significant comparisons and describe visible curve separation using group survival. "
+                         f"Second paragraph: practical interpretation and one limitation. Do not claim differences when p>=0.05. No bullet points. Finish with a complete sentence.")
             else:
-                prompt = (f"Redacta una interpretación académica del Test Log-Rank para {_humanize_label(variables_seleccionadas)} usando solo las comparaciones reales:\n"
+                prompt = (f"Redacta una interpretación académica del resultado Log-Rank mostrado actualmente para {_humanize_label(variables_seleccionadas)}. "
+                         f"Usa solo la tabla activa y el resumen de curvas siguientes:\n"
                          f"{logrank_data_str}\n"
-                         f"Devuelve 2 párrafos en prosa: el primero identificando contrastes significativos y diferencias principales, "
-                         f"el segundo con lectura práctica de la separación de curvas y una limitación. Sin viñetas ni listas numeradas.")
+                         f"{_interpretation_style_guidance(language)} "
+                         f"Devuelve exactamente 2 párrafos breves, máximo 130 palabras en total. "
+                         f"Primer párrafo: identifica comparaciones significativas/no significativas y describe la separación visible de curvas usando la supervivencia por grupo. "
+                         f"Segundo párrafo: interpretación práctica y una limitación. No afirmes diferencias si p>=0.05. Sin viñetas ni listas numeradas. Termina con una frase completa.")
             
             respuesta = responder_pregunta_con_llama3(prompt, language)
             if len(respuesta) > 3000:

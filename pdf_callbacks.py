@@ -39,16 +39,47 @@ def clean_markdown_text(text):
     return text
 
 
+def _prepare_ai_text_for_pdf(text):
+    """Normaliza la explicacion ya generada antes de insertarla en el PDF."""
+    return clean_markdown_text((text or "").strip())
+
+
+def _looks_like_incomplete_ai_text(text):
+    """Detecta respuestas que probablemente quedaron cortadas a mitad de frase."""
+    normalized_text = (text or "").strip()
+    if not normalized_text:
+        return False
+
+    last_char = normalized_text[-1]
+    complete_endings = ".!?)]}'\""
+    if last_char in complete_endings:
+        return False
+
+    trailing_words = normalized_text.lower().split()[-3:]
+    unfinished_connectors = {
+        "de", "del", "la", "el", "los", "las", "y", "o", "pero", "aunque",
+        "porque", "que", "con", "sin", "para", "por", "en", "of", "the",
+        "and", "or", "but", "because", "with", "without", "for", "to", "in",
+    }
+    return bool(trailing_words and trailing_words[-1] in unfinished_connectors) or last_char not in complete_endings
+
+
 def _validate_ai_explanation(ai_requested, ai_text, analysis_label, language='es'):
     """Exige explicación solo si el usuario pidió IA y no hay texto real."""
     if not ai_requested:
         return None
 
     normalized_text = (ai_text or "").strip()
-    if not normalized_text or normalized_text == "La respuesta es...":
+    placeholders = {"La respuesta es...", "The answer is..."}
+    if not normalized_text or normalized_text in placeholders:
         if language == 'en':
             return f"⚠️ Before exporting the {analysis_label} PDF, generate an AI explanation first."
         return f"⚠️ Antes de exportar el PDF de {analysis_label}, genera primero una explicación de IA."
+
+    if _looks_like_incomplete_ai_text(normalized_text):
+        if language == 'en':
+            return f"⚠️ The {analysis_label} AI explanation seems incomplete. Click Explain again before exporting."
+        return f"⚠️ La explicación IA de {analysis_label} parece incompleta. Pulsa de nuevo Explicar antes de exportar."
 
     return None
 
@@ -215,14 +246,11 @@ def register_pdf_export_callbacks(app):
                     traceback.print_exc()
                     km_figure = None
             
-            # GENERAR INTERPRETACIÓN DE IA SI SE SOLICITA
+            # REUTILIZAR LA INTERPRETACION IA YA GENERADA EN PANTALLA
             ai_text = ""
             if 'ai_interpretation' in options:
-                print(f"[KM PDF] Generando interpretación de IA para {current_variable}...")
-                ai_text = generate_interpretation_for_pdf('kaplan-meier', summary_stats, km_table, language=language)
-                
-                # Limpiar markdown del texto
-                ai_text = clean_markdown_text(ai_text)
+                print(f"[KM PDF] Reutilizando interpretacion IA generada en pantalla para {current_variable}...")
+                ai_text = _prepare_ai_text_for_pdf(ai_text_from_page)
             
             print(f"[KM PDF] Generando PDF: {filename}")
             print(f"[KM PDF] Variable: {current_variable} | Pacientes: {n_patients} | Eventos: {n_events}")
@@ -471,16 +499,12 @@ def register_pdf_export_callbacks(app):
                 'variable_name': ', '.join(cox_covariables) if cox_covariables else 'N/A'
             }
             
-            # GENERAR INTERPRETACIÓN DE IA SI SE SOLICITA
+            # REUTILIZAR LA INTERPRETACION IA YA GENERADA EN PANTALLA
             ai_text = ""
             if 'ai_interpretation' in options:
-                print(f"[COX PDF] Generando interpretación de IA...")
-                ai_text = generate_interpretation_for_pdf('cox', summary_stats, cox_table, language=language)
-                
-                # Limpiar markdown del texto
-                ai_text_cleaned = clean_markdown_text(ai_text)
-                print(f"[COX PDF] Interpretación generada ({len(ai_text)} chars → {len(ai_text_cleaned)} chars)")
-                ai_text = ai_text_cleaned
+                print(f"[COX PDF] Reutilizando interpretacion IA generada en pantalla...")
+                ai_text = _prepare_ai_text_for_pdf(ai_text_from_page)
+                print(f"[COX PDF] Interpretacion reutilizada ({len(ai_text)} chars)")
             
             # GENERAR FOREST PLOT SI SE SOLICITA
             forest_figure = None
@@ -1054,7 +1078,7 @@ def register_pdf_export_callbacks(app):
         Input('weibull-pdf-modal-download-btn', 'n_clicks'),
         [State('weibull-pdf-modal-filename', 'value'),
          State('weibull-pdf-modal-checklist-content', 'value'),
-         State('openai-answer-weibull', 'children'),
+         State('openai-answer-weibull', 'value'),
          State('weibull-ai-language-store', 'data'),
          State('df-store', 'data'),
          State('language-store', 'data')],
@@ -1202,7 +1226,7 @@ def register_pdf_export_callbacks(app):
         Input('exponential-pdf-modal-download-btn', 'n_clicks'),
         [State('exponential-pdf-modal-filename', 'value'),
          State('exponential-pdf-modal-checklist-content', 'value'),
-         State('openai-answer-exponential', 'children'),
+         State('openai-answer-exponential', 'value'),
          State('exponential-ai-language-store', 'data'),
          State('df-store', 'data'),
          State('language-store', 'data')],

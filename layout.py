@@ -92,6 +92,36 @@ def _get_layout_df():
     return _LAYOUT_DF
 
 
+def _create_ai_response_box(answer_id, loading_message, language='es'):
+    """Crea la caja de respuesta IA con el mismo formato en todas las tecnicas."""
+    return html.Div([
+        dcc.Textarea(
+            id=answer_id,
+            placeholder=get_translation(language, 'respuesta'),
+            className='ai-output-textarea',
+            style={
+                'width': '80%',
+                'height': '400px',
+                'resize': 'none',
+                'whiteSpace': 'pre-wrap',
+                'margin': '20px auto',
+                'display': 'block',
+                'border': '1px solid #ccc',
+                'borderRadius': '8px',
+                'fontSize': '14px',
+                'padding': '10px',
+                'overflowY': 'auto',
+                'color': '#1a1a1a'
+            },
+            disabled=True
+        ),
+        html.Div(
+            loading_message,
+            className='textarea-loading-message'
+        ),
+    ], style={'textAlign': 'center'})
+
+
 # ===== COMPONENTE MODAL PARA EXPORTAR A PDF =====
 def create_pdf_export_modal(modal_id, analysis_type="kaplan-meier", language='es'):
     """
@@ -996,25 +1026,10 @@ def create_weibull_analysis_page(language='es'):
             )
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
-        html.Div(
-            id='openai-answer-weibull',
-            children=get_translation(language, 'respuesta'),
-            className='analysis-loading-target',
-            style={
-                'width': '80%',
-                'minHeight': '260px',
-                'whiteSpace': 'pre-wrap',
-                'margin': '20px auto',
-                'display': 'block',
-                'border': '1px solid #ccc',
-                'borderRadius': '8px',
-                'fontSize': '14px',
-                'padding': '14px',
-                'overflowY': 'auto',
-                'color': '#1a1a1a',
-                'backgroundColor': '#fff'
-            },
-            **{'data-loading-message': 'Generando interpretación del modelo Weibull...' if language == 'es' else 'Generating Weibull model interpretation...'}
+        _create_ai_response_box(
+            'openai-answer-weibull',
+            'Generando interpretación del modelo Weibull...' if language == 'es' else 'Generating Weibull model interpretation...',
+            language
         ),
 
         create_pdf_export_modal('weibull-pdf-modal', 'weibull', language),
@@ -1078,25 +1093,10 @@ def create_exponential_analysis_page(language='es'):
                         ),
           ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
-        html.Div(
-            id='openai-answer-exponential',
-            children=get_translation(language, 'respuesta'),
-            className='analysis-loading-target',
-            style={
-                'width': '80%',
-                'minHeight': '220px',
-                'whiteSpace': 'pre-wrap',
-                'margin': '20px auto',
-                'display': 'block',
-                'border': '1px solid #ccc',
-                'borderRadius': '8px',
-                'fontSize': '14px',
-                'padding': '14px',
-                'overflowY': 'auto',
-                'color': '#1a1a1a',
-                'backgroundColor': '#fff'
-            },
-            **{'data-loading-message': 'Generando interpretación del modelo exponencial...' if language == 'es' else 'Generating Exponential model interpretation...'}
+        _create_ai_response_box(
+            'openai-answer-exponential',
+            'Generando interpretación del modelo exponencial...' if language == 'es' else 'Generating Exponential model interpretation...',
+            language
         ),
 
         create_pdf_export_modal('exponential-pdf-modal', 'exponential', language),
@@ -1117,8 +1117,8 @@ def create_rsf_analysis_page(language='es'):
         ]
         profile_disability_label = 'Discapacidad'
         profile_disability_options = [
-            {'label': 'Con discapacidad', 'value': 1},
-            {'label': 'Sin discapacidad', 'value': 0},
+            {'label': 'Con discapacidad', 'value': 0},
+            {'label': 'Sin discapacidad', 'value': 1},
         ]
         profile_age_label = 'Edad'
         profile_age_options = [
@@ -1150,8 +1150,8 @@ def create_rsf_analysis_page(language='es'):
         ]
         profile_disability_label = 'Disability'
         profile_disability_options = [
-            {'label': 'With disability', 'value': 1},
-            {'label': 'Without disability', 'value': 0},
+            {'label': 'With disability', 'value': 0},
+            {'label': 'Without disability', 'value': 1},
         ]
         profile_age_label = 'Age band'
         profile_age_options = [
@@ -1259,33 +1259,11 @@ def create_rsf_analysis_page(language='es'):
                          style={'padding': '10px 20px', 'backgroundColor': '#e74c3c', 'color': 'white', 'border': 'none',
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold', 'marginLeft': '10px'})
             ], style={'textAlign': 'center', 'marginTop': '18px', 'marginBottom': '16px'}),
-            html.Div([
-                dcc.Textarea(
-                    id='openai-answer-rsf',
-                    value=get_translation(language, 'respuesta'),
-                    className='ai-output-textarea',
-                    style={
-                        'width': '90%',
-                        'minHeight': '180px',
-                        'resize': 'none',
-                        'whiteSpace': 'pre-wrap',
-                        'margin': '0 auto',
-                        'display': 'block',
-                        'border': '1px solid #ccc',
-                        'borderRadius': '8px',
-                        'fontSize': '14px',
-                        'padding': '14px',
-                        'overflowY': 'auto',
-                        'color': '#1a1a1a',
-                        'backgroundColor': '#fff'
-                    },
-                    disabled=True
-                ),
-                html.Div(
-                    'Generando interpretación RSF...' if language == 'es' else 'Generating RSF interpretation...',
-                    className='textarea-loading-message'
-                ),
-            ], style={'textAlign': 'center'}),
+            _create_ai_response_box(
+                'openai-answer-rsf',
+                'Generando interpretación RSF...' if language == 'es' else 'Generating RSF interpretation...',
+                language
+            ),
         ], style={
             'backgroundColor': 'white',
             'padding': '20px',
@@ -1295,7 +1273,8 @@ def create_rsf_analysis_page(language='es'):
         }),
 
             create_pdf_export_modal('rsf-pdf-modal', 'rsf', language),
-        dcc.Store(id='rsf-analysis-data')
+        dcc.Store(id='rsf-analysis-data'),
+        dcc.Store(id='rsf-profile-data')
     ])
 
 def create_ver_dataset_page(language='es'):
@@ -1618,30 +1597,11 @@ def create_cox_regression_page(language='es'):
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
         
-        html.Div([
-            dcc.Textarea(
-                id='openai-answer-cox',
-                placeholder=get_translation(language, 'respuesta'),
-                className='ai-output-textarea',
-                style={
-                    'width': '60%',  # tamaño
-                    'height': '400px',  # altura de la caja de texto
-                    'resize': 'none',  
-                    'whiteSpace': 'pre-wrap',  # texto se ajuste y no se corte
-                    'margin': '20px auto',  # centrado automático
-                    'display': 'block',  # en bloque y centrado
-                    'border': '1px solid #ccc',  # borde para darle un poco de estilo
-                    'borderRadius': '8px',  # bordes redondeados
-                    'fontSize': '16px',  # tamaño de la fuente para mayor legibilidad
-                    'overflowY': 'auto'
-                },
-                disabled=True
-            ),
-            html.Div(
-                'Generando interpretación de Cox...' if language == 'es' else 'Generating Cox interpretation...',
-                className='textarea-loading-message'
-            ),
-        ], style={'textAlign': 'center'}),  # centrado del contenedor que envuelve el Textarea
+        _create_ai_response_box(
+            'openai-answer-cox',
+            'Generando interpretación de Cox...' if language == 'es' else 'Generating Cox interpretation...',
+            language
+        ),
         
         # Modal de exportación a PDF
         create_pdf_export_modal('cox-pdf-modal', 'cox-regression', language),
@@ -1729,32 +1689,11 @@ def create_kaplan_meier_page(language='es'):
         ], style={'textAlign': 'center', 'marginTop': '20px'}),
         
         # ===== TEXTAREA PARA EXPLICACIÓN =====
-        html.Div([
-            dcc.Textarea(
-                id='openai-answer-kaplan',
-                placeholder=get_translation(language, 'respuesta'),
-                className='ai-output-textarea',
-                style={
-                    'width': '80%',  
-                    'height': '400px', 
-                    'resize': 'none',  
-                    'whiteSpace': 'pre-wrap', 
-                    'margin': '20px auto',  
-                    'display': 'block',  
-                    'border': '1px solid #ccc', 
-                    'borderRadius': '8px',  
-                    'fontSize': '14px', 
-                    'padding': '10px',
-                    'overflowY': 'auto',
-                    'color': '#1a1a1a'
-                },
-                disabled=True
-            ),
-            html.Div(
-                'Generando interpretación Kaplan-Meier...' if language == 'es' else 'Generating Kaplan-Meier interpretation...',
-                className='textarea-loading-message'
-            ),
-        ], style={'textAlign': 'center'}),
+        _create_ai_response_box(
+            'openai-answer-kaplan',
+            'Generando interpretación Kaplan-Meier...' if language == 'es' else 'Generating Kaplan-Meier interpretation...',
+            language
+        ),
         
         # Store para mantener variable actual
         dcc.Store(id='km-current-variable', data=''),
@@ -1812,30 +1751,11 @@ def create_log_rank_page(language='es'):
                              'borderRadius': '8px', 'cursor': 'pointer', 'fontSize': '14px', 'fontWeight': 'bold'}),
         ], style={'textAlign': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
 
-        html.Div([
-            dcc.Textarea(
-                id='openai-answer-logrank',
-                placeholder=get_translation(language, 'respuesta'),
-                className='ai-output-textarea',
-                style={
-                    'width': '60%',  
-                    'height': '400px',  
-                    'resize': 'none',  
-                    'whiteSpace': 'pre-wrap',  
-                    'margin': '20px auto', 
-                    'display': 'block',  
-                    'border': '1px solid #ccc',
-                    'borderRadius': '8px',  
-                    'fontSize': '16px', 
-                    'overflowY': 'auto'
-                },
-                disabled=True
-            ),
-            html.Div(
-                'Generando interpretación Log-Rank...' if language == 'es' else 'Generating Log-Rank interpretation...',
-                className='textarea-loading-message'
-            ),
-        ], style={'textAlign': 'center'}),
+        _create_ai_response_box(
+            'openai-answer-logrank',
+            'Generando interpretación Log-Rank...' if language == 'es' else 'Generating Log-Rank interpretation...',
+            language
+        ),
         
         # Modal de exportación a PDF
         create_pdf_export_modal('logrank-pdf-modal', 'log-rank', language),

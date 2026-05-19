@@ -144,7 +144,7 @@ def plot_km_by_covariate(df, covariable_name='gender_F'):
     # Mapeo de etiquetas según el tipo de variable
     label_map = {
         'gender_F': {1: "Femenino", 0: "Masculino"},
-        'disability_N': {1: "Con discapacidad", 0: "Sin discapacidad"},
+        'disability_N': {1: "Sin discapacidad", 0: "Con discapacidad"},
         'studied_credits': {}  # Sin mapeo para variable continua
     }
     label_mapping = label_map.get(covariable_name, {})
@@ -186,10 +186,10 @@ def plot_km_by_covariate(df, covariable_name='gender_F'):
         idx = 0
         # Iterar sobre TODAS las columnas mapeadas, incluso si no existen
         for col in columns:
-            # Extraer label
-            parts = col.split('_', 1)
-            if len(parts) > 1:
-                label = parts[1]
+            if col.startswith('age_band_'):
+                label = col.replace('age_band_', '', 1)
+            elif col.startswith('highest_education_'):
+                label = col.replace('highest_education_', '', 1)
             else:
                 label = col
             
@@ -316,7 +316,7 @@ def _create_km_figure(df, covariable_name='gender_F'):
     # Mapeo de etiquetas según el tipo de variable
     label_map = {
         'gender_F': {1: "Femenino", 0: "Masculino"},
-        'disability_N': {1: "Con discapacidad", 0: "Sin discapacidad"},
+        'disability_N': {1: "Sin discapacidad", 0: "Con discapacidad"},
         'studied_credits': {}  # Sin mapeo para variable continua
     }
     label_mapping = label_map.get(covariable_name, {})
@@ -362,10 +362,10 @@ def _create_km_figure(df, covariable_name='gender_F'):
             if col not in df.columns:
                 continue
             
-            # Extraer label de la columna
-            parts = col.split('_', 1)
-            if len(parts) > 1:
-                label = parts[1]
+            if col.startswith('age_band_'):
+                label = col.replace('age_band_', '', 1)
+            elif col.startswith('highest_education_'):
+                label = col.replace('highest_education_', '', 1)
             else:
                 label = col
             
