@@ -246,12 +246,14 @@ def _build_cox_interpretation_context(summary_df, selected_covariables=None, df=
     }
 
     def _as_float(value):
+        """Convierte un valor numerico de la tabla a float si es posible."""
         try:
             return float(value)
         except (TypeError, ValueError):
             return None
 
     def _clean_label(covariable):
+        """Transforma nombres internos de columnas en etiquetas legibles."""
         covariable = str(covariable)
         if covariable in label_map:
             return label_map[covariable]
@@ -262,6 +264,7 @@ def _build_cox_interpretation_context(summary_df, selected_covariables=None, df=
         return _humanize_label(covariable)
 
     def _selected_label(covariable):
+        """Devuelve el nombre visible de la covariable seleccionada."""
         covariable = str(covariable)
         if covariable == 'gender_F':
             return 'Género'
@@ -365,6 +368,7 @@ def _build_logrank_interpretation_context(logrank_store_data):
     from log_rank_test import COVARIABLE_MAPPING
 
     def _clean_group_label(value, covariable=None):
+        """Normaliza etiquetas de grupos para mostrarlas en la interpretacion."""
         text = str(value)
         if covariable == 'gender_F':
             return {'0': 'Masculino', '1': 'Femenino'}.get(text, text)
@@ -381,6 +385,7 @@ def _build_logrank_interpretation_context(logrank_store_data):
         return _humanize_label(text)
 
     def _selected_label(covariable):
+        """Obtiene el nombre descriptivo de la covariable usada en Log-Rank."""
         labels = {
             'gender_F': 'Género',
             'disability_N': 'Discapacidad',
@@ -391,6 +396,7 @@ def _build_logrank_interpretation_context(logrank_store_data):
         return labels.get(str(covariable), _humanize_label(covariable))
 
     def _format_group_stats(label, group_df):
+        """Resume tamano, eventos y supervivencia final de un grupo."""
         if group_df is None or len(group_df) == 0:
             return ""
 
@@ -402,6 +408,7 @@ def _build_logrank_interpretation_context(logrank_store_data):
         return f"{label}: n={len(group_df)}, eventos={events} ({event_rate:.1f}%), supervivencia final aprox. {final_survival:.3f}"
 
     def _build_curve_context(df, covariable):
+        """Construye las lineas de contexto de curvas para la explicacion IA."""
         if df is None or df.empty or 'date' not in df.columns or 'final_result' not in df.columns:
             return []
 

@@ -43,6 +43,7 @@ def preprocess_csv_file_streaming(file_path):
     columnas_necesarias = set(columnas_a_conservar + columnas_actividad)
 
     def _to_float(value, default=0.0):
+        """Convierte valores del CSV a float y aplica un valor por defecto si fallan."""
         try:
             if value is None or str(value).strip() == "":
                 return default
@@ -51,6 +52,7 @@ def preprocess_csv_file_streaming(file_path):
             return default
 
     def _to_int(value, default=0):
+        """Convierte valores del CSV a entero aceptando numeros escritos como decimal."""
         try:
             if value is None or str(value).strip() == "":
                 return default
@@ -59,6 +61,7 @@ def preprocess_csv_file_streaming(file_path):
             return default
 
     def _normalizar_fila(raw_row):
+        """Elimina espacios en los nombres de columna de una fila leida del CSV."""
         return {
             (key.strip() if key else key): value
             for key, value in raw_row.items()
@@ -66,6 +69,7 @@ def preprocess_csv_file_streaming(file_path):
         }
 
     def _preparar_registro(row):
+        """Crea un registro auxiliar con tiempo y evento ya normalizados."""
         final_result_text = str(row.get('final_result', '')).strip().lower()
         date_value = _to_float(row.get('date'))
         record = {col: row.get(col, '') for col in columnas_necesarias if col in row}
@@ -74,6 +78,7 @@ def preprocess_csv_file_streaming(file_path):
         return record
 
     def _tiene_actividad(record):
+        """Indica si el registro contiene alguna actividad positiva del estudiante."""
         return any(_to_float(record.get(col), 0.0) > 0.0 for col in columnas_actividad)
 
     seleccion_por_estudiante = {}
