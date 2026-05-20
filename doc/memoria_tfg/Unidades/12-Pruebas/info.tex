@@ -5,6 +5,26 @@ Una vez finalizada la implementación de la aplicación, resulta fundamental ver
 
 \newcommand{\tituloPrueba}[1]{\vspace{0.8em}\noindent\textbf{\underline{#1}}\par\vspace{0.4em}}
 
+\section{Pruebas complementarias de estabilidad e interfaz}
+
+\paragraph*{}
+Además de las pruebas asociadas a cada caso de uso, se realizaron comprobaciones complementarias sobre tres aspectos transversales de la aplicación: la estabilidad durante la carga del dataset, la coherencia visual de las respuestas generadas por inteligencia artificial y la relación entre dichas respuestas y los resultados activos en pantalla. Estas pruebas son relevantes porque afectan al uso diario del dashboard, aunque no siempre se correspondan con una técnica estadística concreta.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|X|}
+\hline
+\textbf{Aspecto probado} & \textbf{Resultado observado} \\ \hline
+Carga y preprocesamiento de \texttt{temp\_data.csv} & El sistema permite cargar el archivo original sin intentar representarlo completo en la interfaz. Posteriormente, el preprocesamiento genera el dataset limpio utilizado por los modelos, evitando cierres inesperados por consumo de memoria. \\ \hline
+Coherencia visual de la IA & Todas las técnicas muestran la explicación generada en un cuadro de respuesta homogéneo, con el mismo formato visual y un mensaje de carga equivalente mientras se produce la interpretación. \\ \hline
+Interpretación contextual & Las explicaciones se generan a partir de la información activa en cada módulo: tablas, gráficas, covariables seleccionadas o perfil simulado en Random Survival Forest. Las respuestas no se limitan a transcribir valores, sino que interpretan tendencias, separación de curvas y posibles limitaciones. \\ \hline
+\end{tabularx}
+\caption{Pruebas complementarias de estabilidad, coherencia visual e interpretación contextual}
+\label{tab:pruebas_complementarias_estabilidad_interfaz}
+\normalsize
+\end{table}
+
 \section{CU-1: EjecutarModeloExponencial}
 
 \tituloPrueba{Prueba válida}

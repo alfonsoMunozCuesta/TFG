@@ -17,11 +17,11 @@ El desarrollo se apoya en un conjunto de librerías que cubren tres necesidades 
 \begin{tabularx}{\textwidth}{|p{0.28\textwidth}|X|}
 \hline
 \textbf{Tecnología o librería} & \textbf{Uso principal dentro de la implementación} \\ \hline
-\texttt{Dash} & Construcción de la interfaz web, navegación entre páginas, actualización dinámica de resultados y conexión entre las acciones del usuario y la lógica interna de la aplicación. \\ \hline
-\texttt{Pandas} y \texttt{NumPy} & Carga, limpieza y transformación del dataset, además de preparación de los datos que posteriormente se entregan a los modelos de supervivencia. \\ \hline
+\texttt{Dash} & Construcción de la interfaz web, navegación entre páginas, actualización dinámica de resultados y conexión entre las acciones del usuario y la lógica interna de la aplicación \cite{dash_tutorial}. \\ \hline
+\texttt{Pandas} y \texttt{NumPy} & Carga, limpieza y transformación del dataset, además de preparación de los datos que posteriormente se entregan a los modelos de supervivencia \cite{pandas_manual_alf,numpy_manual_alf}. \\ \hline
 \texttt{lifelines} & Ajuste de modelos clásicos de análisis de supervivencia, como Kaplan-Meier, Cox, Exponencial y Weibull \cite{davidsonpilon2019lifelines}. \\ \hline
 \texttt{scikit-survival} & Implementación de Random Survival Forest y cálculo de métricas asociadas al rendimiento del modelo \cite{polsterl2020scikit}. \\ \hline
-\texttt{Plotly} & Generación de gráficas interactivas para el dashboard y reutilización de esas mismas visualizaciones en la exportación de informes. \\ \hline
+\texttt{Plotly} & Generación de gráficas interactivas para el dashboard y reutilización de esas mismas visualizaciones en la exportación de informes \cite{plotly_python_intro}. \\ \hline
 \texttt{ReportLab} y \texttt{Kaleido} & Creación de documentos PDF y conversión de gráficas de Plotly en imágenes estáticas insertables en los informes. \\ \hline
 \texttt{requests}, \texttt{llama.cpp} y Qwen & Comunicación con un modelo de lenguaje ejecutado en local para generar explicaciones textuales de los resultados \cite{llamacpp_repo,llamacpp_server,qwen25_technical_report,qwen25_huggingface_gguf}. \\ \hline
 \end{tabularx}
@@ -99,6 +99,9 @@ También se añadió Random Survival Forest, que aporta una visión diferente al
 El preprocesamiento se ajustó para que el dataset quedara preparado antes de ejecutar cualquier técnica. En esta fase se limpian nombres de columnas, se validan campos necesarios, se eliminan registros problemáticos y se construye una representación más estable de cada estudiante. No se trata solo de dejar los datos ``bonitos'', sino de evitar que un modelo reciba información duplicada, incompleta o incoherente.
 
 \paragraph*{}
+Además, se incorporó una mejora específica de estabilidad para la carga del archivo \texttt{temp\_data.csv}. Al tratarse de un CSV con un volumen considerable de filas y columnas, la interfaz no muestra el archivo completo de golpe, sino una previsualización limitada. Posteriormente, durante el preprocesamiento, el sistema puede recorrer el archivo de forma progresiva para construir directamente el dataset limpio que utilizan los modelos. Con ello se reduce el consumo de memoria y se evita que la aplicación se cierre al trabajar en equipos con recursos limitados.
+
+\paragraph*{}
 Además, la ampliación permite trabajar con variables de distinto tipo. Algunas son binarias, otras categóricas y otras numéricas. Por eso, la implementación prepara los datos de manera diferente según la técnica que se vaya a ejecutar. Por ejemplo, ciertos análisis necesitan comparar grupos, mientras que otros pueden utilizar directamente una matriz de características más amplia.
 
 \subsection{Visualización y comparación de resultados}
@@ -109,6 +112,9 @@ Las visualizaciones se han construido con Plotly para mantener la interactividad
 \paragraph*{}
 En esta parte se incorporan curvas de supervivencia, comparaciones entre modelos, gráficos de importancia de variables y representaciones específicas para Cox y Log-Rank. Además, la comparación de técnicas se ha integrado como una opción accesible desde la zona de análisis de supervivencia, de modo que el usuario puede revisar primero los modelos por separado y después consultar una visión conjunta.
 
+\paragraph*{}
+También se unificó la presentación de las respuestas generadas por inteligencia artificial. Todas las técnicas muestran la explicación en un mismo tipo de cuadro de texto, con el mismo tamaño, estilo visual y mensaje de carga. Esta decisión no modifica los resultados estadísticos, pero sí mejora la coherencia de la experiencia de usuario, ya que el funcionamiento del botón ``Explicar'' se percibe igual en Kaplan-Meier, Cox, Log-Rank, Weibull, Exponencial y Random Survival Forest.
+
 \subsection{Interpretación mediante inteligencia artificial}
 
 \paragraph*{}
@@ -116,6 +122,9 @@ La interpretación automática se ha planteado como una ayuda para leer los resu
 
 \paragraph*{}
 La ejecución local se realiza mediante \texttt{llama.cpp} y un modelo Qwen en formato cuantizado. Esto permite generar textos sin depender de un servicio externo, algo especialmente interesante cuando se trabaja con resultados académicos o datos que conviene mantener dentro del entorno de trabajo. El resultado es una explicación más cercana para el usuario, útil sobre todo cuando las métricas pueden resultar algo frías o difíciles de interpretar a primera vista.
+
+\paragraph*{}
+En la versión final, las interpretaciones no se generan de forma genérica, sino a partir de los resultados activos en pantalla. Según la técnica utilizada, el sistema recopila la tabla, la gráfica, la covariable seleccionada o el perfil simulado vigente, y construye con esa información el contexto que recibe el modelo de lenguaje. Además, se fuerza una redacción orientada a interpretar tendencias y no solo a repetir valores: por ejemplo, se pide explicar la separación de curvas, los descensos pronunciados, los tramos planos, los saltos relevantes y las limitaciones metodológicas de cada análisis.
 
 \subsection{Exportación de informes}
 
