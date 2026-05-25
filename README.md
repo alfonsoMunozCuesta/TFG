@@ -1,113 +1,141 @@
-﻿# TFG - Dashboard de Analisis de Supervivencia Academica
+# Ampliacion y mejora de un dashboard de analisis de supervivencia
 
-Aplicacion web en Dash para analizar abandono estudiantil mediante tecnicas de supervivencia.
+Este repositorio contiene el codigo fuente y la documentacion de un Trabajo Fin de Grado centrado en la ampliacion de una aplicacion web interactiva para el analisis de supervivencia aplicado al abandono universitario.
 
-El sistema permite:
-- Cargar y validar un dataset estructurado.
-- Preprocesar datos para analisis.
-- Ejecutar tecnicas de supervivencia y comparar modelos.
-- Generar explicaciones interpretativas con IA (opcional).
-- Exportar resultados a PDF.
+La aplicacion esta desarrollada en Python y Dash. Permite cargar y preprocesar datos academicos, ejecutar distintas tecnicas de analisis de supervivencia, visualizar resultados, generar interpretaciones asistidas por inteligencia artificial local y exportar informes en PDF.
 
-## 1. Que hace la aplicacion
+## Funcionalidades principales
 
-Esta aplicacion esta orientada a un contexto academico (TFG) y cubre el flujo completo:
-1. Carga del CSV.
-2. Validacion de estructura minima.
-3. Preprocesamiento.
-4. Analisis por tecnica.
-5. Interpretacion de resultados (manual + IA).
-6. Exportacion de informes.
+- Carga, validacion y preprocesamiento de un dataset academico.
+- Visualizacion del dataset limpio y analisis descriptivo de covariables.
+- Ejecucion de tecnicas de supervivencia:
+  - Kaplan-Meier.
+  - Regresion de Cox.
+  - Test de Log-Rank.
+  - Modelo Exponencial.
+  - Modelo de Weibull.
+  - Random Survival Forest.
+- Comparacion orientativa entre tecnicas.
+- Soporte multilingue en castellano e ingles.
+- Generacion de explicaciones mediante un modelo local de IA.
+- Exportacion de resultados, tablas, graficas e interpretaciones en PDF.
 
-## 2. Tecnologias principales
+## Organizacion del repositorio
 
-- Python + Dash (interfaz web).
-- Plotly (graficos).
-- Lifelines (Kaplan-Meier, Cox, Weibull, Exponencial).
-- Scikit-survival (Random Survival Forest).
-- ReportLab + Kaleido (exportacion PDF).
-- Llama-server compatible OpenAI API (modulo IA opcional).
+```text
+.
+|-- assets/                         Recursos visuales y estilos del dashboard
+|-- benchmarks/                     Resultados CSV/JSON de mediciones de IA
+|-- data/                           Datos de entrada utilizados por la aplicacion
+|-- doc/memoria_tfg/                Memoria del TFG en LaTeX
+|-- downloads/                      Informes PDF generados por la aplicacion
+|-- models/                         Ubicacion prevista para el modelo GGUF local
+|-- tools/                          Ubicacion prevista para llama-server.exe
+|-- analysis_callbacks.py           Callbacks principales de analisis e interaccion
+|-- cargaDataset.py                 Punto de entrada de la aplicacion Dash
+|-- config.py                       Configuracion de rutas y servidor de IA
+|-- layout.py                       Definicion de paginas y componentes visuales
+|-- preprocesamiento.py             Limpieza y preparacion del dataset
+|-- kaplan_meier.py                 Curvas Kaplan-Meier
+|-- cox_regression.py               Regresion de Cox y visualizaciones asociadas
+|-- log_rank_test.py                Test Log-Rank y curvas comparativas
+|-- exponential.py                  Modelo Exponencial
+|-- weibull.py                      Modelo de Weibull
+|-- rsf.py                          Random Survival Forest
+|-- survival_plots.py               Graficas estadisticas reutilizables
+|-- ollama_AI.py                    Integracion con el modelo local de IA
+|-- pdf_callbacks.py                Callbacks de exportacion a PDF
+|-- pdf_exporter.py                 Construccion de informes PDF
+|-- translations.py                 Textos de interfaz en espanol e ingles
+|-- benchmark_ia.py                 Benchmark del modulo IA del sistema actual
+|-- benchmark_ia_lucia.py           Benchmark comparativo del TFG base
+|-- START_DASH_APP.bat              Arranque rapido del dashboard en Windows
+`-- START_LLAMA_SERVER.bat          Arranque rapido del servidor local de IA
+```
 
-## 3. Estructura del proyecto
+## Modulos principales
 
-Archivos clave:
-- `cargaDataset.py`: inicializacion de app, layout global, rutas y arranque.
-- `analysis_callbacks.py`: callbacks de carga, validacion, preprocesamiento y analisis.
-- `layout.py`: componentes de UI y paginas.
-- `pdf_callbacks.py`: callbacks para exportacion PDF.
-- `pdf_exporter.py`: generacion de informes PDF.
-- `config.py`: rutas base y configuracion del servidor IA.
-- `weibull.py`, `exponential.py`, `rsf.py`: analiticas por tecnica.
-- `translations.py`: internacionalizacion (ES/EN).
+| Archivo | Responsabilidad |
+| --- | --- |
+| `cargaDataset.py` | Inicializa Dash, registra callbacks y arranca el servidor web local. |
+| `layout.py` | Define la estructura visual de las paginas del dashboard. |
+| `analysis_callbacks.py` | Conecta la interfaz con los modelos, las tablas, las graficas y la IA. |
+| `preprocesamiento.py` | Valida el CSV, reduce el dataset y construye una fila representativa por estudiante. |
+| `kaplan_meier.py`, `cox_regression.py`, `log_rank_test.py` | Implementan las tecnicas clasicas de supervivencia. |
+| `exponential.py`, `weibull.py`, `rsf.py` | Implementan las tecnicas anadidas en la ampliacion del TFG. |
+| `ollama_AI.py` | Construye prompts academicos y llama al servidor local compatible con API OpenAI. |
+| `pdf_exporter.py`, `pdf_callbacks.py` | Generan informes PDF a partir de los resultados seleccionados por el usuario. |
+| `translations.py` | Centraliza textos traducibles para la interfaz en castellano e ingles. |
 
-Scripts de apoyo:
-- `START_DASH_APP.bat`: arranque del dashboard.
-- `START_LLAMA_SERVER.bat`: arranque del servidor IA local.
+El codigo esta documentado con comentarios y docstrings para facilitar su revision. Este README actua como guia general de orientacion, no como manual exhaustivo de codigo fuente.
 
-## 4. Requisitos previos
+## Requisitos
 
-- Sistema operativo: Windows (entorno principal del proyecto).
-- Python: recomendado 3.10+ (incluye workaround para Windows + Python 3.13 en el arranque).
-- `pip` actualizado.
-- Para IA local: `llama-server.exe` y un modelo GGUF descargado.
+Entorno utilizado durante el desarrollo y las pruebas:
 
-## 5. Instalacion
+- Windows 11.
+- Python 3.13.2.
+- Dash 3.1.0.
+- Librerias listadas en `requirements.txt`.
 
-Desde la carpeta raiz del proyecto:
+Instalacion recomendada:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## 6. Ejecucion
+## Ejecucion del dashboard
 
-### Opcion A (recomendada en Windows)
-
-1. Abrir una terminal para IA (opcional):
-```bat
-START_LLAMA_SERVER.bat
-```
-
-2. Abrir otra terminal para la app:
-```bat
-START_DASH_APP.bat
-```
-
-3. Acceder en navegador a:
-- http://127.0.0.1:8050
-
-### Opcion B (manual)
+Desde la raiz del proyecto:
 
 ```powershell
-python -u cargaDataset.py
+python cargaDataset.py
 ```
 
-## 7. Flujo de uso para un usuario externo
+Tambien puede ejecutarse con el script incluido:
 
-1. Entrar en la pagina principal y subir CSV.
-2. Confirmar que el archivo se valida correctamente.
-3. Pulsar "Preprocesar CSV".
-4. Navegar por:
-- Ver dataset.
-- Analisis de covariables.
-- Analisis de supervivencia.
-5. Ejecutar tecnicas:
-- Kaplan-Meier.
-- Cox Regression.
-- Log-Rank.
-- Weibull.
-- Exponencial.
-- Random Survival Forest.
-6. Revisar tablas, metricas y graficos.
-7. (Opcional) Generar explicaciones con IA.
-8. Exportar resultados a PDF desde cada modulo.
+```powershell
+.\START_DASH_APP.bat
+```
 
-## 8. Formato minimo esperado del CSV
+Despues, abrir en el navegador:
 
-El validador exige columnas obligatorias:
+```text
+http://127.0.0.1:8050
+```
+
+## Modulo de inteligencia artificial local
+
+La IA es opcional. El analisis estadistico funciona aunque el servidor de IA no este activo.
+
+Para generar explicaciones automaticas se utiliza un servidor local compatible con la API de OpenAI, ejecutado mediante `llama-server`. La configuracion por defecto espera:
+
+```text
+models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+tools/llama.cpp/llama-server.exe
+```
+
+Estos archivos pueden no estar incluidos en GitHub por tamano o por tratarse de recursos externos. En ese caso deben colocarse manualmente en esas rutas o configurar las variables `MODEL_PATH` y `LLAMA_SERVER`.
+
+Arranque del servidor de IA:
+
+```powershell
+.\START_LLAMA_SERVER.bat
+```
+
+Endpoint utilizado por defecto:
+
+```text
+http://127.0.0.1:8000/v1/chat/completions
+```
+
+## Dataset esperado
+
+La aplicacion trabaja con un CSV academico que debe contener, como minimo, las columnas necesarias para el analisis:
+
 - `id_student`
 - `date`
 - `final_result`
@@ -123,62 +151,76 @@ El validador exige columnas obligatorias:
 - `highest_education_Post Graduate Qualification`
 - `studied_credits`
 
-Reglas clave de validacion:
-- El archivo debe ser `.csv`.
-- No debe estar vacio.
-- `id_student`, `date` y `final_result` son criticos.
-- `date` debe ser numerico.
+El preprocesamiento valida la estructura, transforma el resultado final en evento de abandono, consolida los registros por estudiante y genera el dataset limpio utilizado por los modelos.
 
-## 9. Resultados que genera el sistema
+## Flujo de uso
 
-Segun tecnica, se generan:
-- Figuras de supervivencia.
-- Tablas resumen de metricas.
-- Comparativas de ajuste (por ejemplo AIC y LogLikelihood entre Weibull y Exponencial).
-- Interpretacion textual.
-- Informe PDF (segun opciones marcadas por el usuario).
+1. Iniciar el dashboard.
+2. Cargar un CSV valido.
+3. Ejecutar el preprocesamiento.
+4. Revisar el dataset limpio.
+5. Acceder a los modulos de analisis:
+   - analisis de covariables,
+   - Kaplan-Meier,
+   - Cox,
+   - Log-Rank,
+   - Exponencial,
+   - Weibull,
+   - Random Survival Forest,
+   - comparacion de tecnicas.
+6. Consultar tablas, metricas y graficas.
+7. Opcionalmente, solicitar interpretacion mediante IA.
+8. Exportar los resultados a PDF.
 
-## 10. Modulo de IA (opcional)
+## Documentacion academica
 
-La app puede generar explicaciones academicas con un servidor local compatible con OpenAI API.
+La memoria del TFG esta en:
 
-Configuracion relevante en `config.py`:
-- `LLAMA_SERVER_URL` (por defecto: `http://127.0.0.1:8000/v1/chat/completions`)
-- `MODEL_NAME`
+```text
+doc/memoria_tfg/
+```
 
-Si el servidor IA no esta disponible, el sistema mantiene el analisis estadistico y solo se omiten respuestas de IA.
+Archivo principal:
 
-## 11. Internacionalizacion
+```text
+doc/memoria_tfg/__memoria.tex
+```
 
-La interfaz permite cambiar idioma:
-- Espanol (ES)
-- Ingles (EN)
+Compilacion en Windows:
 
-Los textos de UI y varios mensajes de interpretacion se adaptan al idioma activo.
+```powershell
+cd doc\memoria_tfg
+.\compilar_memoria.ps1
+```
 
-## 12. Exportacion de informes
+El PDF generado se guarda como:
 
-Cada tecnica dispone de modal de exportacion con seleccion de contenido.
+```text
+doc/memoria_tfg/__memoria.pdf
+```
 
-Se puede incluir, segun modulo:
-- Resumen estadistico.
-- Tabla de resultados.
-- Graficos.
-- Interpretacion IA.
+El manual de usuario esta incluido como apendice dentro de la memoria, en el archivo `manual_de_usuario.tex`.
 
-Los PDF se guardan en la carpeta `downloads/`.
+## Pruebas y benchmark
 
-## 13. Problemas frecuentes
+El capitulo de pruebas de la memoria documenta la validacion funcional de los casos de uso principales. Ademas, se incluyen scripts para medir el rendimiento del modulo de IA:
 
-1. La app no arranca o se bloquea al inicio en Windows + Python 3.13.
-- Solucion: usar el arranque actual de `cargaDataset.py` (incluye workaround de `platform` para evitar bloqueo WMI).
+```powershell
+python benchmark_ia.py
+python benchmark_ia_lucia.py
+```
 
-2. El CSV se rechaza aunque tiene datos.
-- Revisar separador (`;` o `,`), codificacion y nombres exactos de columnas obligatorias.
+Los resultados se almacenan en:
 
-3. No hay texto IA en pantalla/PDF.
-- Verificar que `START_LLAMA_SERVER.bat` esta ejecutandose y que `LLAMA_SERVER_URL` es correcto.
+```text
+benchmarks/
+```
 
-4. El PDF no incluye un bloque esperado.
-- Revisar las casillas marcadas en el modal de exportacion antes de descargar.
+Estas mediciones comparan tiempos de respuesta y consumo aproximado de recursos en el equipo de pruebas. No deben interpretarse como una comparacion universal entre modelos, sino como una evaluacion practica de las configuraciones utilizadas en el TFG.
 
+## Notas para revision del tribunal
+
+- La aplicacion se ejecuta en local y no requiere desplegar un servidor externo.
+- El modulo de IA es auxiliar: ayuda a interpretar resultados, pero no sustituye el analisis estadistico.
+- El sistema esta planteado como una herramienta de apoyo exploratorio para estudiar patrones asociados al abandono academico, no como un sistema automatico de decision.
+- La memoria en LaTeX documenta objetivos, antecedentes, requisitos, diseno, implementacion, pruebas, limitaciones y conclusiones.

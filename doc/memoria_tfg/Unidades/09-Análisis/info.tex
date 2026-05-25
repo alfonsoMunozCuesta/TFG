@@ -12,7 +12,7 @@
 \paragraph*{}En esta primera fase de análisis del problema se mantienen los mismos actores principales que en el Trabajo de Fin de Grado anterior, ya que la aplicación está orientada al mismo tipo de público: profesorado, personal administrativo, alumnado o cualquier miembro interesado en utilizar estas técnicas a partir de los datos propuestos. Aunque la interacción principal recae sobre el usuario, también se considera el asistente de inteligencia artificial, encargado de procesar las consultas y generar respuestas o interpretaciones relacionadas con los resultados obtenidos.
 \begin{itemize}
     \item \textbf{Usuario}: Representa a cualquier persona que utiliza la aplicación para cargar datos, ejecutar análisis de supervivencia, visualizar resultados, comparar modelos y exportar la información generada por el sistema.
-    \item \textbf{Sistema de Inteligencia Artificial (IA)}: Actúa como un componente externo que interactúa con el usuario proporcionando explicaciones, sugerencias e interpretaciones de los resultados obtenidos. En esta nueva versión del sistema, este actor adquiere especial relevancia debido a las mejoras introducidas en la calidad y rapidez de las respuestas generadas.
+    \item \textbf{Sistema de Inteligencia Artificial (IA)}: Actúa como un componente externo que interactúa con el usuario proporcionando explicaciones, sugerencias e interpretaciones de los resultados obtenidos. En esta nueva versión del sistema, este actor adquiere especial relevancia debido a las mejoras introducidas en la integración local, la contextualización y el control de las respuestas generadas.
 \end{itemize}
 
 
@@ -50,7 +50,7 @@ CU-7 & AnalizarVariablesNoBinarias &
 Permite incorporar y analizar nuevas variables del conjunto de datos, incluyendo variables no binarias, ampliando las posibilidades de estudio del sistema. \\ \hline
 
 CU-8 & MejorarInterpretaciónIA & 
-Permite generar explicaciones más precisas, coherentes y rápidas mediante la mejora del sistema de inteligencia artificial integrado. \\ \hline
+Permite generar explicaciones más contextualizadas y coherentes mediante la mejora del sistema de inteligencia artificial integrado. \\ \hline
 
 CU-9 & \begin{tabular}[t]{@{}l@{}}AmpliarVisualizaciones\\CoxLogRank\end{tabular} & 
 Permite generar nuevas visualizaciones asociadas a los modelos de regresión de Cox y Test de Log-Rank, mejorando la interpretación visual de los resultados. \\ \hline
@@ -263,7 +263,7 @@ Este caso de uso describe el proceso mediante el cual el usuario accede a una p�
     
     \item El sistema carga automáticamente una tabla comparativa de técnicas que incluye información como el tipo de modelo, hipótesis, ventajas, limitaciones y contexto de uso recomendado.
     
-    \item El sistema genera una visualización comparativa en forma de gráfico de barras, mostrando puntuaciones orientativas (capacidad predictiva, interpretabilidad y flexibilidad en una escala de 0 a 5).
+    \item El sistema genera una visualización comparativa en forma de gráfico de barras, mostrando puntuaciones orientativas (capacidad de modelado, interpretabilidad y flexibilidad en una escala de 0 a 5).
     
     \item El sistema genera un bloque explicativo textual mediante el módulo de inteligencia artificial, en el que se resumen las principales diferencias entre técnicas y se propone una estrategia metodológica de uso.
     
@@ -426,7 +426,7 @@ Las nuevas variables quedan integradas en el análisis y los resultados quedan d
 \textbf{Nombre} & MejorarInterpretacionIA \\ \hline
 
 \textbf{Descripción} & 
-Este caso de uso describe el proceso mediante el cual el sistema genera explicaciones más precisas, coherentes y rápidas mediante una mejora del módulo de inteligencia artificial. La interpretación generada no se basa en una explicación genérica de la técnica, sino en los resultados activos mostrados en pantalla. Para ello, el sistema prepara un contexto con las tablas, métricas, parámetros, p-valores, intervalos de confianza y curvas asociadas al análisis seleccionado, de forma que la respuesta de la IA sea coherente con la gráfica y la tabla visibles en ese momento. \\ \hline
+Este caso de uso describe el proceso mediante el cual el sistema genera explicaciones más contextualizadas y coherentes mediante una mejora del módulo de inteligencia artificial. La interpretación generada no se basa en una explicación genérica de la técnica, sino en los resultados activos mostrados en pantalla. Para ello, el sistema prepara un contexto con las tablas, métricas, parámetros, p-valores, intervalos de confianza y curvas asociadas al análisis seleccionado, de forma que la respuesta de la IA sea coherente con la gráfica y la tabla visibles en ese momento. \\ \hline
 
 \textbf{Actor principal} & Sistema de Inteligencia Artificial (IA) \\ \hline
 \textbf{Actores secundarios} & Usuario \\ \hline
@@ -577,7 +577,7 @@ RF13 & X & X & X &  & X &  &  &  &  \\ \hline
 
 
 \subsection{CU-4: ConsultarComparacionDeTecnicas}
-\paragraph*{}El diagrama del CU-4 muestra el acceso a la página de comparación de técnicas desde la sección de análisis de supervivencia. La verdad es que este flujo resulta útil porque resume cómo el usuario llega a una vista pensada para comparar métodos, revisar sus diferencias principales y apoyarse en una explicación automática cuando está disponible.
+\paragraph*{}El diagrama del CU-4 muestra el acceso a la página de comparación de técnicas desde la sección de análisis de supervivencia. Este flujo resulta útil porque resume cómo el usuario llega a una vista pensada para comparar métodos, revisar sus diferencias principales y apoyarse en una explicación automática cuando está disponible.
 
 \begin{figure}[H]
     \centering

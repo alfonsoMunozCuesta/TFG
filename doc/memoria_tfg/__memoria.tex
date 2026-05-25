@@ -7,7 +7,8 @@
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{lipsum}
-\usepackage[square,numbers]{natbib}
+% Citas en formato autor-fecha, más próximo al estilo APA que la numeración.
+\usepackage[round,authoryear]{natbib}
 \usepackage[skip=12pt,font=small]{caption}
 \usepackage{subcaption}
 \usepackage{amsmath}
@@ -246,9 +247,8 @@ mi familia}
 %	BIBLIOGRAFIA   %
 %------------------%
 
-%Estilo de la bibliografia
-\bibliographystyle{unsrtnat} 
-%\bibliographystyle{elsarticle-num}
+% Estilo autor-fecha próximo a APA y compatible con BibTeX/natbib.
+\bibliographystyle{apalike}
 \bibliography{referencias.bib}
 \newpage
 

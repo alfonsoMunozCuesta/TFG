@@ -10,7 +10,7 @@ En este Trabajo Fin de Grado, además, el diseño tiene una particularidad impor
 \section{Arquitectura del sistema}
 
 \paragraph*{}
-La arquitectura del sistema se organiza siguiendo una estructura modular. Esta decisión resulta bastante natural para una aplicación desarrollada en Python y Dash, ya que permite separar la interfaz, la lógica de análisis, la generación de informes y los servicios auxiliares. Gracias a esta división, cada parte del sistema tiene una responsabilidad concreta y es más sencillo mantener el proyecto, localizar errores o incorporar nuevas técnicas de análisis en el futuro.
+La arquitectura del sistema se organiza siguiendo una estructura modular. Esta decisión resulta adecuada para una aplicación desarrollada en Python y Dash, ya que permite separar la interfaz, la lógica de análisis, la generación de informes y los servicios auxiliares. Gracias a esta división, cada parte del sistema tiene una responsabilidad concreta y es más sencillo mantener el proyecto, localizar errores o incorporar nuevas técnicas de análisis en el futuro.
 
 \paragraph*{}
 Desde un punto de vista general, el sistema puede entenderse como una aplicación web local compuesta por varias capas. En primer lugar, se encuentra la capa de presentación, construida con Dash, HTML y componentes interactivos. Esta capa es la que ve el usuario: menús, formularios, botones, tablas, gráficas y modales de exportación. En segundo lugar, aparece la capa de control, formada principalmente por los callbacks de Dash, que conectan las acciones del usuario con la lógica interna de la aplicación. Por último, se encuentra la capa de procesamiento, donde se ejecutan los modelos estadísticos, las transformaciones de datos, la generación de visualizaciones, la creación de PDFs y las peticiones al módulo de inteligencia artificial.
@@ -19,7 +19,7 @@ Desde un punto de vista general, el sistema puede entenderse como una aplicació
 La separación por capas se completa con una distribución por componentes. En lugar de concentrar toda la lógica en una única parte de la aplicación, el diseño distingue entre navegación, presentación visual, gestión de eventos, preparación de datos, ejecución de modelos, visualización de resultados, generación de informes, traducción de textos e interpretación mediante inteligencia artificial. Esta visión resulta más clara para entender el sistema en conjunto, mientras que los archivos concretos que materializan cada responsabilidad se detallan más adelante en el capítulo de implementación.
 
 \paragraph*{}
-Esta organización también facilita la ampliación del dashboard. Si se incorpora una nueva técnica de supervivencia, no es necesario replantear toda la aplicación: basta con integrarla dentro del componente de análisis, conectarla con la interfaz y, si procede, añadir sus visualizaciones y su exportación. La verdad es que esta idea es importante, porque el proyecto parte de un sistema previo y necesita crecer sin perder estabilidad ni coherencia.
+Esta organización también facilita la ampliación del dashboard. Si se incorpora una nueva técnica de supervivencia, no es necesario replantear toda la aplicación: basta con integrarla dentro del componente de análisis, conectarla con la interfaz y, si procede, añadir sus visualizaciones y su exportación. Esta decisión resulta especialmente relevante porque el proyecto parte de un sistema previo y necesita crecer sin perder estabilidad ni coherencia.
 
 \begin{table}[H]
 \centering
@@ -31,7 +31,7 @@ Interfaz de usuario & Presenta las pantallas, controles, tablas, gráficas, boto
 Gestor de navegación & Organiza el acceso a las distintas secciones del dashboard y mantiene un recorrido coherente entre carga, análisis, comparación y exportación. \\ \hline
 Gestor de interacción & Recibe las acciones del usuario y coordina la respuesta del sistema, conectando la interfaz con los procesos internos. \\ \hline
 Gestor de datos & Controla la carga, validación, limpieza y preparación del dataset antes de ejecutar los modelos. \\ \hline
-Motor de análisis & Agrupa las técnicas estadísticas y predictivas utilizadas para estudiar la supervivencia académica. \\ \hline
+Motor de análisis & Agrupa las técnicas estadísticas y de modelado utilizadas para estudiar la supervivencia académica. \\ \hline
 Generador de visualizaciones & Transforma los resultados de los modelos en gráficas, curvas, tablas y comparaciones interpretables. \\ \hline
 Generador de informes & Prepara la exportación de resultados en documentos reutilizables, incorporando tablas, gráficos e interpretaciones. \\ \hline
 Módulo de inteligencia artificial & Produce explicaciones textuales de apoyo a partir de los resultados obtenidos en los análisis. \\ \hline
@@ -78,18 +78,40 @@ Créditos estudiados \newline \texttt{studied\_credits} & Refleja la carga acad�
 \end{longtable}
 \normalsize
 
+\paragraph*{}Tras el preprocesamiento, el dataset utilizado por los modelos queda reducido a una fila representativa por estudiante. Esta reducción es necesaria porque el archivo original contiene múltiples registros temporales y de actividad para un mismo alumno, mientras que las técnicas implementadas en el dashboard requieren una estructura estable con el tiempo observado, el evento de abandono y las covariables seleccionadas.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{0.34\textwidth}|X|}
+\hline
+\textbf{Elemento} & \textbf{Valor en el dataset final} \\ \hline
+Registros del archivo original & 100\,000 registros y 73 columnas en \texttt{temp\_data.csv}. \\ \hline
+Unidad de análisis final & 371 estudiantes únicos, con una fila representativa por estudiante. \\ \hline
+Evento analizado & Abandono académico, codificado como \texttt{final\_result = 1} cuando el resultado original es \textit{Withdrawn}. \\ \hline
+Eventos observados & 60 estudiantes con abandono registrado. \\ \hline
+Casos censurados & 311 estudiantes sin abandono observado en el periodo analizado. \\ \hline
+Rango temporal observado & Entre 0 y 269 días de seguimiento. \\ \hline
+Columnas conservadas & \texttt{id\_student}, \texttt{date}, \texttt{final\_result}, \texttt{gender\_F}, \texttt{disability\_N}, variables de tramo de edad, nivel educativo previo y \texttt{studied\_credits}. \\ \hline
+Columnas no conservadas en el dataset final & Variables de actividad detallada en la plataforma, módulo, presentación, región, índice socioeconómico, intentos previos y variables binarias redundantes como \texttt{gender\_M} o \texttt{disability\_Y}. \\ \hline
+\end{tabularx}
+\caption{Resumen del dataset final utilizado en los análisis}
+\label{tab:resumen_dataset_final}
+\normalsize
+\end{table}
+
 \paragraph*{}Aunque el conjunto de datos puede contener más atributos procedentes del sistema original, como actividad en recursos, módulos, presentaciones, regiones o intentos previos, esta ampliación se centra especialmente en las variables anteriores. La razón es que permiten cubrir los objetivos del trabajo sin perder claridad: se conserva la información mínima necesaria para los modelos de supervivencia y se incorporan covariables personales y académicas que enriquecen la interpretación de los resultados. Otras variables podrían ser útiles en futuros análisis, pero en esta versión se ha optado por un conjunto más controlado, comprensible y directamente relacionado con los casos de uso definidos.
 
 \section{Diseño de la interfaz}
 
 \paragraph*{}
-El diseño de la interfaz mantiene la idea principal del dashboard original: ofrecer al usuario un entorno visual desde el que pueda cargar datos, ejecutar análisis y consultar resultados sin tener que trabajar directamente con código. La verdad es que este punto es importante, porque el sistema está pensado para facilitar el análisis de supervivencia en un contexto académico, donde no siempre se parte de un perfil técnico avanzado.
+El diseño de la interfaz mantiene la idea principal del dashboard original: ofrecer al usuario un entorno visual desde el que pueda cargar datos, ejecutar análisis y consultar resultados sin tener que trabajar directamente con código. Este punto es importante porque el sistema está pensado para facilitar el análisis de supervivencia en un contexto académico, donde no siempre se parte de un perfil técnico avanzado.
 
 \paragraph*{}
 La navegación se estructura mediante diferentes páginas o secciones. Cada una agrupa funcionalidades relacionadas: carga y visualización del dataset, análisis de covariables, técnicas de supervivencia, comparación de modelos y exportación de resultados. Esta organización evita mezclar demasiada información en una sola pantalla y permite que el usuario avance poco a poco, como si siguiera un pequeño recorrido: primero carga los datos, después los prepara, luego ejecuta modelos y finalmente interpreta o exporta los resultados.
 
 \paragraph*{}
-Para que ese recorrido se entienda de un vistazo, se ha incorporado un diagrama de navegación de la aplicación. La verdad es que este tipo de esquema ayuda bastante, porque funciona casi como un mapa antes de empezar una ruta: permite ver desde dónde parte el usuario, qué pantallas puede visitar y cómo se conectan las distintas acciones del dashboard. En él se representa el paso desde la carga inicial del dataset hasta la visualización de datos, el análisis de covariables, las técnicas de supervivencia, la comparación de métodos, la interpretación mediante IA y la exportación de resultados.
+Para que ese recorrido se entienda de un vistazo, se ha incorporado un diagrama de navegación de la aplicación. Este tipo de esquema permite ver desde dónde parte el usuario, qué pantallas puede visitar y cómo se conectan las distintas acciones del dashboard. En él se representa el paso desde la carga inicial del dataset hasta la visualización de datos, el análisis de covariables, las técnicas de supervivencia, la comparación de métodos, la interpretación mediante IA y la exportación de resultados.
 
 \begin{figure}[H]
     \centering
@@ -342,7 +364,7 @@ Random Survival Forest incorpora una técnica basada en aprendizaje automático 
 \subsubsection*{\underline{Comparación de técnicas}}
 
 \paragraph*{}
-La página de comparación de técnicas se abre desde el botón específico situado bajo las técnicas de la sección de análisis de supervivencia. A diferencia de las vistas anteriores, no se trata de un modelo ejecutable, sino de una página estática pensada para orientar al usuario. En ella se resume, de forma sencilla, qué hace cada método, qué tipo de información aporta y en qué situaciones puede resultar más útil. La idea es que el usuario no tenga que elegir una técnica a ciegas, sino que cuente con una pequeña guía dentro de la propia aplicación.
+La página de comparación de técnicas se abre desde el botón específico situado bajo las técnicas de la sección de análisis de supervivencia. A diferencia de las vistas anteriores, no se trata de un modelo ejecutable, sino de una página estática pensada para orientar al usuario. En ella se resume, de forma sencilla, qué hace cada método, qué tipo de información aporta y en qué situaciones puede resultar más útil. Con ello, el usuario dispone de una guía interna antes de seleccionar la técnica de análisis más adecuada.
 
 \begin{figure}[H]
     \centering

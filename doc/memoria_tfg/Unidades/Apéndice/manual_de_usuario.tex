@@ -35,7 +35,7 @@
 
 \section{Introducción}
 
-\paragraph*{}Este manual recoge, paso a paso, el proceso de instalación, puesta en marcha y uso de la aplicación desarrollada para el análisis de supervivencia aplicado al abandono académico universitario. La idea es que cualquier usuario pueda arrancarla sin perderse entre archivos, comandos o pantallas intermedias.
+\paragraph*{}Este manual recoge, paso a paso, el proceso de instalación, puesta en marcha y uso de la aplicación desarrollada para el análisis de supervivencia aplicado al abandono académico universitario. Su finalidad es que cualquier usuario pueda iniciar la herramienta sin perderse entre archivos, comandos o pantallas intermedias.
 
 \paragraph*{}La aplicación se ejecuta como un dashboard web local construido con Dash. Esto significa que no es necesario desplegarla en un servidor externo para utilizarla: el usuario inicia el programa en su propio equipo y accede a la interfaz desde un navegador mediante una dirección local. Desde ahí puede cargar el dataset, preprocesarlo, consultar los datos, ejecutar diferentes técnicas de análisis de supervivencia, generar interpretaciones y exportar informes en formato PDF. En la práctica, todo el flujo de trabajo queda reunido en una misma herramienta.
 
@@ -71,7 +71,7 @@
 
 \paragraph*{}La versión recomendada de Dash para una instalación nueva es \texttt{dash==3.1.0}. Aun así, el arranque de la aplicación se ha preparado de forma compatible con instalaciones que todavía tengan Dash 2, utilizando el método de ejecución disponible en cada caso. Esto no cambia la instalación recomendada, pero da un pequeño margen si el usuario está probando el proyecto en un equipo donde ya existía un entorno virtual anterior.
 
-\paragraph*{}Para utilizar el módulo de inteligencia artificial se requiere, además, disponer de \texttt{llama-server.exe} y de un modelo en formato \texttt{GGUF}. En la configuración actual se utiliza un modelo Qwen2.5 Instruct cuantizado. La verdad es que esta parte puede parecer la más delicada de la instalación, pero solo afecta a las explicaciones automáticas: el resto del dashboard puede usarse sin tener activa la IA.
+\paragraph*{}Para utilizar el módulo de inteligencia artificial se requiere, además, disponer de \texttt{llama-server.exe} y de un modelo en formato \texttt{GGUF}. En la configuración actual se utiliza un modelo Qwen2.5 Instruct cuantizado. Esta parte puede ser la más delicada de la instalación, pero solo afecta a las explicaciones automáticas: el resto del dashboard puede usarse sin tener activa la IA.
 
 \subsection{Descarga del código}
 
@@ -108,7 +108,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 \end{bloquecomando}
 
-\paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. La verdad es que esta parte conviene hacerla con un poco de cuidado, porque \texttt{scikit-survival} es una dependencia más sensible que otras librerías habituales. En este proyecto se ha fijado la versión \texttt{0.27.0}, que es la utilizada durante las pruebas con Python 3.13.2.
+\paragraph*{}El último comando instala todas las librerías declaradas en \texttt{requirements.txt}. Esta parte conviene hacerla con cuidado, porque \texttt{scikit-survival} es una dependencia más sensible que otras librerías habituales. En este proyecto se ha fijado la versión \texttt{0.27.0}, que es la utilizada durante las pruebas con Python 3.13.2.
 
 \subsection{Ejecución de la aplicación}
 
@@ -149,7 +149,7 @@ http://127.0.0.1:8050
     \item \texttt{tools/llama.cpp/llama-server.exe}
 \end{itemize}
 
-\paragraph*{}Estos dos archivos no se incluyen directamente en el repositorio por su tamaño y por tratarse de recursos externos al código fuente. Por ese motivo, deben entregarse aparte, por ejemplo mediante una carpeta compartida en Drive, y copiarse manualmente en las rutas indicadas antes de arrancar el servidor de inteligencia artificial. Es un paso pequeño, pero importante: si alguno de los dos archivos no está en su sitio, el dashboard seguirá funcionando, aunque la generación de explicaciones mediante IA no estará disponible.
+\paragraph*{}Estos dos archivos no se incluyen directamente en el repositorio por su tamaño y por tratarse de recursos externos al código fuente. Por ese motivo, deben entregarse aparte, por ejemplo mediante una carpeta compartida en Drive, y copiarse manualmente en las rutas indicadas antes de arrancar el servidor de inteligencia artificial. Se trata de un paso necesario: si alguno de los dos archivos no está en su ubicación correspondiente, el dashboard seguirá funcionando, aunque la generación de explicaciones mediante IA no estará disponible.
 
 \paragraph*{}Los enlaces de descarga empleados para esta instalación son los siguientes:
 
@@ -168,7 +168,7 @@ http://127.0.0.1:8050
 
 \section{Interfaz de usuario}
 
-\paragraph*{}Una vez iniciada la aplicación y abierta la dirección local en el navegador, el usuario accede a la interfaz principal del dashboard. La aplicación está organizada en distintas páginas conectadas mediante una barra de navegación superior. Desde ella se puede volver al inicio, consultar el dataset, acceder al análisis de covariables y entrar en los módulos de análisis de supervivencia. Dentro de esta última sección se incluye también el acceso a la comparación de técnicas. La navegación está pensada para que el recorrido sea bastante natural: primero se cargan los datos, después se revisan y, finalmente, se analizan.
+\paragraph*{}Una vez iniciada la aplicación y abierta la dirección local en el navegador, el usuario accede a la interfaz principal del dashboard. La aplicación está organizada en distintas páginas conectadas mediante una barra de navegación superior. Desde ella se puede volver al inicio, consultar el dataset, acceder al análisis de covariables y entrar en los módulos de análisis de supervivencia. Dentro de esta última sección se incluye también el acceso a la comparación de técnicas. La navegación está diseñada para seguir un recorrido progresivo: primero se cargan los datos, después se revisan y, finalmente, se analizan.
 
 \paragraph*{}Las capturas incluidas en este manual tienen una función práctica: muestran al usuario qué pantalla debe localizar durante el flujo de uso. El capítulo de diseño recoge la distribución visual y los componentes de la interfaz con mayor detalle, mientras que este anexo se centra en acompañar el uso real de la aplicación, casi como una guía de trabajo.
 
@@ -289,7 +289,7 @@ http://127.0.0.1:8050
 
 \paragraph*{}Los resultados del análisis de covariables se presentan mediante tablas, gráficos e interpretaciones textuales. Las gráficas permiten comparar de forma visual la distribución del abandono entre grupos, mientras que las tablas resumen ofrecen valores concretos que ayudan a interpretar cada variable.
 
-\paragraph*{}La interpretación debe realizarse como una exploración descriptiva inicial. Es decir, esta sección permite observar diferencias entre grupos, pero no sustituye a los modelos de supervivencia posteriores. Para estudiar el comportamiento temporal del abandono y comparar curvas o riesgos, el usuario debe acudir a las técnicas específicas de análisis de supervivencia. La idea es mirar primero el terreno antes de entrar en el análisis más profundo.
+\paragraph*{}La interpretación debe realizarse como una exploración descriptiva inicial. Es decir, esta sección permite observar diferencias entre grupos, pero no sustituye a los modelos de supervivencia posteriores. Para estudiar el comportamiento temporal del abandono y comparar curvas o riesgos, el usuario debe acudir a las técnicas específicas de análisis de supervivencia. Por tanto, esta pantalla actúa como una primera aproximación antes de aplicar análisis más específicos.
 
 \section{Técnicas de análisis de supervivencia}
 
@@ -362,7 +362,7 @@ http://127.0.0.1:8050
 
 \subsection{Modelo Exponencial}
 
-\paragraph*{}El modelo Exponencial es otro modelo paramétrico de supervivencia. Su característica principal es que asume un riesgo constante a lo largo del tiempo. Por este motivo, resulta útil como modelo sencillo de referencia frente a otros enfoques más flexibles, como Weibull o Kaplan-Meier. La verdad es que su interés está precisamente en esa sencillez: permite comprobar si una hipótesis básica encaja razonablemente con los datos.
+\paragraph*{}El modelo Exponencial es otro modelo paramétrico de supervivencia. Su característica principal es que asume un riesgo constante a lo largo del tiempo. Por este motivo, resulta útil como modelo sencillo de referencia frente a otros enfoques más flexibles, como Weibull o Kaplan-Meier. Su interés está precisamente en esa sencillez: permite comprobar si una hipótesis básica encaja razonablemente con los datos.
 
 \paragraph*{}Al ejecutar el análisis, la aplicación presenta la curva del modelo exponencial y una tabla resumen con sus métricas principales. El usuario puede comparar visualmente el ajuste exponencial con la estimación empírica de Kaplan-Meier para valorar si la hipótesis de riesgo constante resulta razonable.
 
@@ -392,7 +392,7 @@ http://127.0.0.1:8050
 
 \paragraph*{}La comparación de técnicas ofrece una vista conjunta de los métodos incluidos en la aplicación. Se accede a ella desde el botón situado bajo las técnicas de la página de análisis de supervivencia, de manera que queda integrada en el mismo flujo de selección de modelos. Esta sección ayuda al usuario a distinguir el propósito de cada técnica, sus ventajas y sus limitaciones. Es especialmente útil cuando se desea decidir qué resultado utilizar como referencia principal en un análisis, porque no todos los métodos responden exactamente a la misma pregunta.
 
-\paragraph*{}La aplicación permite revisar de forma comparativa los modelos clásicos, paramétricos y de aprendizaje automático. Esta visión conjunta facilita entender que cada método responde a una pregunta distinta: Kaplan-Meier estima curvas, Log-Rank compara grupos, Cox analiza riesgos relativos, Weibull y Exponencial ajustan modelos paramétricos, y Random Survival Forest incorpora capacidad predictiva con múltiples variables.
+\paragraph*{}La aplicación permite revisar de forma comparativa los modelos clásicos, paramétricos y de aprendizaje automático. Esta visión conjunta facilita entender que cada método responde a una pregunta distinta: Kaplan-Meier estima curvas, Log-Rank compara grupos, Cox analiza riesgos relativos, Weibull y Exponencial ajustan modelos paramétricos, y Random Survival Forest permite explorar patrones con múltiples variables.
 
 \begin{figure}[H]
     \centering
@@ -413,7 +413,7 @@ http://127.0.0.1:8050
 .\START_LLAMA_SERVER.bat
 \end{bloquecomando}
 
-\paragraph*{}Este servidor se ejecuta de forma independiente a la aplicación Dash. Por tanto, si se desea usar la IA, deben mantenerse abiertas dos terminales: una con \texttt{llama-server} y otra con la aplicación Dash iniciada mediante \texttt{python cargaDataset.py} o mediante \texttt{START\_DASH\_APP.bat}. Puede parecer un detalle menor, pero si una de las dos se cierra, la parte de IA dejará de responder.
+\paragraph*{}Este servidor se ejecuta de forma independiente a la aplicación Dash. Por tanto, si se desea usar la IA, deben mantenerse abiertas dos terminales: una con \texttt{llama-server} y otra con la aplicación Dash iniciada mediante \texttt{python cargaDataset.py} o mediante \texttt{START\_DASH\_APP.bat}. Si una de las dos se cierra, la parte de IA dejará de responder.
 
 \paragraph*{}Si el servidor no está activo, la aplicación sigue funcionando. En ese caso, las técnicas estadísticas y las gráficas continúan disponibles, pero no se generarán respuestas automáticas de IA.
 
@@ -514,13 +514,13 @@ http://127.0.0.1:8050
     \label{fig:manual_usuario_error_preprocesado}
 \end{figure}
 
-\paragraph*{}Para resolver este caso, el usuario debe volver a la pantalla de inicio, cargar el archivo CSV correcto y ejecutar el preprocesamiento. Una vez finalizado correctamente, las secciones de análisis quedarán habilitadas para trabajar con el dataset limpio. Es el mismo flujo inicial, simplemente repetido con los datos preparados de forma adecuada.
+\paragraph*{}Para resolver este caso, el usuario debe volver a la pantalla de inicio, cargar el archivo CSV correcto y ejecutar el preprocesamiento. Una vez finalizado correctamente, las secciones de análisis quedarán habilitadas para trabajar con el dataset limpio. Se repite así el flujo inicial, pero con los datos preparados de forma adecuada.
 
 \subsection{Problemas durante la instalación de dependencias}
 
 \paragraph*{}Si aparece un error durante la instalación de librerías, el primer paso es comprobar la versión de Python utilizada. Para este proyecto se ha empleado Python 3.13.2 junto con \texttt{scikit-survival==0.27.0}. La dependencia que puede requerir más atención es precisamente \texttt{scikit-survival}, ya que trabaja con componentes científicos especializados y puede ser más sensible al entorno.
 
-\paragraph*{}También se recomienda actualizar \texttt{pip} antes de instalar las dependencias y utilizar un entorno virtual limpio. Muchas instalaciones fallidas se solucionan simplemente empezando desde un entorno sin librerías mezcladas.
+\paragraph*{}También se recomienda actualizar \texttt{pip} antes de instalar las dependencias y utilizar un entorno virtual limpio. Muchas instalaciones fallidas se resuelven iniciando el proceso desde un entorno sin librerías mezcladas.
 
 \paragraph*{}Si el entorno virtual se ha creado sobre una instalación previa o se han actualizado paquetes manualmente, pueden aparecer conflictos entre dependencias. En ese caso, una solución bastante fiable consiste en recrear el entorno desde cero y volver a instalar el archivo \texttt{requirements.txt}:
 
@@ -550,7 +550,7 @@ python -m pip install "dash==3.1.0"
 python .\cargaDataset.py
 \end{bloquecomando}
 
-\paragraph*{}El código de arranque contempla tanto instalaciones actuales de Dash como entornos antiguos donde todavía exista Dash 2. En concreto, si la versión instalada dispone de \texttt{app.run}, se utiliza ese método; si no, se recurre a \texttt{app.run\_server}. La verdad es que esto ayuda bastante cuando el proyecto se prueba en varios equipos, porque evita que una diferencia menor de versión impida abrir el dashboard.
+\paragraph*{}El código de arranque contempla tanto instalaciones actuales de Dash como entornos antiguos donde todavía exista Dash 2. En concreto, si la versión instalada dispone de \texttt{app.run}, se utiliza ese método; si no, se recurre a \texttt{app.run\_server}. Esta compatibilidad ayuda cuando el proyecto se prueba en varios equipos, porque evita que una diferencia menor de versión impida abrir el dashboard.
 
 \paragraph*{}Si el problema persiste porque el entorno virtual arrastra librerías de una instalación anterior, lo más limpio es reinstalar las dependencias desde el archivo \texttt{requirements.txt}. Así se evita ir corrigiendo paquetes uno a uno:
 
@@ -592,4 +592,4 @@ python .\cargaDataset.py
     \item Exportar los resultados relevantes a PDF.
 \end{enumerate}
 
-\paragraph*{}Este orden permite avanzar desde la carga de datos hasta la obtención de resultados exportables de forma controlada. Aunque el usuario puede navegar libremente por la interfaz, la mayoría de módulos requieren que el dataset haya sido cargado y preprocesado previamente. La verdad es que, si se respeta este flujo, la aplicación resulta bastante más cómoda de usar.
+\paragraph*{}Este orden permite avanzar desde la carga de datos hasta la obtención de resultados exportables de forma controlada. Aunque el usuario puede navegar libremente por la interfaz, la mayoría de módulos requieren que el dataset haya sido cargado y preprocesado previamente. Si se respeta este flujo, la aplicación resulta más cómoda de usar.

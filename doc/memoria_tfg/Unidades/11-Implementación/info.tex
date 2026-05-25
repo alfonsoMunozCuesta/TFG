@@ -4,7 +4,7 @@
 Una vez definidos el análisis y el diseño de la ampliación, la implementación se centró en llevar esas decisiones al dashboard de forma práctica. En este capítulo no se busca describir cada función del código ni enumerar todas las variables utilizadas, porque ese nivel de detalle haría la lectura más pesada de lo necesario. La intención es explicar, con una visión más general, cómo se ha construido la ampliación, qué librerías han tenido más peso y de qué manera cada objetivo del proyecto se ha trasladado a la aplicación final.
 
 \paragraph*{}
-La base del sistema sigue siendo una aplicación desarrollada en Python con Dash. Sobre ella se han añadido nuevos modelos de supervivencia, nuevas visualizaciones, generación de informes, interpretación mediante inteligencia artificial y soporte multilingüe. La verdad es que la implementación se ha planteado como una ampliación progresiva del dashboard existente, conservando su funcionamiento principal y haciendo crecer sus posibilidades de análisis.
+La base del sistema sigue siendo una aplicación desarrollada en Python con Dash. Sobre ella se han añadido nuevos modelos de supervivencia, nuevas visualizaciones, generación de informes, interpretación mediante inteligencia artificial y soporte multilingüe. La implementación se ha planteado como una ampliación progresiva del dashboard existente, conservando su funcionamiento principal y haciendo crecer sus posibilidades de análisis.
 
 \section{Base tecnológica utilizada}
 
@@ -91,12 +91,12 @@ Internacionalizar la aplicación & Se centralizaron los textos de la interfaz y 
 Uno de los cambios principales ha sido la incorporación de nuevas técnicas de análisis de supervivencia. Los modelos Exponencial y Weibull se han implementado como alternativas paramétricas que permiten estudiar el comportamiento del abandono académico desde una perspectiva más ajustada a una forma matemática concreta. El modelo Exponencial resulta útil cuando se asume un riesgo constante en el tiempo, mientras que Weibull ofrece más flexibilidad al permitir que el riesgo aumente o disminuya.
 
 \paragraph*{}
-También se añadió Random Survival Forest, que aporta una visión diferente al no depender de una forma paramétrica cerrada. Este modelo permite trabajar con varias características del estudiante y estimar patrones de supervivencia desde un enfoque de aprendizaje automático. Para el usuario, la diferencia se traduce en una nueva página de análisis con métricas, curvas representativas y una lectura más predictiva del abandono.
+También se añadió Random Survival Forest, que aporta una visión diferente al no depender de una forma paramétrica cerrada. Este modelo permite trabajar con varias características del estudiante y estimar patrones de supervivencia desde un enfoque de aprendizaje automático. Para el usuario, la diferencia se traduce en una nueva página de análisis con métricas, curvas representativas y una lectura orientada a explorar perfiles de riesgo.
 
 \subsection{Preprocesamiento y variables de análisis}
 
 \paragraph*{}
-El preprocesamiento se ajustó para que el dataset quedara preparado antes de ejecutar cualquier técnica. En esta fase se limpian nombres de columnas, se validan campos necesarios, se eliminan registros problemáticos y se construye una representación más estable de cada estudiante. No se trata solo de dejar los datos ``bonitos'', sino de evitar que un modelo reciba información duplicada, incompleta o incoherente.
+El preprocesamiento se ajustó para que el dataset quedara preparado antes de ejecutar cualquier técnica. En esta fase se limpian nombres de columnas, se validan campos necesarios, se eliminan registros problemáticos y se construye una representación más estable de cada estudiante. Esta etapa no responde a una cuestión meramente estética, sino a la necesidad de evitar que un modelo reciba información duplicada, incompleta o incoherente.
 
 \paragraph*{}
 Además, se incorporó una mejora específica de estabilidad para la carga del archivo \texttt{temp\_data.csv}. Al tratarse de un CSV con un volumen considerable de filas y columnas, la interfaz no muestra el archivo completo de golpe, sino una previsualización limitada. Posteriormente, durante el preprocesamiento, el sistema puede recorrer el archivo de forma progresiva para construir directamente el dataset limpio que utilizan los modelos. Con ello se reduce el consumo de memoria y se evita que la aplicación se cierre al trabajar en equipos con recursos limitados.
@@ -121,7 +121,7 @@ También se unificó la presentación de las respuestas generadas por inteligenc
 La interpretación automática se ha planteado como una ayuda para leer los resultados, no como una sustitución del análisis estadístico. El sistema calcula primero las métricas y tablas mediante las librerías correspondientes, y después envía un resumen controlado al modelo de lenguaje local para obtener una explicación en prosa.
 
 \paragraph*{}
-La ejecución local se realiza mediante \texttt{llama.cpp} y un modelo Qwen en formato cuantizado. Esto permite generar textos sin depender de un servicio externo, algo especialmente interesante cuando se trabaja con resultados académicos o datos que conviene mantener dentro del entorno de trabajo. El resultado es una explicación más cercana para el usuario, útil sobre todo cuando las métricas pueden resultar algo frías o difíciles de interpretar a primera vista.
+La ejecución local se realiza mediante \texttt{llama.cpp} y un modelo Qwen en formato cuantizado. Esto permite generar textos sin depender de un servicio externo, algo especialmente relevante cuando se trabaja con resultados académicos o datos que conviene mantener dentro del entorno de trabajo. El resultado es una explicación más accesible para el usuario, útil sobre todo cuando las métricas pueden resultar difíciles de interpretar a primera vista.
 
 \paragraph*{}
 En la versión final, las interpretaciones no se generan de forma genérica, sino a partir de los resultados activos en pantalla. Según la técnica utilizada, el sistema recopila la tabla, la gráfica, la covariable seleccionada o el perfil simulado vigente, y construye con esa información el contexto que recibe el modelo de lenguaje. Además, se fuerza una redacción orientada a interpretar tendencias y no solo a repetir valores: por ejemplo, se pide explicar la separación de curvas, los descensos pronunciados, los tramos planos, los saltos relevantes y las limitaciones metodológicas de cada análisis.
