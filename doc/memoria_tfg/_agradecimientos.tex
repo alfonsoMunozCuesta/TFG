@@ -1,7 +1,61 @@
+\begingroup
+\titlespacing*{\chapter}{0pt}{0.5cm}{0.6cm}
 \chapter*{Agradecimientos}
-
-
-
+\endgroup
 \markboth{Agradecimientos}{Agradecimientos} % encabezado
+\fancypagestyle{agradecimientos}{%
+  \fancyfoot{}
+  \fancyhead{}
+  \fancyhead[L]{Agradecimientos}
+  \fancyhead[R]{\includegraphics[height=1.8cm]{Imagenes/logo_uco.png}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}
+  \setlength{\headheight}{65pt}
+}
+\thispagestyle{agradecimientos}
+\enlargethispage{2cm}
 
-\paragraph*{}En primer lugar, me gustaría expresar...
+\newcommand{\bloqueAgradecimiento}[2]{%
+  \begin{flushright}
+    \begin{minipage}{0.9\textwidth}
+      \raggedleft
+      \textbf{#1}
+
+      #2
+    \end{minipage}
+  \end{flushright}
+  \vspace{0.2cm}
+}
+
+\begingroup
+\small
+
+\bloqueAgradecimiento{A mis padres, Angie y Pedro,}{%
+por esforzaros siempre al máximo para que nunca nos faltase nada, así como transmitirme esos valores que van siempre de la mano, haber vivido conmigo cada logro y cada fallo como si fuesen vuestros y por creer en mí mucho más de lo que yo lo hacía durante todo estos años. Sois mi pilar fundamental en la vida, la suerte que tengo de teneros como padres.%
+}
+
+\bloqueAgradecimiento{A mi hermana pequeña Alba,}{%
+que a pesar de ser más pequeña que yo, es un claro ejemplo de superación. Eres mi mayor confidente, sacándome siempre una sonrisa con tus tonterias, y tus venidas a despertarme esos findes que coincidiamos en casa, gracias por confiar todo este tiempo en mí como si de ti misma se tratara. Mientras yo exista, nunca estarás.%
+}
+
+\bloqueAgradecimiento{A mis abuelos,}{%
+a los que se fueron y los que continúan, que no podrán ver mis logros pero me acompañan en cada meta que alcanzo. Se que estáis orgullosos de mí. Gracias por cuidarme desde arriba.%
+}
+
+\bloqueAgradecimiento{A mi pareja, Sara,}{%
+me has enseñado que si hay un objetivo claro hay que luchar hasta el final, como hize yo contigo. Por enseñarme todo lo bonito del amor y no dudar nunca de que lo conseguiría. Ojalá nunca dejen de brillarme los ojos contigo.%
+}
+
+\bloqueAgradecimiento{A mis amigos del pueblo,}{%
+por cada mensaje de ánimo, por los momentos que hacían evadirme de la universidad. Habéis sido mi refugio y alegría en cada etapa. Que bónito es poder crecer con vosotros.%
+}
+
+\bloqueAgradecimiento{A mis amigos de la Universidad, La Burneta,}{%
+gracias a C++ por unirnos, sin ellos estos 4 años se hubiesen sentido como el doble, por todos esos momentos de risas, vaciles y buenos recuerdos que nunca olvidaré. Sin vosotros nos hubiera sido lo mismo.%
+}
+
+\bloqueAgradecimiento{Y por qué no, a mí mismo,}{%
+Enhorabuena, por no dejarlo de intentarlo en este duro viaje, solo tú mismo sabes cuanto te lo mereces. Sigue cumpliendo objetivos con esas ganas e ilusión que le pones a todo. Sientéte orgulloso campeón.%
+}
+
+\endgroup

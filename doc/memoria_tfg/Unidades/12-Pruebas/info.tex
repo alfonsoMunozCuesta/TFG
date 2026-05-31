@@ -5,7 +5,7 @@ Una vez finalizada la implementación de la aplicación, resulta fundamental ver
 
 \paragraph*{}Las pruebas realizadas se centran principalmente en la validación funcional del sistema: carga de datos, ejecución de modelos, generación de visualizaciones, exportación de informes y comportamiento ante errores. Aunque algunas técnicas muestran métricas de ajuste o rendimiento, este capítulo no debe interpretarse como una validación predictiva completa de los modelos. Para comparar rigurosamente la capacidad predictiva de las técnicas sería necesario incorporar procedimientos adicionales, como validación cruzada, partición entrenamiento-prueba, análisis de calibración y evaluación de estabilidad sobre distintos conjuntos de datos.
 
-\newcommand{\tituloPrueba}[1]{\vspace{0.8em}\noindent\textbf{\underline{#1}}\par\vspace{0.4em}}
+\newcommand{\tituloPrueba}[1]{\Needspace{0.65\textheight}\vspace{0.8em}\noindent\textbf{\underline{#1}}\par\vspace{0.4em}}
 
 \section{Pruebas complementarias de estabilidad e interfaz}
 
@@ -27,6 +27,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-1: EjecutarModeloExponencial}
 
 \tituloPrueba{Prueba válida}
@@ -50,7 +51,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/exponencial1.png}
-\caption{Evidencia de ejecución correcta del CU-1: EjecutarModeloExponencial}
+\caption[Evidencia de ejecución correcta del CU-1: Ejecutar\protect\allowbreak Modelo\protect\allowbreak Exponencial]{Evidencia de ejecución correcta del CU-1: EjecutarModeloExponencial}
 \label{fig:prueba_cu1_exponencial}
 \end{figure}
 
@@ -73,6 +74,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-2: EjecutarModeloWeibull}
 
 \tituloPrueba{Prueba válida}
@@ -97,7 +99,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/weibull1.png}
-\caption{Evidencia de ejecución correcta del CU-2: EjecutarModeloWeibull}
+\caption[Evidencia de ejecución correcta del CU-2: Ejecutar\protect\allowbreak Modelo\protect\allowbreak Weibull]{Evidencia de ejecución correcta del CU-2: EjecutarModeloWeibull}
 \label{fig:prueba_cu2_weibull}
 \end{figure}
 
@@ -120,6 +122,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-3: EjecutarRandomSurvivalForest}
 
 \tituloPrueba{Prueba válida}
@@ -144,7 +147,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/rsf1.png}
-\caption{Evidencia de ejecución correcta del CU-3: EjecutarRandomSurvivalForest}
+\caption[Evidencia de ejecución correcta del CU-3: Ejecutar\protect\allowbreak Random\protect\allowbreak Survival\protect\allowbreak Forest]{Evidencia de ejecución correcta del CU-3: EjecutarRandomSurvivalForest}
 \label{fig:prueba_cu3_rsf}
 \end{figure}
 
@@ -167,6 +170,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-4: ConsultarComparacionDeTecnicas}
 
 \tituloPrueba{Prueba válida}
@@ -191,7 +195,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/comparar1.png}
-\caption{Evidencia de ejecución correcta del CU-4: ConsultarComparacionDeTecnicas}
+\caption[Evidencia de ejecución correcta del CU-4: Consultar\protect\allowbreak Comparacion\protect\allowbreak De\protect\allowbreak Tecnicas]{Evidencia de ejecución correcta del CU-4: ConsultarComparacionDeTecnicas}
 \label{fig:prueba_cu4_comparacion}
 \end{figure}
 
@@ -214,6 +218,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-5: ExportarInformesYResultados}
 
 \tituloPrueba{Prueba válida}
@@ -254,7 +259,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 
 \small Informe PDF generado
 \end{minipage}
-\caption{Evidencia de exportación correcta del CU-5: ExportarInformesYResultados}
+\caption[Evidencia de exportación correcta del CU-5: Exportar\protect\allowbreak Informes\protect\allowbreak Y\protect\allowbreak Resultados]{Evidencia de exportación correcta del CU-5: ExportarInformesYResultados}
 \label{fig:prueba_cu5_exportar}
 \end{figure}
 
@@ -277,6 +282,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-6: CambiarIdiomaInterfaz}
 
 \tituloPrueba{Prueba válida}
@@ -317,6 +323,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-7: AnalizarVariablesNoBinarias}
 
 \tituloPrueba{Prueba válida}
@@ -341,7 +348,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/analisis_covariables.png}
-\caption{Evidencia de análisis de variables en el CU-7: AnalizarVariablesNoBinarias}
+\caption[Evidencia de análisis de variables en el CU-7: Analizar\protect\allowbreak Variables\protect\allowbreak No\protect\allowbreak Binarias]{Evidencia de análisis de variables en el CU-7: AnalizarVariablesNoBinarias}
 \label{fig:prueba_cu7_covariables}
 \end{figure}
 
@@ -364,6 +371,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \normalsize
 \end{table}
 
+\Needspace{0.80\textheight}
 \section{CU-8: MejorarInterpretacionIA}
 
 \tituloPrueba{Prueba válida}
@@ -388,7 +396,7 @@ Interpretación contextual & Las explicaciones se generan a partir de la informa
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{Imagenes/botonIA.png}
-\caption{Evidencia de acceso a la interpretación mediante IA del CU-8: MejorarInterpretacionIA}
+\caption[Evidencia de acceso a la interpretación mediante IA del CU-8: Mejorar\protect\allowbreak Interpretacion\protect\allowbreak IA]{Evidencia de acceso a la interpretación mediante IA del CU-8: MejorarInterpretacionIA}
 \label{fig:prueba_cu8_ia}
 \end{figure}
 
@@ -513,7 +521,8 @@ RAM máxima aproximada & 1098.16 MB & 1345.21 MB \\ \hline
 
 \paragraph*{}Si se comparan únicamente las técnicas comunes, la configuración actual también obtiene menores tiempos medios en Kaplan-Meier y Test Log-Rank, con medias de 3.877 y 4.566 segundos frente a 10.822 y 9.617 segundos respectivamente. En Regresión de Cox, la diferencia es menor, ya que el sistema actual registra 8.553 segundos frente a 9.315 segundos en el benchmark del TFG base. Por tanto, aunque ambas configuraciones permiten generar interpretaciones automáticas en local, los resultados de esta prueba concreta indican que la versión actual se comporta de forma más ligera en el equipo evaluado, especialmente en las consultas menos densas, y mantiene un consumo de memoria más bajo.
 
-\section[CU-9: AmpliarVisualizacionesCoxTestLogRank]{CU-9:AmpliarVisualizacionesCoxTestLogRank}
+\Needspace{0.80\textheight}
+\section{CU-9: Ampliar visualizaciones de Cox y Log-Rank}
 
 \tituloPrueba{Prueba válida}
 
@@ -537,7 +546,7 @@ RAM máxima aproximada & 1098.16 MB & 1345.21 MB \\ \hline
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{Imagenes/graficaCox.png}
-\caption{Evidencia de visualización ampliada del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+\caption[Evidencia de visualización ampliada del CU-9: Ampliar\protect\allowbreak Visualizaciones\protect\allowbreak Cox\protect\allowbreak Test\protect\allowbreak Log\protect\allowbreak Rank]{Evidencia de visualización ampliada del CU-9: AmpliarVisualizacionesCoxTestLogRank}
 \label{fig:prueba_cu9_visualizacion}
 \end{figure}
 

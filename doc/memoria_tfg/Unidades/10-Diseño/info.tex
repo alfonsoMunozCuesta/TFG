@@ -21,6 +21,97 @@ La separación por capas se completa con una distribución por componentes. En l
 \paragraph*{}
 Esta organización también facilita la ampliación del dashboard. Si se incorpora una nueva técnica de supervivencia, no es necesario replantear toda la aplicación: basta con integrarla dentro del componente de análisis, conectarla con la interfaz y, si procede, añadir sus visualizaciones y su exportación. Esta decisión resulta especialmente relevante porque el proyecto parte de un sistema previo y necesita crecer sin perder estabilidad ni coherencia.
 
+\paragraph*{}
+La Figura~\ref{fig:arquitectura_sistema} resume esta organización de forma esquemática. En ella se aprecia cómo las acciones del usuario se canalizan a través de la interfaz Dash y de los callbacks, que actúan como punto de coordinación entre los datos, los modelos de análisis, las visualizaciones, la exportación de informes, el soporte multilingüe y la interpretación mediante inteligencia artificial.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    capa/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!65,
+        fill=blue!7,
+        minimum height=1.0cm,
+        text width=3.25cm,
+        align=center
+    },
+    modulo/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!60,
+        fill=green!8,
+        minimum height=0.95cm,
+        text width=3.25cm,
+        align=center,
+        font=\scriptsize
+    },
+    soporte/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!60,
+        fill=orange!12,
+        minimum height=0.95cm,
+        text width=3.25cm,
+        align=center,
+        font=\scriptsize
+    },
+    externo/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!60,
+        fill=gray!12,
+        minimum height=0.95cm,
+        text width=3.25cm,
+        align=center,
+        font=\scriptsize
+    },
+    flujo/.style={-{Latex[length=2.3mm]}, thick, draw=black!65},
+    apoyo/.style={-{Latex[length=2mm]}, thick, dashed, draw=black!45}
+]
+
+\node[capa, fill=gray!10] (usuario) at (0,4.2) {Usuario};
+\node[capa] (presentacion) at (4,4.2) {Capa de presentación\\Dash, HTML y componentes};
+\node[capa] (control) at (8,4.2) {Capa de control\\Callbacks y estado};
+\node[capa] (procesamiento) at (12,4.2) {Capa de procesamiento\\Lógica interna};
+
+\node[soporte] (idioma) at (4,5.9) {Internacionalización\\Textos ES/EN};
+
+\node[modulo] (datos) at (4,2.05) {Gestor de datos\\Carga, validación y limpieza};
+\node[modulo] (modelos) at (8,2.0) {Motor de análisis\\Kaplan-Meier, Cox, Log-Rank, Weibull, Exponencial y RSF};
+\node[modulo] (visualizaciones) at (12,2.0) {Visualizaciones\\Curvas, tablas y comparativas};
+
+\node[soporte] (ia) at (8,0.25) {Módulo de IA\\Interpretación local};
+\node[soporte] (informes) at (12,0.25) {Generador de informes\\PDF con resultados};
+
+\node[externo] (dataset) at (4,-1.5) {CSV y dataset limpio};
+\node[externo] (modeloia) at (8,-1.5) {Servidor local\\llama-server + modelo GGUF};
+\node[externo] (pdf) at (12,-1.5) {Ficheros PDF generados};
+
+\draw[apoyo] (idioma.south) -- (presentacion.north);
+
+\draw[flujo] (usuario) -- (presentacion);
+\draw[flujo] (presentacion) -- (control);
+\draw[flujo] (control) -- (procesamiento);
+
+\draw[flujo] (procesamiento.south) -- ++(0,-0.65) -| (modelos.north);
+\draw[flujo] (datos) -- (modelos);
+\draw[flujo] (modelos) -- (visualizaciones);
+
+\draw[apoyo] (modelos.south) -- (ia.north);
+\draw[apoyo] (visualizaciones.south) -- (informes.north);
+\draw[apoyo] (datos.south) -- (dataset.north);
+\draw[apoyo] (ia) -- (modeloia);
+\draw[apoyo] (informes) -- (pdf);
+
+\end{tikzpicture}%
+}
+\caption{Esquema general de la arquitectura del sistema}
+\label{fig:arquitectura_sistema}
+\end{figure}
+
 \begin{table}[H]
 \centering
 \small
@@ -216,7 +307,7 @@ Dentro del análisis de supervivencia, la sección de Kaplan-Meier permite consu
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{Imagenes/filtros_kp.png}
+    \includegraphics[width=0.45\textwidth]{Imagenes/filtros_kp.png}
     \caption{Filtros disponibles en el análisis Kaplan-Meier}
     \label{fig:interfaz_filtros_kp}
 \end{figure}
@@ -490,7 +581,7 @@ El diagrama de secuencia del CU-1 muestra cómo se coordina la interfaz con los 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu1.png}
-    \caption{Diagrama de secuencia del CU-1: EjecutarModeloExponencial}
+    \caption[Diagrama de secuencia del CU-1: Ejecutar\protect\allowbreak Modelo\protect\allowbreak Exponencial]{Diagrama de secuencia del CU-1: EjecutarModeloExponencial}
     \label{fig:sec_cu1}
 \end{figure}
 
@@ -501,7 +592,7 @@ El diagrama del CU-2 representa el flujo interno necesario para ejecutar el mode
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu2.png}
-    \caption{Diagrama de secuencia del CU-2: EjecutarModeloWeibull}
+    \caption[Diagrama de secuencia del CU-2: Ejecutar\protect\allowbreak Modelo\protect\allowbreak Weibull]{Diagrama de secuencia del CU-2: EjecutarModeloWeibull}
     \label{fig:sec_cu2}
 \end{figure}
 
@@ -512,7 +603,7 @@ El diagrama del CU-3 describe una interacción más completa, ya que Random Surv
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu3.png}
-    \caption{Diagrama de secuencia del CU-3: EjecutarRandomSurvivalForest}
+    \caption[Diagrama de secuencia del CU-3: Ejecutar\protect\allowbreak Random\protect\allowbreak Survival\protect\allowbreak Forest]{Diagrama de secuencia del CU-3: EjecutarRandomSurvivalForest}
     \label{fig:sec_cu3}
 \end{figure}
 
@@ -523,7 +614,7 @@ El diagrama del CU-4 muestra cómo se construye la página de comparación de t�
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu4.png}
-    \caption{Diagrama de secuencia del CU-4: ConsultarComparacionDeTecnicas}
+    \caption[Diagrama de secuencia del CU-4: Consultar\protect\allowbreak Comparacion\protect\allowbreak De\protect\allowbreak Tecnicas]{Diagrama de secuencia del CU-4: ConsultarComparacionDeTecnicas}
     \label{fig:sec_cu4}
 \end{figure}
 
@@ -534,7 +625,7 @@ El diagrama del CU-5 representa la generación de informes descargables. La secu
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu5.png}
-    \caption{Diagrama de secuencia del CU-5: ExportarInformesYResultados}
+    \caption[Diagrama de secuencia del CU-5: Exportar\protect\allowbreak Informes\protect\allowbreak Y\protect\allowbreak Resultados]{Diagrama de secuencia del CU-5: ExportarInformesYResultados}
     \label{fig:sec_cu5}
 \end{figure}
 
@@ -545,7 +636,7 @@ El diagrama del CU-6 explica cómo se aplica el cambio de idioma en la interfaz.
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu6.png}
-    \caption{Diagrama de secuencia del CU-6: CambiarIdiomaInterfaz}
+    \caption[Diagrama de secuencia del CU-6: Cambiar\protect\allowbreak Idioma\protect\allowbreak Interfaz]{Diagrama de secuencia del CU-6: CambiarIdiomaInterfaz}
     \label{fig:sec_cu6}
 \end{figure}
 
@@ -556,7 +647,7 @@ El diagrama del CU-7 muestra el recorrido desde la carga del archivo CSV hasta e
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu7.png}
-    \caption{Diagrama de secuencia del CU-7: AnalizarVariablesNoBinarias}
+    \caption[Diagrama de secuencia del CU-7: Analizar\protect\allowbreak Variables\protect\allowbreak No\protect\allowbreak Binarias]{Diagrama de secuencia del CU-7: AnalizarVariablesNoBinarias}
     \label{fig:sec_cu7}
 \end{figure}
 
@@ -567,7 +658,7 @@ El diagrama del CU-8 detalla el proceso de generación de interpretaciones media
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu8.png}
-    \caption{Diagrama de secuencia del CU-8: MejorarInterpretacionIA}
+    \caption[Diagrama de secuencia del CU-8: Mejorar\protect\allowbreak Interpretacion\protect\allowbreak IA]{Diagrama de secuencia del CU-8: MejorarInterpretacionIA}
     \label{fig:sec_cu8}
 \end{figure}
 
@@ -578,6 +669,6 @@ El diagrama del CU-9 representa la generación de visualizaciones ampliadas para
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Imagenes/sec_cu9.png}
-    \caption{Diagrama de secuencia del CU-9: AmpliarVisualizacionesCoxTestLogRank}
+    \caption[Diagrama de secuencia del CU-9: Ampliar\protect\allowbreak Visualizaciones\protect\allowbreak Cox\protect\allowbreak Test\protect\allowbreak Log\protect\allowbreak Rank]{Diagrama de secuencia del CU-9: AmpliarVisualizacionesCoxTestLogRank}
     \label{fig:sec_cu9}
 \end{figure}

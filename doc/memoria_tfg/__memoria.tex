@@ -18,6 +18,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{needspace}
 \usepackage{eurosym}
 \usepackage{enumitem}
 \usepackage{amssymb}
@@ -71,6 +72,16 @@
 %\floatstyle{plaintop}
 \restylefloat{table}
 
+\makeatletter
+\newcommand{\listoffiguresaligned}{%
+  \begingroup
+  \renewcommand{\@pnumwidth}{3em}%
+  \renewcommand{\@tocrmarg}{3.5em}%
+  \listoffigures
+  \endgroup
+}
+\makeatother
+
 \graphicspath{ {Imagenes/} }
 
 
@@ -95,6 +106,14 @@
 \let\oldchapter\chapter
 \renewcommand{\chapter}{%
   \oldchapter}
+
+% Evita que los títulos queden aislados al final de una página.
+\let\oldsection\section
+\renewcommand{\section}{\Needspace{10\baselineskip}\oldsection}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}{\Needspace{8\baselineskip}\oldsubsection}
+\let\oldsubsubsection\subsubsection
+\renewcommand{\subsubsection}{\Needspace{6\baselineskip}\oldsubsubsection}
 
 \sloppy
 \setlength{\emergencystretch}{3em}
@@ -179,20 +198,12 @@
 \insertBlankPages
 
 
-%%%%%%%%%%%%%%%
-% DEDICATORIA %
-%%%%%%%%%%%%%%%
-\pagenumbering{Roman} % para comenzar la numeracion de paginas en numeros romanos
-\pagestyle{indice}
-\thispagestyle{indice}
-\begin{flushright}
-\textit{Dedicado a \\
-mi familia}
-\end{flushright}
-\insertBlankPages
 %%%%%%%%%%%%%%%%%%%
 % AGRADECIMIENTOS %
 %%%%%%%%%%%%%%%%%%%
+\pagenumbering{Roman} % para comenzar la numeracion de paginas en numeros romanos
+\pagestyle{indice}
+\thispagestyle{indice}
 \input{_agradecimientos}
 \vfill\break
 \insertBlankPages
@@ -201,7 +212,7 @@ mi familia}
 %%%%%%%%%%%%%%%%%%
 \tableofcontents
 \insertBlankPages
-\listoffigures
+\listoffiguresaligned
 \insertBlankPages
 \listoftables
 
