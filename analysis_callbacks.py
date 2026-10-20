@@ -51,7 +51,7 @@ from ollama_AI import generate_interpretation_for_pdf, responder_pregunta_con_ll
 import plotly.graph_objs as go
 from dash import callback_context
 from dash.exceptions import PreventUpdate
-from translations import get_translation
+from translations import get_covariate_label, get_feature_label, get_plotly_config, get_result_column_label, get_translation
 from pdf_callbacks import register_pdf_export_callbacks  # PDF export HABILITADO
 
 # Inicializar la aplicación Dash
@@ -1242,16 +1242,36 @@ def register_analysis_callbacks(app):
          Output('km-current-variable', 'data')],
         [Input('botonG', 'n_clicks'), Input('botonDisc', 'n_clicks'), 
          Input('botonAge', 'n_clicks'), Input('botonEdu', 'n_clicks'), 
-         Input('botonCredits', 'n_clicks'), Input('botonNone', 'n_clicks')],
+         Input('botonCredits', 'n_clicks'), Input('botonNone', 'n_clicks'),
+         Input('language-store', 'data')],
         [State('df-store', 'data'),
-         State('language-store', 'data')],
+         State('km-current-variable', 'data')],
         prevent_initial_call=True
     )
-    def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, credits_clicks, none_clicks, df_json, language):
+    def update_km_cov(gender_clicks, disability_clicks, age_clicks, edu_clicks, credits_clicks, none_clicks, language, df_json, current_variable):
         """Determina que covariable Kaplan-Meier se selecciono y devuelve su grafica."""
         try:
             ctx = callback_context
-            if not ctx.triggered:
+            button_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else ''
+            button_variables = {
+                'botonG': 'gender_F',
+                'botonDisc': 'disability_N',
+                'botonAge': 'age_band',
+                'botonEdu': 'highest_education',
+                'botonCredits': 'studied_credits',
+                'botonNone': '',
+            }
+            button_clicks = dict(zip(button_variables, (
+                gender_clicks, disability_clicks, age_clicks,
+                edu_clicks, credits_clicks, none_clicks,
+            )))
+            # Al cambiar de idioma o reconstruir la página, conservar la selección.
+            if button_id not in button_variables or not button_clicks[button_id]:
+                button_id = next((
+                    button for button, variable in button_variables.items()
+                    if variable == current_variable
+                ), 'botonNone')
+            if button_id == 'botonNone':
                 return None, ''
             
             # Si no hay datos cargados, usar el dataset limpio local solo como fallback.
@@ -1264,46 +1284,41 @@ def register_analysis_callbacks(app):
                 # Reconstruir el dataframe desde el JSON
                 df = _read_split_json(df_json)
             
-            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-            
             if button_id == 'botonG':
                 from kaplan_meier import plot_km_by_covariate_with_figure
-                graph_component, _ = plot_km_by_covariate_with_figure(df, 'gender_F')
+                graph_component, _ = plot_km_by_covariate_with_figure(df, 'gender_F', language=language)
                 return html.Div([
                     html.H3("Kaplan-Meier Curve by Gender"if language == 'en'else "Curva de Kaplan-Meier por Género", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'gender_F'
             elif button_id == 'botonDisc':
                 from kaplan_meier import plot_km_by_covariate_with_figure
-                graph_component, _ = plot_km_by_covariate_with_figure(df, 'disability_N')
+                graph_component, _ = plot_km_by_covariate_with_figure(df, 'disability_N', language=language)
                 return html.Div([
                     html.H3("Kaplan-Meier Curve by Disability"if language == 'en'else "Curva de Kaplan-Meier por Discapacidad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'disability_N'
             elif button_id == 'botonAge':
                 from kaplan_meier import plot_km_by_covariate_with_figure
-                graph_component, _ = plot_km_by_covariate_with_figure(df, 'age_band')
+                graph_component, _ = plot_km_by_covariate_with_figure(df, 'age_band', language=language)
                 return html.Div([
                     html.H3("Kaplan-Meier Curve by Age Band"if language == 'en'else "Curva de Kaplan-Meier por Banda de Edad", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'age_band'
             elif button_id == 'botonEdu':
                 from kaplan_meier import plot_km_by_covariate_with_figure
-                graph_component, _ = plot_km_by_covariate_with_figure(df, 'highest_education')
+                graph_component, _ = plot_km_by_covariate_with_figure(df, 'highest_education', language=language)
                 return html.Div([
                     html.H3("Kaplan-Meier Curve by Highest Education"if language == 'en'else "Curva de Kaplan-Meier por Educación Más Alta", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'highest_education'
             elif button_id == 'botonCredits':
                 from kaplan_meier import plot_km_by_covariate_with_figure
-                graph_component, _ = plot_km_by_covariate_with_figure(df, 'studied_credits')
+                graph_component, _ = plot_km_by_covariate_with_figure(df, 'studied_credits', language=language)
                 return html.Div([
                     html.H3("Kaplan-Meier Curve by Studied Credits"if language == 'en'else "Curva de Kaplan-Meier por Créditos Estudiados", style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
                     graph_component
                 ]), 'studied_credits'
-            elif button_id == 'botonNone':
-                return None, ''
-            
             # Por si acaso no se detecta ningún botón
             return None, ''
         
@@ -1695,10 +1710,13 @@ def register_analysis_callbacks(app):
                 try:
                     summary = _read_split_json(store_data['summary_json'])
                     if not summary.empty:
+                        display_summary = summary.copy()
+                        if 'Covariable' in display_summary.columns:
+                            display_summary['Covariable'] = display_summary['Covariable'].map(lambda value: get_feature_label(language, str(value)))
                         cox_table = dash_table.DataTable(
                             id='cox-summary-table',
-                            columns=[{"name": col, "id": col} for col in summary.columns],
-                            data=summary.to_dict('records'),
+                            columns=[{"name": get_result_column_label(language, col), "id": col} for col in display_summary.columns],
+                            data=display_summary.to_dict('records'),
                             style_table={
                                 'height': '300px',
                                 'overflowY': 'auto',  
@@ -1827,7 +1845,7 @@ def register_analysis_callbacks(app):
             }),
             html.Div([
                 html.H3(get_translation(language, 'weibull_graph_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
-                dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True})
+                dcc.Graph(figure=analysis['figure'], config=get_plotly_config(language, responsive=True, displayModeBar=True))
             ], style={
                 'backgroundColor': '#f8f9fa',
                 'padding': '20px',
@@ -1932,7 +1950,7 @@ def register_analysis_callbacks(app):
             }),
             html.Div([
                 html.H3(get_translation(language, 'exponential_graph_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
-                dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True})
+                dcc.Graph(figure=analysis['figure'], config=get_plotly_config(language, responsive=True, displayModeBar=True))
             ], style={
                 'backgroundColor': '#f8f9fa',
                 'padding': '20px',
@@ -2017,7 +2035,7 @@ def register_analysis_callbacks(app):
             }),
             html.Div([
                 html.H3(get_translation(language, 'rsf_graph_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
-                dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True, 'scrollZoom': False, 'doubleClick': 'reset'})
+                dcc.Graph(figure=analysis['figure'], config=get_plotly_config(language, responsive=True, displayModeBar=True, scrollZoom=False, doubleClick='reset'))
             ], style={
                 'backgroundColor': '#f8f9fa',
                 'padding': '20px',
@@ -2027,7 +2045,7 @@ def register_analysis_callbacks(app):
             }),
             html.Div([
                 html.H3(get_translation(language, 'rsf_importance_title'), style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '20px'}),
-                dcc.Graph(figure=analysis['importance_figure'], config={'responsive': True, 'displayModeBar': True})
+                dcc.Graph(figure=analysis['importance_figure'], config=get_plotly_config(language, responsive=True, displayModeBar=True))
             ], style={
                 'backgroundColor': '#f8f9fa',
                 'padding': '20px',
@@ -2059,16 +2077,16 @@ def register_analysis_callbacks(app):
         [Output('rsf-profile-output', 'children'),
          Output('rsf-profile-data', 'data')],
         [Input('rsf-profile-simulate-btn', 'n_clicks'),
-         Input('df-store', 'data')],
+         Input('df-store', 'data'),
+         Input('language-store', 'data')],
         [State('rsf-profile-gender', 'value'),
          State('rsf-profile-disability', 'value'),
          State('rsf-profile-age-band', 'value'),
          State('rsf-profile-education', 'value'),
-         State('rsf-profile-credits', 'value'),
-         State('language-store', 'data')],
+         State('rsf-profile-credits', 'value')],
         prevent_initial_call=False
     )
-    def simulate_rsf_profile(n_clicks, df_json, gender, disability, age_band, education, credits_level, language):
+    def simulate_rsf_profile(n_clicks, df_json, language, gender, disability, age_band, education, credits_level):
         """Simula la supervivencia de un perfil concreto usando el modelo RSF."""
         if not df_json:
             return html.Div(
@@ -2116,7 +2134,7 @@ def register_analysis_callbacks(app):
     
         graph_block = html.Div([
             html.H4(profile_title, style={'textAlign': 'center', 'color': '#0d0d0d', 'fontWeight': 'bold', 'marginBottom': '10px'}),
-            dcc.Graph(figure=analysis['figure'], config={'responsive': True, 'displayModeBar': True, 'scrollZoom': False, 'doubleClick': 'reset'})
+            dcc.Graph(figure=analysis['figure'], config=get_plotly_config(language, responsive=True, displayModeBar=True, scrollZoom=False, doubleClick='reset'))
         ], style={
             'backgroundColor': '#f8f9fa',
             'padding': '18px',
@@ -2515,7 +2533,7 @@ def register_analysis_callbacks(app):
                     continue
                 
                 # Crear panel con tabla de resultados del test y gráfica Kaplan-Meier estratificada
-                table = display_logrank_summary_table(res_df)
+                table = display_logrank_summary_table(res_df, language=language)
                 graph_component = plot_logrank_curves(df_data, covariable, language=language)
     
                 results_payload.append({
@@ -2524,7 +2542,7 @@ def register_analysis_callbacks(app):
                 })
                 
                 panels.append(html.Div([
-                    html.H3(f"Resultado del Test de Log-Rank para {covariable}", style={'textAlign': 'center'}),
+                    html.H3(f"{'Log-Rank Test results for' if language == 'en' else 'Resultado del Test de Log-Rank para'} {get_covariate_label(language, covariable)}", style={'textAlign': 'center'}),
                     graph_component,
                     table
                 ]))
@@ -2645,11 +2663,11 @@ def register_analysis_callbacks(app):
                 res_df = _read_split_json(results_json)
                 if res_df.empty:
                     continue
-                table = display_logrank_summary_table(res_df)
+                table = display_logrank_summary_table(res_df, language=language)
                 graph_component = plot_logrank_curves(df_data, covariable, language=language)
                 panels.append(html.Div([
                     html.H3(
-                        f"Log-Rank Test results for {covariable}" if language == 'en' else f"Resultado del Test de Log-Rank para {covariable}",
+                        f"Log-Rank Test results for {get_covariate_label(language, covariable)}" if language == 'en' else f"Resultado del Test de Log-Rank para {get_covariate_label(language, covariable)}",
                         style={'textAlign': 'center'}
                     ),
                     graph_component,

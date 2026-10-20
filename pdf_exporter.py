@@ -18,7 +18,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 import plotly.graph_objects as go
 import plotly.io as pio
-from translations import get_translation
+from translations import get_feature_label, get_result_column_label, get_translation
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -398,10 +398,13 @@ class SurvivalAnalysisPDFExporter:
         
         # Tabla de coeficientes
         if coefficients_table is not None and isinstance(coefficients_table, pd.DataFrame) and len(coefficients_table) > 0:
+            coefficients_table = coefficients_table.copy()
+            if 'Covariable' in coefficients_table.columns:
+                coefficients_table['Covariable'] = coefficients_table['Covariable'].map(lambda value: get_feature_label(self.language, str(value)))
             self.elements.append(Spacer(1, 0.1*inch))
             
             # Convertir DataFrame a lista de listas para la tabla
-            table_data = [list(coefficients_table.columns)]
+            table_data = [[get_result_column_label(self.language, column) for column in coefficients_table.columns]]
             for row in coefficients_table.values:
                 # Redondear números para que ocupen menor espacio
                 row_str = []
@@ -515,8 +518,11 @@ class SurvivalAnalysisPDFExporter:
             
             # Si es DataFrame
             elif isinstance(test_results, pd.DataFrame) and len(test_results) > 0:
+                from log_rank_test import localize_logrank_results
+
+                test_results = localize_logrank_results(test_results, self.language)
                 # Convertir DataFrame a lista de listas para la tabla
-                table_data = [list(test_results.columns)]
+                table_data = [[get_result_column_label(self.language, column) for column in test_results.columns]]
                 for row in test_results.values:
                     # Redondear números para ocupar menos espacio
                     row_str = []

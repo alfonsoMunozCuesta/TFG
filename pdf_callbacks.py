@@ -209,7 +209,7 @@ def register_pdf_export_callbacks(app):
                     kmf = KaplanMeierFitter()
                     kmf.fit(df['date'], event_observed=df['final_result'])
                     km_table = kmf.survival_function_.reset_index()
-                    km_table.columns = ['Tiempo', 'Supervivencia']
+                    km_table.columns = ['Time', 'Survival'] if language == 'en' else ['Tiempo', 'Supervivencia']
                 except Exception as e:
                     print(f"[KM PDF] Error generando tabla KM: {e}")
                     km_table = None
@@ -238,7 +238,7 @@ def register_pdf_export_callbacks(app):
                             break
                     
                     #Crear figura Plotly directamente
-                    km_figure = _create_km_figure(df, covariate_col)
+                    km_figure = _create_km_figure(df, covariate_col, language=language)
                     print(f"[KM PDF] Gráfica KM regenerada para {covariate_col}")
                     
                 except Exception as e:
@@ -732,7 +732,7 @@ def register_pdf_export_callbacks(app):
                 if 'graph' in options and logrank_covariables:
                     print(f"[LOGRANK PDF] Generando gráfica...")
                     try:
-                        logrank_figure = create_logrank_figure(df, logrank_covariables[0])
+                        logrank_figure = create_logrank_figure(df, logrank_covariables[0], language=language)
                         if logrank_figure:
                             print(f"[LOGRANK PDF] Gráfica Log-Rank generada")
                     except Exception as e:
@@ -1453,7 +1453,7 @@ def register_pdf_export_callbacks(app):
             # Usar la misma tabla que se pinta en el dashboard para que el PDF refleje exactamente
             # el bloque "Resumen del modelo RSF" mostrado arriba.
             rsf_table_for_pdf = analysis['summary_df']
-            if rsf_store_data and isinstance(rsf_store_data, dict) and rsf_store_data.get('summary_json'):
+            if rsf_store_data and isinstance(rsf_store_data, dict) and rsf_store_data.get('summary_json') and rsf_store_data.get('language') == language:
                 try:
                     rsf_table_for_pdf = pd.read_json(rsf_store_data['summary_json'], orient='split')
                 except Exception:
