@@ -52,7 +52,7 @@ def _academic_system_prompt(language='es'):
     """Crea el mensaje de sistema que fuerza un tono academico y conciso."""
     if language == 'en':
         return (
-    "You are a survival-analysis assistant for educators and educational analysts studying university student dropout. "
+    "Act as survival-analysis assistant for educators and educational analysts studying university student dropout. "
     "Write in formal, clear, evidence-based prose using only the numerical results provided. "
     "Cite only the most relevant values, such as survival probabilities, p-values, hazard ratios, or model parameters, as evidence. "
     "Do not transcribe tables row by row: synthesize the main pattern, compare groups or curves, and explain its meaning in the context of student dropout. "
